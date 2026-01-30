@@ -1,0 +1,62 @@
+{
+    "name": "esxj/fluxion",
+    "description": "FluxionPHP - xxxxxx",
+    "keywords": [
+        "PHP",
+        "MVC",
+        "Framework"
+    ],
+    "config": {
+        "platform": {
+            "php" : "8.1.99"
+        },
+        "process-timeout": 600,
+        "sort-packages": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "homepage": "https://github.com/esjx/fluxion",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Edivan de Souza Junior",
+            "homepage": "https://edivanjunior.com.br"
+        }
+    ],
+    "scripts": {
+    },
+    "require": {
+        "php": "^8.2",
+        "ext-ctype": "*",
+        "ext-dom": "*",
+        "ext-fileinfo": "*",
+        "ext-filter": "*",
+        "ext-gd": "*",
+        "ext-iconv": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "ext-simplexml": "*",
+        "ext-xml": "*",
+        "ext-xmlreader": "*",
+        "ext-xmlwriter": "*",
+        "ext-zip": "*",
+        "ext-zlib": "*"
+    },
+    "require-dev": {
+        "ext-intl": "*"
+    },
+    "suggest": {
+        "dompdf/dompdf": "Option for rendering PDF with PDF Writer"
+    },
+    "autoload": {
+        "psr-4": {
+            "Esj\\Core\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+        }
+    }
+}
