@@ -28,24 +28,9 @@
     "scripts": {
     },
     "require": {
-        "php": "^8.2",
-        "ext-ctype": "*",
-        "ext-dom": "*",
-        "ext-fileinfo": "*",
-        "ext-filter": "*",
-        "ext-gd": "*",
-        "ext-iconv": "*",
-        "ext-libxml": "*",
-        "ext-mbstring": "*",
-        "ext-simplexml": "*",
-        "ext-xml": "*",
-        "ext-xmlreader": "*",
-        "ext-xmlwriter": "*",
-        "ext-zip": "*",
-        "ext-zlib": "*"
+        "php": "^8.0"
     },
     "require-dev": {
-        "ext-intl": "*"
     },
     "suggest": {
         "dompdf/dompdf": "Option for rendering PDF with PDF Writer"
