@@ -10,6 +10,7 @@ abstract class Mask
     public $pattern_validator;
     public $pattern_message;
     public $label;
+    public $max_length;
 
     public static function mask(?string $value): string
     {

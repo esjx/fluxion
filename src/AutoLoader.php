@@ -27,21 +27,7 @@ class AutoLoader
     public function __construct()
     {
         register_shutdown_function(__CLASS__ . '::shutdown');
-        $this->addNamespace(__NAMESPACE__, __DIR__);
-        $this->addNamespace('Psr\SimpleCache', __DIR__ . '/../Classes/SimpleCache');
-        $this->addNamespace('Composer\Pcre', __DIR__ . '/../Classes/Pcre');
-        $this->addNamespace('PhpOffice\PhpSpreadsheet', __DIR__ . '/../Classes/PhpSpreadsheet');
-        $this->addNamespace('PhpOffice\PhpWord', __DIR__ . '/../Classes/PhpWord');
-        $this->addNamespace('JeroenDesloovere\VCard', __DIR__ . '/../Classes/VCard');
-        $this->addNamespace('Firebase\JWT', __DIR__ . '/../Classes/JWT');
-        $this->addNamespace('FontLib', __DIR__ . '/../Classes/FontLib');
-        $this->addNamespace('Svg', __DIR__ . '/../Classes/Svg');
-        $this->addNamespace('ZipStream', __DIR__ . '/../Classes/ZipStream');
-        $this->addNamespace('MyCLabs\Enum', __DIR__ . '/../Classes/Enum');
-        $this->addNamespace('Dompdf', __DIR__ . '/../Classes/dompdf-master/src');
-        $this->addNamespace('PHPMailer\PHPMailer', __DIR__ . '/../Classes/PHPMailer');
-        $this->addNamespace('Shapefile', __DIR__ . '/../Classes/php-shapefile/src/Shapefile');
-        $this->addNamespace('Smalot\PdfParser', __DIR__ . '/../Classes/PdfParser');
+        //$this->addNamespace(__NAMESPACE__, __DIR__);
         $this->register();
     }
 

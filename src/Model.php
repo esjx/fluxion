@@ -217,6 +217,7 @@ abstract class Model {
         $this->_fields[$key]['placeholder'] = $mask->placeholder;
         $this->_fields[$key]['pattern'] = $mask->pattern_validator;
         $this->_fields[$key]['label'] = $this->_fields[$key]['label'] ?? $mask->label;
+        $this->_fields[$key]['maxlength'] = $this->_fields[$key]['maxlength'] ?? $mask->max_length;
 
     }
 

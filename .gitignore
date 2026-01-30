@@ -1,10 +1,4 @@
 # Default ignored files
 /.idea/
-/lib/
-/dist/
-/uploads/
 /vendor/
-environment.ini
 composer.lock
-/php7/2022/dist/assets/img/logo.png
-/fontes.des.caixa.crt
