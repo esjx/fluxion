@@ -37,7 +37,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Esj\\Core\\": "src"
+            "Fluxion\\": "src"
         }
     },
     "autoload-dev": {
