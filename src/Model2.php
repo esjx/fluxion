@@ -197,4 +197,9 @@ abstract class Model2
         return $this->_primary_keys;
     }
 
+    public function __toString(): string
+    {
+        return get_class($this);
+    }
+
 }

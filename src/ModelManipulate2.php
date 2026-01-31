@@ -310,9 +310,11 @@ class ModelManipulate2
      * @param Auth $auth
      * @return bool
      */
-    public static function sync($model, Config $config, Auth $auth) {
+    public static function sync(string $model): void
+    {
 
-        $drop = false;
+        /** @var Config $config */
+        $config = $GLOBALS['CONFIG'];
 
         try {
 
@@ -365,22 +367,11 @@ class ModelManipulate2
             $class_model->changeState(Model::STATE_SYNC);
 
             // Criar a tabela principal
-            $connector->create2([
-                'model' => get_class($class_model),
-                'table' => $class_model->getTable(),
-                'fields' => $class_model->getFields(),
-                'field_id' => '',//$class_model->getFieldId(),
-                'field_id_ai' => false,//$class_model->getFieldIdAi(),
-                'database' => 0,//$class_model->getDatabase(),
-                'indexes' => [],//$class_model->getIndexes(),
-            ]);
-            //Application::trackerSql($sql);
+            $connector->synchronize($class_model);
 
             echo "\n\n";
 
-            return true;
-
-            $obj->exec($sql);
+            return;
 
             // Criar as tabelas M:N
             foreach ($class_model->getFields() as $key=>$value) {
@@ -498,8 +489,6 @@ class ModelManipulate2
 
             }
 
-            return true;
-
         } catch (\PDOException $e) {
 
             if ($obj->inTransaction())
@@ -508,8 +497,6 @@ class ModelManipulate2
             $connector->error($e);
 
         }
-
-        return false;
 
     }
 

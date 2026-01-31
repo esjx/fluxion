@@ -10,6 +10,7 @@ use Fluxion\Application;
 use Fluxion\Auth\Auth;
 use Fluxion\Config;
 use Fluxion\Model;
+use Fluxion\Database;
 
 class Connector
 {
@@ -272,6 +273,11 @@ class Connector
     {
 
         return "DROP TABLE IF EXISTS {$arg['table']} CASCADE;";
+
+    }
+
+    public function synchronize(Model2 $model): void
+    {
 
     }
 

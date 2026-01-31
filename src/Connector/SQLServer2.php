@@ -5,6 +5,7 @@ use PDO;
 use PDOException;
 use Fluxion\Application;
 use Fluxion\Model;
+use Fluxion\Model2;
 use Fluxion\SqlFormatter;
 use Fluxion\Database;
 
@@ -58,7 +59,7 @@ class SQLServer2 extends SQLServer
 
     }
 
-    protected function getDatabases(): void
+    protected function updateDatabases(): void
     {
 
         if (is_array($this->_databases)) return;
@@ -107,16 +108,16 @@ class SQLServer2 extends SQLServer
 
     }
 
-    protected function updateDatabase(string $database, $schema): void
+    protected function updateDatabase(Database\Table $table): void
     {
 
-        $this->getDatabases();
+        $this->updateDatabases();
 
-        if (!isset($this->_databases[$database])) {
+        if (!isset($this->_databases[$table->database])) {
 
-            $this->exec("CREATE DATABASE $database;");
+            $this->exec("CREATE DATABASE $table->database;");
 
-            $this->_databases[$database] = [
+            $this->_databases[$table->database] = [
                 'dbo' => [
                     'id' => 1,
                     'tables' => [],
@@ -125,28 +126,29 @@ class SQLServer2 extends SQLServer
 
         }
 
-        if ($this->_database != $database) {
-            $this->exec("USE $database;");
-            $this->_database = $database;
+        if ($this->_database != $table->database) {
+            $this->exec("USE $table->database;");
+            $this->_database = $table->database;
         }
 
-        if (!isset($this->_databases[$database][$schema])) {
-            $this->exec("USE $database;");
-            $this->exec("CREATE SCHEMA $schema;");
-            $this->_databases[$database][$schema] = [];
+        if (!isset($this->_databases[$table->database][$table->schema])) {
+            $this->exec("USE $table->database;");
+            $this->exec("CREATE SCHEMA $table->schema;");
+            $this->_databases[$table->database][$table->schema] = [];
         }
 
     }
 
-    public function tableFields(Database\Table $table): array
+    public function getTableInfo(Database\Table $table): array
     {
 
         # Dados em branco
 
-        $fields = [
+        $info = [
             'columns' => [],
             'primary_keys' => [],
             'foreign_keys' => [],
+            'indexes' => [],
         ];
 
         # Alterando banco de dados atual
@@ -172,7 +174,7 @@ class SQLServer2 extends SQLServer
 
         while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
-            $fields['columns'][$result['column_name']] = [
+            $info['columns'][$result['column_name']] = [
                 'exists' => true,
                 'column_name' => $result['column_name'],
                 'column_id' => $result['column_id'],
@@ -206,14 +208,14 @@ class SQLServer2 extends SQLServer
 
         while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
-            if (!isset($fields['primary_keys'][$result['pk_name']])) {
-                $fields['primary_keys'][$result['pk_name']] = [
+            if (!isset($info['primary_keys'][$result['pk_name']])) {
+                $info['primary_keys'][$result['pk_name']] = [
                     'exists' => true,
                     'columns' => [],
                 ];
             }
 
-            $fields['primary_keys'][$result['pk_name']]['columns'][] = $result['column_name'];
+            $info['primary_keys'][$result['pk_name']]['columns'][] = $result['column_name'];
 
         }
 
@@ -237,7 +239,7 @@ class SQLServer2 extends SQLServer
 
         while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
-            $fields['foreign_keys'][$result['fk_name']] = [
+            $info['foreign_keys'][$result['fk_name']] = [
                 'exists' => true,
                 'parent_column' => $result['parent_column'],
                 'referenced_schema' => $result['referenced_schema'],
@@ -251,25 +253,21 @@ class SQLServer2 extends SQLServer
 
         # Retornando dados
 
-        return $fields;
+        return $info;
 
     }
 
-    public function create2($arg): void
+    public function synchronize(Model2 $model): void
     {
 
-        /** @var Database\Table $table */
-        $table = $arg['table'];
+        $table = $model->getTable();
+        $fields = $model->getFields();
 
-        $table_name = $table->table;
-        $schema_name = $table->schema;
-        $database_name = $table->database;
+        $this->updateDatabase($table);
 
-        $this->updateDatabase($database_name, $schema_name);
+        $prefix = strtolower("{$table->schema}_$table->table");
 
-        $constraint_prefix = strtolower("{$schema_name}_$table_name");
-
-        $dados_tabela = $this->tableFields($table);
+        $dados_tabela = $this->getTableInfo($table);
 
         $columns = $dados_tabela['columns'];
         $primary_keys = $dados_tabela['primary_keys'];
@@ -279,7 +277,7 @@ class SQLServer2 extends SQLServer
 
         if ($exists) {
 
-            echo "<span style='color: gray;'>/* Tabela '$schema_name.$table_name' já existe */</span>\n\n";
+            echo "<span style='color: gray;'>/* Tabela '$table->schema.$table->table' já existe */</span>\n\n";
 
         }
 
@@ -287,8 +285,7 @@ class SQLServer2 extends SQLServer
         $_primary_keys = [];
         $_foreign_keys = [];
 
-        /** @var Database\Field $value */
-        foreach ($arg['fields'] as $key => $value) {
+        foreach ($fields as $key => $value) {
 
             if ($value->fake) {
                 continue;
@@ -407,7 +404,7 @@ class SQLServer2 extends SQLServer
 
                 if (!isset($columns[$key])) {
 
-                    $sql = "ALTER TABLE $schema_name.$table_name\n"
+                    $sql = "ALTER TABLE $table->schema.$table->table\n"
                         . "\tADD $comando;";
 
                     $this->exec($sql);
@@ -418,7 +415,7 @@ class SQLServer2 extends SQLServer
                     || $columns[$key]['max_length'] != $value->max_length
                     || $columns[$key]['required'] != $value->required) {
 
-                    $sql = "ALTER TABLE $schema_name.$table_name\n"
+                    $sql = "ALTER TABLE $table->schema.$table->table\n"
                         . "\tALTER COLUMN $comando;";
 
                     $this->exec($sql);
@@ -463,19 +460,19 @@ class SQLServer2 extends SQLServer
 
                         echo "<span style='color: red;'>/* Apagando chave primária '$key' */</span>\n\n";
 
-                        $sql = "ALTER TABLE $schema_name.$table_name\n"
+                        $sql = "ALTER TABLE $table->schema.$table->table\n"
                             . "\tDROP CONSTRAINT $key;";
 
                         $this->exec($sql);
 
                     }
 
-                    $primary_key_name = "{$constraint_prefix}_pkey";
+                    $primary_key_name = "{$prefix}_pkey";
                     $primary_key = implode("\", \"", $_primary_keys);
 
                     echo "<span style='color: green;'>/* Criando chave primária '$primary_key_name' */</span>\n\n";
 
-                    $sql = "ALTER TABLE $schema_name.$table_name\n"
+                    $sql = "ALTER TABLE $table->schema.$table->table\n"
                         . "\tADD CONSTRAINT $primary_key_name PRIMARY KEY (\"$primary_key\");";
 
                     $this->exec($sql);
@@ -488,10 +485,10 @@ class SQLServer2 extends SQLServer
 
             if (count($_foreign_keys) > 0) {
 
-                /** Database\ForeignKey $foreign_key */
+                /** @var Database\ForeignKey $foreign_key */
                 foreach ($_foreign_keys as $key => $foreign_key) {
 
-                    $foreign_key_name = "{$constraint_prefix}_fk_$key";
+                    $foreign_key_name = "{$prefix}_fk_$key";
 
                     if (!$foreign_key->real) {
                         continue;
@@ -499,12 +496,10 @@ class SQLServer2 extends SQLServer
 
                     $reference = $foreign_key->getReferenceModel()->getTable();
 
-                    /** Database\Field $field */
-                    $field = $arg['fields'][$key];
+                    $field = $fields[$key];
 
                     $foreign_key_exists = false;
 
-                    /** Database\Field $reference_field */
                     $reference_field = $foreign_key->getField();
 
                     $foreign_key_type = ($field->required) ? 'NO_ACTION' : 'SET_NULL';
@@ -523,7 +518,7 @@ class SQLServer2 extends SQLServer
 
                             echo "<span style='color: red;'>/* Apagando chave estrangeira '$fk_key' */</span>\n\n";
 
-                            $sql = "ALTER TABLE $schema_name.$table_name\n"
+                            $sql = "ALTER TABLE $table->schema.$table->table\n"
                                 . "\tDROP CONSTRAINT $fk_key;";
 
                             $this->exec($sql);
@@ -546,7 +541,7 @@ class SQLServer2 extends SQLServer
 
                         $foreign_key_type = ($field->required) ? 'NO ACTION' : 'SET NULL';
 
-                        $sql = "ALTER TABLE $schema_name.$table_name\n"
+                        $sql = "ALTER TABLE $table->schema.$table->table\n"
                             . "\tADD CONSTRAINT $foreign_key_name "
                             . "FOREIGN KEY (\"$field->column_name\") "
                             . "REFERENCES $reference->schema.$reference->table ($reference_field->column_name) "
@@ -564,11 +559,11 @@ class SQLServer2 extends SQLServer
 
         else {
 
-            echo "<span style='color: green;'>/* Criando tabela '$schema_name.$table_name' */</span>\n\n";
+            echo "<span style='color: green;'>/* Criando tabela '$table->schema.$table->table' */</span>\n\n";
 
             # Campos da tabela
 
-            $fields = implode(",\n", $_fields);
+            $comando = implode(",\n", $_fields);
 
             # Chaves primárias
 
@@ -576,7 +571,7 @@ class SQLServer2 extends SQLServer
 
                 $primary_key = implode("\", \"", $_primary_keys);
 
-                $fields .= ",\n\tCONSTRAINT {$constraint_prefix}_pkey PRIMARY KEY (\"$primary_key\")";
+                $comando .= ",\n\tCONSTRAINT {$prefix}_pkey PRIMARY KEY (\"$primary_key\")";
 
             }
 
@@ -584,7 +579,7 @@ class SQLServer2 extends SQLServer
 
             if (count($_foreign_keys) > 0) {
 
-                /** Database\ForeignKey $foreign_key */
+                /** @var Database\ForeignKey $foreign_key */
                 foreach ($_foreign_keys as $key => $foreign_key) {
 
                     if (!$foreign_key->real) {
@@ -599,15 +594,13 @@ class SQLServer2 extends SQLServer
 
                     else {
 
-                        /** Database\Field $field */
-                        $field = $arg['fields'][$key];
+                        $field = $fields[$key];
 
-                        /** Database\Field $reference_field */
                         $reference_field = $foreign_key->getField();
 
                         $foreign_key_type = ($field->required) ? 'NO ACTION' : 'SET NULL';
 
-                        $fields .= ",\n\tCONSTRAINT {$constraint_prefix}_fk_$key "
+                        $comando .= ",\n\tCONSTRAINT {$prefix}_fk_$key "
                             . "FOREIGN KEY (\"$field->column_name\") "
                             . "REFERENCES $reference->schema.$reference->table ($reference_field->column_name) "
                             . "ON UPDATE $foreign_key_type ON DELETE $foreign_key_type";
@@ -620,11 +613,11 @@ class SQLServer2 extends SQLServer
 
             # Comandos
 
-            $sql = "CREATE TABLE $schema_name.$table_name (\n$fields\n);";
+            $sql = "CREATE TABLE $table->schema.$table->table (\n$comando\n);";
 
             $this->exec($sql);
 
-            $sql = "EXEC sp_addextendedproperty 'MS_Description', '{$arg['model']} (" . AGORA . ")', 'SCHEMA', '$schema_name', 'TABLE', '$table_name';";
+            $sql = "EXEC sp_addextendedproperty 'MS_Description', '$model (" . AGORA . ")', 'SCHEMA', '$table->schema', 'TABLE', '$table->table';";
 
             $this->exec($sql);
 
@@ -655,7 +648,7 @@ class SQLServer2 extends SQLServer
             }
 
             //$indexes .= "IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = '$indexName')" . PHP_EOL;
-            //$indexes .= "CREATE INDEX $indexName ON $schema_name.$table_name ($btree);" . PHP_EOL;
+            //$indexes .= "CREATE INDEX $indexName ON $table->schema.$table->table ($btree);" . PHP_EOL;
 
         }*/
 
