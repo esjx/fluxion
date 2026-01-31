@@ -590,22 +590,20 @@ class SQLServer extends Connector
 
     }
 
-    public function error(Exception $e)
+    public function error(Exception $e): never
     {
 
         if ($e->getCode() == 40001) {
 
-            Application::error('O registro que você tentou alterar está sendo utilizado! <br><br><b class="text-black">Tente novamente em instantes.</b>', 500, false, false);
+            Application::error('O registro que você tentou alterar está em uso! <br><br><b class="text-black">Tente novamente em instantes.</b>', 500, false, false);
 
         } elseif ($e->getCode() == 22003) {
-
-            Application::error($e->getMessage(), 500);
 
             Application::error('Valor numérico acima do permitido! <br><br><b class="text-black">Verifique os valores numéricos inseridos.</b>', 500, false, false);
 
         } else {
 
-            Application::error($e->getMessage(), 500);
+            Application::error($e->getMessage());
 
         }
 

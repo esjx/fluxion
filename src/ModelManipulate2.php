@@ -365,7 +365,7 @@ class ModelManipulate2
             $class_model->changeState(Model::STATE_SYNC);
 
             // Criar a tabela principal
-            $sql = $connector->create2([
+            $connector->create2([
                 'model' => get_class($class_model),
                 'table' => $class_model->getTable(),
                 'fields' => $class_model->getFields(),
@@ -373,7 +373,7 @@ class ModelManipulate2
                 'field_id_ai' => false,//$class_model->getFieldIdAi(),
                 'database' => 0,//$class_model->getDatabase(),
                 'indexes' => [],//$class_model->getIndexes(),
-            ], $class_model);
+            ]);
             //Application::trackerSql($sql);
 
             echo "\n\n";

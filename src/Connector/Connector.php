@@ -494,7 +494,7 @@ class Connector
 
     }
 
-    public function error(Exception $e)
+    public function error(Exception $e): never
     {
 
         Application::error($e->getMessage(), 500);
