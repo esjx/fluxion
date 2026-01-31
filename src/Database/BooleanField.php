@@ -8,6 +8,7 @@ class BooleanField extends Field
 {
 
     protected string $_type = self::TYPE_BOOLEAN;
+    protected string $_type_target = 'bool';
 
     public function __construct(public ?string $label = null,
                                 public ?bool $required = false,
@@ -15,7 +16,7 @@ class BooleanField extends Field
                                 public ?bool $readonly = false,
                                 public ?int $size = 12)
     {
-
+        parent::__construct();
     }
 
 }

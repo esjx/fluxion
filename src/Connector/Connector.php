@@ -2,6 +2,7 @@
 namespace Fluxion\Connector;
 
 use Exception;
+use Fluxion\Model2;
 use PDO;
 use PDOException;
 use PDOStatement;
@@ -274,7 +275,7 @@ class Connector
 
     }
 
-    public function create($arg, Model $model): string
+    public function create($arg, Model|Model2 $model): string
     {
 
         $fields = '';

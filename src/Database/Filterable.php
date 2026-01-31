@@ -25,4 +25,9 @@ class Filterable
         return $this->_active;
     }
 
+    public function __construct(public ?string $icon = null, public ?bool $show_all = null)
+    {
+
+    }
+
 }

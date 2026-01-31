@@ -400,7 +400,7 @@ class Application
 
         if ($log) {
 
-            $view = new View(__DIR__ . '/../../apps/_home/views/erro-mail.phtml');
+            $view = new View(dirname(__DIR__, 4) . '/apps/_home/views/erro-mail.phtml');
 
             if (isset($GLOBALS['TRACKER_SQL'])) {
 
@@ -437,7 +437,7 @@ class Application
             $view->is = nl2br(substr(print_r($is, true), 0, 2048));
             $view->sql = nl2br(SqlFormatter::format($sql, true, false));
 
-            $view_base = new View(__DIR__ . '/../../apps/_home/views/email-base.phtml');
+            $view_base = new View(dirname(__DIR__, 4) . '/apps/_home/views/email-base.phtml');
 
             $view_base->conteudo = $view->load();
 
@@ -508,7 +508,7 @@ class Application
 
             }
 
-            $view = new View(__DIR__ . '/../../apps/_home/views/erro.phtml');
+            $view = new View(dirname(__DIR__, 4) . '/apps/_home/views/erro.phtml');
 
             $view->code = sprintf("%03d", $code);
             $view->error = $error;
@@ -550,7 +550,7 @@ class Application
 
         $sql = '-';
 
-        $view = new View(__DIR__ . '/../../apps/_home/views/erro-mail.phtml');
+        $view = new View(dirname(__DIR__, 4) . '/apps/_home/views/erro-mail.phtml');
 
         if (isset($GLOBALS['TRACKER_SQL'])) {
 
@@ -589,7 +589,7 @@ class Application
         $view->is = nl2br(substr(print_r($is, true), 0, 2048));
         $view->sql = nl2br(SqlFormatter::format($sql, true, false));
 
-        $view_base = new View(__DIR__ . '/../../apps/_home/views/email-base.phtml');
+        $view_base = new View(dirname(__DIR__, 4) . '/apps/_home/views/email-base.phtml');
 
         $view_base->conteudo = $view->load();
 

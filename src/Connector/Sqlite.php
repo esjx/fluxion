@@ -1,6 +1,7 @@
 <?php
 namespace Fluxion\Connector;
 
+use Fluxion\Model2;
 use PDO;
 use PDOStatement;
 use Fluxion\Auth\Auth;
@@ -51,7 +52,7 @@ class Sqlite extends Connector
 
     }
 
-    public function create($arg, Model $model): string
+    public function create($arg, Model|Model2 $model): string
     {
 
         $fields = '';

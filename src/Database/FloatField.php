@@ -8,6 +8,7 @@ class FloatField extends Field
 {
 
     protected string $_type = self::TYPE_FLOAT;
+    protected string $_type_target = 'string';
 
     public function __construct(public ?string $label = null,
                                 public ?bool $required = false,
@@ -17,7 +18,7 @@ class FloatField extends Field
                                 public null|int|string $max_value = null,
                                 public ?int $size = 12)
     {
-
+        parent::__construct();
     }
 
 }

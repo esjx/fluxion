@@ -28,7 +28,8 @@
     "scripts": {
     },
     "require": {
-        "php": "^8.0"
+        "php": "^8.0",
+        "ext-pdo": "*"
     },
     "require-dev": {
     },

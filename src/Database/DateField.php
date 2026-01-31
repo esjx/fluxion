@@ -17,7 +17,7 @@ class DateField extends Field
                                 public null|int|string $max_value = null,
                                 public ?int $size = 12)
     {
-
+        parent::__construct();
     }
 
 }

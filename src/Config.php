@@ -97,6 +97,13 @@ class Config
 
         }
 
+        if (isset($_ENV['DB_TYPE']) && $_ENV['DB_TYPE'] == 'sqlsrv2') {
+
+            $conn = new Connector\SQLServer2($_ENV['DB_HOST'], $_ENV['DB_USER'], $_ENV['DB_PASS']);
+            $this->addConnector(0, $conn);
+
+        }
+
         $GLOBALS['CONFIG'] = $this;
 
         $this->createConstants();

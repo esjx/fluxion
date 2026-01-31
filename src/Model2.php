@@ -31,6 +31,8 @@ abstract class Model2
 
         $reflection = new ReflectionClass(get_class($this));
 
+        # Carrega os atributos dos campos do modelo
+
         $properties = $reflection->getProperties();
 
         foreach ($properties as $property) {
@@ -103,9 +105,19 @@ abstract class Model2
 
                 }
 
+                if ($instance instanceof Database\Field) {
+
+                    $instance->setTypeProperty($property->getType());
+                    $instance->setModel($this);
+                    $instance->initialize();
+
+                }
+
             }
 
         }
+
+        # Carrega os atributos do modelo
 
         $attributes = $reflection->getAttributes();
 
@@ -118,6 +130,25 @@ abstract class Model2
                 $this->_table = $instance;
 
             }
+
+        }
+
+        # Ajusta as chaves primárias
+
+        foreach ($this->_primary_keys as $key => $primary_key) {
+
+            $this->_fields[$key]->primary_key = true;
+
+        }
+
+        # Ajusta as chaves estrangeiras
+
+        foreach ($this->_foreign_keys as $key => &$foreign_key) {
+
+            $foreign_key->setModel($this);
+            $foreign_key->initialize();
+
+            $this->_fields[$key]->foreign_key = $foreign_key;
 
         }
 
@@ -142,6 +173,28 @@ abstract class Model2
 
         return null;
 
+    }
+
+    public function changeState($state)
+    {
+
+    }
+
+    public function getTable(): ?Database\Table
+    {
+        return $this->_table;
+    }
+
+    /** @return array<string, Database\Field> */
+    public function getFields(): array
+    {
+        return $this->_fields;
+    }
+
+    /** @return array<string, Database\PrimaryKey> */
+    public function getPrimaryKeys(): array
+    {
+        return $this->_primary_keys;
     }
 
 }
