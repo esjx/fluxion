@@ -1,9 +1,9 @@
 <?php
-namespace Esj\Core;
+namespace Fluxion;
 
 //use Esj\App\Home\HomeController;
-use Esj\Core\Auth\Auth;
-use Esj\Core\Log\Log;
+use Fluxion\Auth\Auth;
+use Fluxion\Log\Log;
 use Exception;
 use PHPMailer\PHPMailer\PHPMailer;
 use stdClass;

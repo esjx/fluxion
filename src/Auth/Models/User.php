@@ -1,8 +1,8 @@
 <?php
-namespace Esj\Core\Auth\Models;
+namespace Fluxion\Auth\Models;
 
-use Esj\Core\Model;
-use Esj\Core\Util;
+use Fluxion\Model;
+use Fluxion\Util;
 
 class User extends Model
 {

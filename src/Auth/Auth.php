@@ -1,16 +1,16 @@
 <?php
-namespace Esj\Core\Auth;
+namespace Fluxion\Auth;
 
-use Esj\Core\Auth\Models\PermissionProfile;
-use Esj\Core\MnModel;
+use Fluxion\Auth\Models\PermissionProfile;
+use Fluxion\MnModel;
 use Exception;
-use Esj\Core\Application;
-use Esj\Core\Config;
-use Esj\Core\Log\Models as Log;
-use Esj\Core\Auth\Models\CostCenter;
-use Esj\Core\Auth\Models\PermissionGroup;
-use Esj\Core\Auth\Models\User;
-use Esj\Core\Auth\Models\UserGroup;
+use Fluxion\Application;
+use Fluxion\Config;
+use Fluxion\Log\Models as Log;
+use Fluxion\Auth\Models\CostCenter;
+use Fluxion\Auth\Models\PermissionGroup;
+use Fluxion\Auth\Models\User;
+use Fluxion\Auth\Models\UserGroup;
 
 class Auth
 {

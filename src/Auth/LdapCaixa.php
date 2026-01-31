@@ -1,8 +1,8 @@
 <?php
-namespace Esj\Core\Auth;
+namespace Fluxion\Auth;
 
 use Exception;
-use Esj\Core\ImageManipulate;
+use Fluxion\ImageManipulate;
 
 class LdapCaixa extends LdapIisCaixa
 {

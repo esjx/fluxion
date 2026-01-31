@@ -1,11 +1,11 @@
 <?php
-namespace Esj\Core\Auth\Models;
+namespace Fluxion\Auth\Models;
 
-use Esj\Core\Sql;
-use Esj\Core\Util;
+use Fluxion\Sql;
+use Fluxion\Util;
 use stdClass;
-use Esj\Core\Model;
-use Esj\Core\Query;
+use Fluxion\Model;
+use Fluxion\Query;
 
 class Group extends Model
 {

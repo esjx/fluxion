@@ -1,7 +1,7 @@
 <?php
-namespace Esj\Core\Log\Models;
+namespace Fluxion\Log\Models;
 
-use Esj\Core\Model;
+use Fluxion\Model;
 
 class Log extends Model
 {
@@ -18,7 +18,7 @@ class Log extends Model
         'cost_center' => [
             'type' => 'integer',
             'required' => false,
-            'foreign_key' => 'Esj\Core\Auth\Models\CostCenter',
+            'foreign_key' => 'Fluxion\Auth\Models\CostCenter',
             'foreign_key_fake' => true,
             'label' => 'Unidade',
         ],
@@ -26,7 +26,7 @@ class Log extends Model
             'type' => 'string',
             'label' => 'Matrícula',
             'required' => false,
-            'foreign_key' => 'Esj\Core\Auth\Models\User',
+            'foreign_key' => 'Fluxion\Auth\Models\User',
             'foreign_key_fake' => true,
         ],
         'user_agent' => [

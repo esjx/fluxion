@@ -1,5 +1,5 @@
 <?php
-namespace Esj\Core;
+namespace Fluxion;
 
 use DateTime;
 use Exception;

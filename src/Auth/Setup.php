@@ -1,9 +1,9 @@
 <?php
-namespace Esj\Core\Auth;
+namespace Fluxion\Auth;
 
-use Esj\Core\Auth\Models\CostCenter;
-use Esj\Core\Auth\Models\User;
-use Esj\Core\Config;
+use Fluxion\Auth\Models\CostCenter;
+use Fluxion\Auth\Models\User;
+use Fluxion\Config;
 
 class Setup extends Auth
 {

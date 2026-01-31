@@ -1,7 +1,7 @@
 <?php
-namespace Esj\Core;
+namespace Fluxion;
 
-use Esj\Core\Mask as Mask;
+use Fluxion\Mask as Mask;
 
 class CustomMessage
 {

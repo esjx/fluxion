@@ -1,11 +1,11 @@
 <?php
-namespace Esj\Core\Auth;
+namespace Fluxion\Auth;
 
-use Esj\Core\Application;
-use Esj\Core\Auth\Models\CostCenter;
-use Esj\Core\Auth\Models\User;
-use Esj\Core\Config;
-use Esj\Core\Sql;
+use Fluxion\Application;
+use Fluxion\Auth\Models\CostCenter;
+use Fluxion\Auth\Models\User;
+use Fluxion\Config;
+use Fluxion\Sql;
 
 class Basic extends Auth
 {

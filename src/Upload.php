@@ -1,5 +1,5 @@
 <?php
-namespace Esj\Core;
+namespace Fluxion;
 
 use PDO;
 use DateTime;
@@ -8,7 +8,7 @@ use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ZipArchive;
-use Esj\Core\Auth\Auth;
+use Fluxion\Auth\Auth;
 
 class Upload
 {

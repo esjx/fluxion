@@ -1,7 +1,7 @@
 <?php
-namespace Esj\Core\Auth\Models;
+namespace Fluxion\Auth\Models;
 
-use Esj\Core as Esj;
+use Fluxion as Esj;
 
 class Profile extends Esj\Model
 {

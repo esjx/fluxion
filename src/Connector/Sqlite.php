@@ -1,11 +1,11 @@
 <?php
-namespace Esj\Core\Connector;
+namespace Fluxion\Connector;
 
 use PDO;
 use PDOStatement;
-use Esj\Core\Auth\Auth;
-use Esj\Core\Config;
-use Esj\Core\Model;
+use Fluxion\Auth\Auth;
+use Fluxion\Config;
+use Fluxion\Model;
 
 class Sqlite extends Connector
 {

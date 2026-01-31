@@ -1,5 +1,5 @@
 <?php
-namespace Esj\Core;
+namespace Fluxion;
 
 class ExportDataExcel extends ExportData
 {

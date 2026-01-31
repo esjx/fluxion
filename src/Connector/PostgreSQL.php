@@ -1,5 +1,5 @@
 <?php
-namespace Esj\Core\Connector;
+namespace Fluxion\Connector;
 
 class PostgreSQL extends Connector {
 

@@ -1,10 +1,10 @@
 <?php
-namespace Esj\Core\Log;
+namespace Fluxion\Log;
 
-use Esj\Core\Application;
-use Esj\Core\Config;
-use Esj\Core\Auth\Auth;
-use Esj\Core\Csrf;
+use Fluxion\Application;
+use Fluxion\Config;
+use Fluxion\Auth\Auth;
+use Fluxion\Csrf;
 use InvalidArgumentException;
 
 class Log

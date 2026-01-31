@@ -1,19 +1,19 @@
 <?php
-namespace Esj\Core\Auth;
+namespace Fluxion\Auth;
 
 use DateTime;
 use Exception;
-use Esj\Core\Csrf;
-use Esj\Core\Application;
-use Esj\Core\Auth\Models\CostCenter;
-use Esj\Core\Auth\Models\Occupation;
-use Esj\Core\Auth\Models\Rule;
-use Esj\Core\Auth\Models\User;
-use Esj\Core\Auth\Models\UserGroup;
-use Esj\Core\Config;
-use Esj\Core\ImageManipulate;
-use Esj\Core\Sql;
-use Esj\Core\Util;
+use Fluxion\Csrf;
+use Fluxion\Application;
+use Fluxion\Auth\Models\CostCenter;
+use Fluxion\Auth\Models\Occupation;
+use Fluxion\Auth\Models\Rule;
+use Fluxion\Auth\Models\User;
+use Fluxion\Auth\Models\UserGroup;
+use Fluxion\Config;
+use Fluxion\ImageManipulate;
+use Fluxion\Sql;
+use Fluxion\Util;
 
 class LdapIisCaixa extends Auth
 {

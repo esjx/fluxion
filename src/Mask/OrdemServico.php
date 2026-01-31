@@ -1,5 +1,5 @@
 <?php
-namespace Esj\Core\Mask;
+namespace Fluxion\Mask;
 
 class OrdemServico extends Mask
 {

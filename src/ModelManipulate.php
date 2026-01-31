@@ -1,8 +1,8 @@
 <?php
-namespace Esj\Core;
+namespace Fluxion;
 
-use Esj\Core\Auth\Auth;
-use Esj\Core\Auth\Models\Permission;
+use Fluxion\Auth\Auth;
+use Fluxion\Auth\Models\Permission;
 
 class ModelManipulate
 {
@@ -111,9 +111,9 @@ class ModelManipulate
 
         try {
 
-            if ($arg['class'] == 'Esj\Core\MnModel')
+            if ($arg['class'] == 'Fluxion\MnModel')
                 $row = new MnModel('', '', false, $config, $auth);
-            elseif ($arg['class'] == 'Esj\Core\MnChoicesModel')
+            elseif ($arg['class'] == 'Fluxion\MnChoicesModel')
                 $row = new MnChoicesModel('', '', $config, $auth);
             else
                 $row = Model::createFromName($arg['class'], $config, $auth);
@@ -154,9 +154,9 @@ class ModelManipulate
 
             while ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
 
-                if ($arg['class'] == 'Esj\Core\MnModel')
+                if ($arg['class'] == 'Fluxion\MnModel')
                     $row = new MnModel('', '', false, $config, $auth);
-                elseif ($arg['class'] == 'Esj\Core\MnChoicesModel')
+                elseif ($arg['class'] == 'Fluxion\MnChoicesModel')
                     $row = new MnChoicesModel('', '', $config, $auth);
                 else
                     $row = Model::createFromName($arg['class'], $config, $auth);
@@ -193,9 +193,9 @@ class ModelManipulate
 
     public static function sql($arg, Config $config, Auth $auth) {
 
-        if ($arg['class'] == 'Esj\Core\MnModel')
+        if ($arg['class'] == 'Fluxion\MnModel')
             $row = new MnModel('', '', false, $config, $auth);
-        elseif ($arg['class'] == 'Esj\Core\MnChoicesModel')
+        elseif ($arg['class'] == 'Fluxion\MnChoicesModel')
             $row = new MnChoicesModel('', '', $config, $auth);
         else
             $row = Model::createFromName($arg['class'], $config, $auth);
@@ -229,9 +229,9 @@ class ModelManipulate
 
         try {
 
-            if ($arg['class'] == 'Esj\Core\MnModel')
+            if ($arg['class'] == 'Fluxion\MnModel')
                 $row = new MnModel('', '', false, $config, $auth);
-            elseif ($arg['class'] == 'Esj\Core\MnChoicesModel')
+            elseif ($arg['class'] == 'Fluxion\MnChoicesModel')
                 $row = new MnChoicesModel('', '', $config, $auth);
             else
                 $row = Model::createFromName($arg['class'], $config, $auth);
@@ -270,9 +270,9 @@ class ModelManipulate
 
             while ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
 
-                if ($arg['class'] == 'Esj\Core\MnModel')
+                if ($arg['class'] == 'Fluxion\MnModel')
                     $row = new MnModel('', '', false, $config, $auth);
-                elseif ($arg['class'] == 'Esj\Core\MnChoicesModel')
+                elseif ($arg['class'] == 'Fluxion\MnChoicesModel')
                     $row = new MnChoicesModel('', '', $config, $auth);
                 else
                     $row = Model::createFromName($arg['class'], $config, $auth);
@@ -323,7 +323,7 @@ class ModelManipulate
             $obj = $connector->getPDO();
 
             // Criar as Permissões
-            if ($model != 'Esj\Core\Auth\Models\Permission' && $model != 'Esj\Core\Auth\Models\PermissionGroup') {
+            if ($model != 'Fluxion\Auth\Models\Permission' && $model != 'Fluxion\Auth\Models\PermissionGroup') {
 
                 $perm = Permission::filter('name', $model)->firstOrNew($config, $auth);
                 $perm->name = $model;

@@ -1,7 +1,7 @@
 <?php
-namespace Esj\Core\Mask;
+namespace Fluxion\Mask;
 
-use Esj\Core\CustomException;
+use Fluxion\CustomException;
 
 class MaskException extends CustomException
 {

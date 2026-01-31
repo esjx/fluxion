@@ -1,5 +1,5 @@
 <?php
-namespace Esj\Core;
+namespace Fluxion;
 
 abstract class InterfaceBase
 {

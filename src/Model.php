@@ -1,12 +1,12 @@
 <?php
-namespace Esj\Core;
+namespace Fluxion;
 
 use stdClass;
 use Exception;
 use DateTime;
-use Esj\Core\Auth\Auth;
-use Esj\Core\Mask\Mask;
-use Esj\Core\Connector\Connector;
+use Fluxion\Auth\Auth;
+use Fluxion\Mask\Mask;
+use Fluxion\Connector\Connector;
 
 abstract class Model {
 
@@ -770,7 +770,7 @@ abstract class Model {
                         foreach ($m->_order as $k)
                             $m = $m->orderBy($k[0], $k[1]);
 
-                        if (($m_name == '\Esj\Core\Auth\Models\CostCenter' || $m_name == 'Esj\Core\Auth\Models\CostCenter') && !$auth->hasPermission($class, 'special'))
+                        if (($m_name == '\Fluxion\Auth\Models\CostCenter' || $m_name == 'Fluxion\Auth\Models\CostCenter') && !$auth->hasPermission($class, 'special'))
                             $m = $m->filter('id', $auth->getCostCentersAccess($class));
 
                         if ($this->filter($field, null)->count('*')->select($config, $auth, 'total') > 0)
@@ -1857,8 +1857,8 @@ abstract class Model {
 
                     }
 
-                    if ($value['foreign_key'] == 'Esj\Core\Auth\Models\CostCenter'
-                        || $value['foreign_key'] == '\Esj\Core\Auth\Models\CostCenter') {
+                    if ($value['foreign_key'] == 'Fluxion\Auth\Models\CostCenter'
+                        || $value['foreign_key'] == '\Fluxion\Auth\Models\CostCenter') {
 
                         if (!$this->_auth->hasPermission($this, 'under')) {
                             $permitted = $this->_auth->getCostCenter()->id;
@@ -1903,8 +1903,8 @@ abstract class Model {
 
                     }
 
-                    if ($value['many_to_many'] == 'Esj\Core\Auth\Models\CostCenter'
-                        || $value['many_to_many'] == '\Esj\Core\Auth\Models\CostCenter') {
+                    if ($value['many_to_many'] == 'Fluxion\Auth\Models\CostCenter'
+                        || $value['many_to_many'] == '\Fluxion\Auth\Models\CostCenter') {
 
                         $permitted = $this->_auth->getAllCostCenterAccess();
 
@@ -1985,8 +1985,8 @@ abstract class Model {
 
                 if (isset($value['foreign_key'])) {
 
-                    if ($value['foreign_key'] == 'Esj\Core\Auth\Models\CostCenter'
-                        || $value['foreign_key'] == '\Esj\Core\Auth\Models\CostCenter') {
+                    if ($value['foreign_key'] == 'Fluxion\Auth\Models\CostCenter'
+                        || $value['foreign_key'] == '\Fluxion\Auth\Models\CostCenter') {
 
                         if ($auth->hasPermission($this, 'under')) {
                             $permitted = $auth->getAllCostCenterAccess();
@@ -2000,8 +2000,8 @@ abstract class Model {
 
                 } elseif (isset($value['many_to_many'])) {
 
-                    if ($value['many_to_many'] == 'Esj\Core\Auth\Models\CostCenter'
-                        || $value['many_to_many'] == '\Esj\Core\Auth\Models\CostCenter') {
+                    if ($value['many_to_many'] == 'Fluxion\Auth\Models\CostCenter'
+                        || $value['many_to_many'] == '\Fluxion\Auth\Models\CostCenter') {
 
                         if ($auth->hasPermission($this, 'under')) {
                             $permitted = $auth->getAllCostCenterAccess();
@@ -2286,8 +2286,8 @@ abstract class Model {
 
                 }*/
 
-                /*if ($value['many_to_many'] == 'Esj\Core\Auth\Models\CostCenter'
-                    || $value['many_to_many'] == '\Esj\Core\Auth\Models\CostCenter') {
+                /*if ($value['many_to_many'] == 'Fluxion\Auth\Models\CostCenter'
+                    || $value['many_to_many'] == '\Fluxion\Auth\Models\CostCenter') {
 
                     $permitted = $this->_auth->getAllCostCenterAccess();
 

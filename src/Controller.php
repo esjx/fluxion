@@ -1,11 +1,11 @@
 <?php
-namespace Esj\Core;
+namespace Fluxion;
 
 use Exception;
 use stdClass;
 use DateTime;
 use ZipArchive;
-use Esj\Core\Auth\Auth;
+use Fluxion\Auth\Auth;
 use PhpOffice\PhpSpreadsheet as Excel;
 
 class Controller extends Service
@@ -287,7 +287,7 @@ class Controller extends Service
 
             $test = new \ReflectionClass($class);
 
-            if (is_subclass_of($class, 'Esj\Core\Model') && !$test->isAbstract()) {
+            if (is_subclass_of($class, 'Fluxion\Model') && !$test->isAbstract()) {
 
                 echo 'Model <b>' . $class . '</b>';
 

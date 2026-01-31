@@ -1,7 +1,7 @@
 <?php
-namespace Esj\Core;
+namespace Fluxion;
 
-use Esj\Core\Auth\Auth;
+use Fluxion\Auth\Auth;
 
 class MnModel extends Model
 {

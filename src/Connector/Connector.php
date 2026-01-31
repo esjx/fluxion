@@ -1,14 +1,14 @@
 <?php
-namespace Esj\Core\Connector;
+namespace Fluxion\Connector;
 
 use Exception;
 use PDO;
 use PDOException;
 use PDOStatement;
-use Esj\Core\Application;
-use Esj\Core\Auth\Auth;
-use Esj\Core\Config;
-use Esj\Core\Model;
+use Fluxion\Application;
+use Fluxion\Auth\Auth;
+use Fluxion\Config;
+use Fluxion\Model;
 
 class Connector
 {
@@ -119,7 +119,7 @@ class Connector
         $not = ($filter['not']) ? ' NOT ' : '';
 
         if (is_object($filter['field']))
-            if (get_class($filter['field']) == 'Esj\Core\Sql') {
+            if (get_class($filter['field']) == 'Fluxion\Sql') {
 
                 $where = '';
                 foreach ($filter['field']->_filters as $k)
@@ -232,7 +232,7 @@ class Connector
                 return '(NULL)';
 
         if (is_object($filter['value']))
-            if (get_class($filter['value']) == 'Esj\Core\Query') {
+            if (get_class($filter['value']) == 'Fluxion\Query') {
 
                 if ($database != $filter['value']->_sql['database'])
                     return "($field $not IN " . $this->escape($filter['value']->toArray($config, $auth)) . ")";

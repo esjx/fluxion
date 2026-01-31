@@ -1,7 +1,7 @@
 <?php
-namespace Esj\Core\Auth\Models;
+namespace Fluxion\Auth\Models;
 
-use Esj\Core\Model;
+use Fluxion\Model;
 
 class Permission extends Model
 {

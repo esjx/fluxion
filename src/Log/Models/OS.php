@@ -1,7 +1,7 @@
 <?php
-namespace Esj\Core\Log\Models;
+namespace Fluxion\Log\Models;
 
-use Esj\Core\Model;
+use Fluxion\Model;
 
 class OS extends Model
 {
