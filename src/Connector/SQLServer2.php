@@ -3,11 +3,12 @@ namespace Fluxion\Connector;
 
 use PDO;
 use PDOException;
-use Fluxion\Application;
+use Generator;
 use Fluxion\Model;
 use Fluxion\Model2;
 use Fluxion\SqlFormatter;
 use Fluxion\Database;
+use Fluxion\CustomException;
 
 class SQLServer2 extends SQLServer
 {
@@ -20,38 +21,30 @@ class SQLServer2 extends SQLServer
     protected $null_value = 'NULL';
     protected $utf_prefix = '';
 
-    protected $_pdo;
+    protected PDO $_pdo;
 
     protected $_connected = false;
 
-    protected ?array $_databases = null;
+    protected ?array $_structure = null;
     protected ?string $_database = null;
 
+    /** @throws PDOException */
     public function getPDO(): PDO
     {
 
         if (!$this->_connected) {
 
-            try {
+            $options = [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::SQLSRV_ATTR_QUERY_TIMEOUT => 15,
+                PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_UTF8,
+                //PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_SYSTEM,
+                //PDO::ATTR_PERSISTENT => true,
+            ];
 
-                $this->_pdo = new PDO(
-                    $this->_host,
-                    $this->_user,
-                    $this->_pass,
-                    [
-                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                        PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_UTF8,
-                        //PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_SYSTEM,
-                        //PDO::ATTR_PERSISTENT => true,
-                        //PDO::SQLSRV_ATTR_QUERY_TIMEOUT => 30,
-                    ]
-                );
+            $this->_pdo = new PDO($this->_host, $this->_user, $this->_pass, $options);
 
-                $this->_connected = true;
-
-            } catch (PDOException $e) {
-                Application::error($e->getMessage(), 207);
-            }
+            $this->_connected = true;
 
         }
 
@@ -59,12 +52,24 @@ class SQLServer2 extends SQLServer
 
     }
 
-    protected function updateDatabases(): void
+    /** @throws PDOException */
+    public function fetch(string $sql): Generator
     {
 
-        if (is_array($this->_databases)) return;
+        $stmt = $this->getPDO()->query($sql);
 
-        $this->_databases = [];
+        while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            yield $result;
+        }
+
+    }
+
+    protected function updateStructure(): void
+    {
+
+        if (is_array($this->_structure)) return;
+
+        $this->_structure = [];
 
         # Buscando bancos de dados
 
@@ -73,11 +78,9 @@ class SQLServer2 extends SQLServer
                 WHERE name NOT IN ('master', 'tempdb', 'model', 'msdb')
                 ORDER BY name";
 
-        $stmt = $this->getPDO()->query($sql);
+        foreach ($this->fetch($sql) as $result) {
 
-        while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
-
-            $this->_databases[$result['name']] = [];
+            $this->_structure[$result['name']] = [];
 
         }
 
@@ -89,15 +92,13 @@ class SQLServer2 extends SQLServer
                     AND name NOT LIKE 'db_%')
                 ORDER BY name;";
 
-        foreach ($this->_databases as $database => $value) {
+        foreach ($this->_structure as $database => $value) {
 
             $this->getPDO()->exec("USE $database;");
 
-            $stmt = $this->getPDO()->query($sql);
+            foreach ($this->fetch($sql) as $result) {
 
-            while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
-
-                $this->_databases[$database][$result['name']] = [
+                $this->_structure[$database][$result['name']] = [
                     'id' => $result['schema_id'],
                     'tables' => [],
                 ];
@@ -111,13 +112,13 @@ class SQLServer2 extends SQLServer
     protected function updateDatabase(Database\Table $table): void
     {
 
-        $this->updateDatabases();
+        $this->updateStructure();
 
-        if (!isset($this->_databases[$table->database])) {
+        if (!isset($this->_structure[$table->database])) {
 
-            $this->exec("CREATE DATABASE $table->database;");
+            $this->execute("CREATE DATABASE $table->database;");
 
-            $this->_databases[$table->database] = [
+            $this->_structure[$table->database] = [
                 'dbo' => [
                     'id' => 1,
                     'tables' => [],
@@ -127,29 +128,24 @@ class SQLServer2 extends SQLServer
         }
 
         if ($this->_database != $table->database) {
-            $this->exec("USE $table->database;");
+            $this->execute("USE $table->database;");
             $this->_database = $table->database;
         }
 
-        if (!isset($this->_databases[$table->database][$table->schema])) {
-            $this->exec("USE $table->database;");
-            $this->exec("CREATE SCHEMA $table->schema;");
-            $this->_databases[$table->database][$table->schema] = [];
+        if (!isset($this->_structure[$table->database][$table->schema])) {
+            $this->execute("USE $table->database;");
+            $this->execute("CREATE SCHEMA $table->schema;");
+            $this->_structure[$table->database][$table->schema] = [];
         }
 
     }
 
-    public function getTableInfo(Database\Table $table): array
+    public function getTableInfo(Database\Table $table): TableInfo
     {
 
         # Dados em branco
 
-        $info = [
-            'columns' => [],
-            'primary_keys' => [],
-            'foreign_keys' => [],
-            'indexes' => [],
-        ];
+        $info = new TableInfo();
 
         # Alterando banco de dados atual
 
@@ -170,22 +166,30 @@ class SQLServer2 extends SQLServer
                 WHERE c.object_id = OBJECT_ID('$table->schema.$table->table')
                 ORDER BY c.column_id;";
 
-        $stmt = $this->getPDO()->query($sql);
+        foreach ($this->fetch($sql) as $result) {
 
-        while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $info->exists = true;
 
-            $info['columns'][$result['column_name']] = [
-                'exists' => true,
-                'column_name' => $result['column_name'],
-                'column_id' => $result['column_id'],
-                'type' => $result['type'],
-                'required' => !$result['is_nullable'],
-                'is_identity' => $result['is_identity'],
-                'max_length' => $result['max_length'],
-                'precision' => $result['precision'],
-                'scale' => $result['scale'],
-            ];
+            $column = new TableColumn();
 
+            $column->name = $result['column_name'];
+            $column->id = $result['column_id'];
+            $column->type = $result['type'];
+            $column->nullable = $result['is_nullable'];
+            $column->required = !$result['is_nullable'];
+            $column->identity = $result['is_identity'];
+            $column->max_length = $result['max_length'];
+            $column->precision = $result['precision'];
+            $column->scale = $result['scale'];
+
+            $info->columns[$result['column_name']] = $column;
+
+        }
+
+        # Retornando dados se não existir tabela
+
+        if (!$info->exists) {
+            return $info;
         }
 
         # Buscando chaves primarias da tabela
@@ -204,18 +208,10 @@ class SQLServer2 extends SQLServer
                   AND kc.parent_object_id = OBJECT_ID('$table->schema.$table->table')
                 ORDER BY column_order;";
 
-        $stmt = $this->getPDO()->query($sql);
+        foreach ($this->fetch($sql) as $result) {
 
-        while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
-
-            if (!isset($info['primary_keys'][$result['pk_name']])) {
-                $info['primary_keys'][$result['pk_name']] = [
-                    'exists' => true,
-                    'columns' => [],
-                ];
-            }
-
-            $info['primary_keys'][$result['pk_name']]['columns'][] = $result['column_name'];
+            $info->primary_key_name = $result['pk_name'];
+            $info->primary_keys[] = $result['column_name'];
 
         }
 
@@ -235,19 +231,19 @@ class SQLServer2 extends SQLServer
                   AND f.parent_object_id = OBJECT_ID('$table->schema.$table->table')
                 ORDER BY fk_name;";
 
-        $stmt = $this->getPDO()->query($sql);
+        foreach ($this->fetch($sql) as $result) {
 
-        while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $foreign_key = new TableForeignKey();
 
-            $info['foreign_keys'][$result['fk_name']] = [
-                'exists' => true,
-                'parent_column' => $result['parent_column'],
-                'referenced_schema' => $result['referenced_schema'],
-                'referenced_table' => $result['referenced_table'],
-                'referenced_column' => $result['referenced_column'],
-                'delete_rule' => $result['delete_rule'],
-                'update_rule' => $result['update_rule'],
-            ];
+            $foreign_key->name = $result['fk_name'];
+            $foreign_key->parent_column = $result['parent_column'];
+            $foreign_key->referenced_schema = $result['referenced_schema'];
+            $foreign_key->referenced_table = $result['referenced_table'];
+            $foreign_key->referenced_column = $result['referenced_column'];
+            $foreign_key->delete_rule = $result['delete_rule'];
+            $foreign_key->update_rule = $result['update_rule'];
+
+            $info->foreign_keys[$result['fk_name']] = $foreign_key;
 
         }
 
@@ -257,6 +253,79 @@ class SQLServer2 extends SQLServer
 
     }
 
+    /** @throws CustomException */
+    protected function getDatabaseType(Database\Field $value): string
+    {
+
+        return match ($value->getType()) {
+            'text', 'iframe', 'map', 'html', 'upload', 'image' => 'varchar',
+            'string', 'password', 'link', 'color' => 'nvarchar',
+            'integer' => 'bigint',
+            'boolean' => 'bit',
+            'date' => 'date',
+            'datetime' => 'datetime',
+            'float' => 'float',
+            'decimal', 'numeric' => "numeric",
+            'geography' => 'geography',
+            default => throw new CustomException("Tipo {$value->getType()} não implementado"),
+        };
+
+    }
+
+    /** @throws CustomException */
+    protected function getColumnCommand(Database\Field $value): string
+    {
+
+        # Definição do tipo
+
+        $type = $this->getDatabaseType($value);
+
+        # Criação do comando
+
+        $command = "[$value->column_name] $type";
+
+        # Complementos
+
+        if ($type == 'varchar' && $value->max_length) {
+            $command .= "($value->max_length)";
+        }
+
+        elseif ($type == 'varchar' && !$value->max_length) {
+            $command .= "(max)";
+        }
+
+        elseif ($type == 'nvarchar') {
+            $command .= "($value->max_length)";
+        }
+
+        elseif ($type == 'decimal') {
+            $command .= "(20,$value->decimal_places)";
+        }
+
+        # Valores nulos
+
+        if ($value->required || $value->identity) {
+            $command .= ' not null';
+        }
+
+        # Auto incremento
+
+        if ($value->identity) {
+            $command .= ' identity(1,1)';
+        }
+
+        # Valor padrão
+
+        if ($value->default) {
+            $default = ($value->default == Model::NOW) ? 'GETDATE()' : $this->escape($value->default);
+            $command .= " default $default";
+        }
+
+        return $command;
+
+    }
+
+    /** @throws CustomException */
     public function synchronize(Model2 $model): void
     {
 
@@ -267,23 +336,12 @@ class SQLServer2 extends SQLServer
 
         $prefix = strtolower("{$table->schema}_$table->table");
 
-        $dados_tabela = $this->getTableInfo($table);
+        $info = $this->getTableInfo($table);
 
-        $columns = $dados_tabela['columns'];
-        $primary_keys = $dados_tabela['primary_keys'];
-        $foreign_keys = $dados_tabela['foreign_keys'];
+        # Buscando as chaves necessárias
 
-        $exists = (count($columns) > 0);
-
-        if ($exists) {
-
-            echo "<span style='color: gray;'>/* Tabela '$table->schema.$table->table' já existe */</span>\n\n";
-
-        }
-
-        $_fields = [];
-        $_primary_keys = [];
-        $_foreign_keys = [];
+        $primary_keys = [];
+        $foreign_keys = [];
 
         foreach ($fields as $key => $value) {
 
@@ -291,202 +349,136 @@ class SQLServer2 extends SQLServer
                 continue;
             }
 
-            # Definição do tipo
-
-            $type = null;
-
-            switch($value->getType()) {
-
-                case 'text':
-                case 'iframe':
-                case 'map':
-                case 'html':
-                case 'upload':
-                case 'image':
-                    $type = 'varchar';
-                    break;
-
-                case 'string':
-                case 'password':
-                case 'link':
-                case 'color':
-                    $type = 'nvarchar';
-                    break;
-
-                case 'integer':
-                    $type = 'bigint';
-                    break;
-
-                case 'boolean':
-                    $type = 'bit';
-                    break;
-
-                case 'date':
-                    $type = 'date';
-                    break;
-
-                case 'datetime':
-                    $type = 'datetime';
-                    break;
-
-                case 'float':
-                    $type = 'float';
-                    break;
-
-                case 'decimal':
-                case 'numeric':
-                    $type = "numeric";
-                    break;
-
-                case 'geography':
-                    $type = 'geography';
-
-                    // TODO: Criar índices espaciais
-
-                    break;
-
-            }
-
-            # Criação do comando
-
-            $comando = "[$value->column_name] $type";
-
-            # Complementos
-
-            if ($type == 'varchar' && $value->max_length) {
-                $comando .= "($value->max_length)";
-            }
-
-            elseif ($type == 'varchar' && !$value->max_length) {
-                $comando .= "(max)";
-            }
-
-            elseif ($type == 'nvarchar') {
-                $comando .= "($value->max_length)";
-            }
-
-            elseif ($type == 'decimal') {
-                $comando .= "(20,$value->decimal_places)";
-            }
-
-            # Valores nulos
-
-            if ($value->required || $value->identity) {
-                $comando .= ' not null';
-            }
-
-            # Auto incremento
-
-            if ($value->identity) {
-                $comando .= ' identity(1,1)';
-            }
-
-            # Valor padrão
-
-            if ($value->default) {
-                $default = ($value->default == Model::NOW) ? 'GETDATE()' : $this->escape($value->default);
-                $comando .= " default $default";
-            }
-
             # Chave primária
 
             if ($value->primary_key) {
-                $_primary_keys[] = $value->column_name;
+                $primary_keys[] = $value->column_name;
             }
 
             # Chave estrangeira
 
             if (isset($value->foreign_key)) {
-                $_foreign_keys[$key] = $value->foreign_key;
-            }
-
-            if ($exists) {
-
-                if (!isset($columns[$key])) {
-
-                    $sql = "ALTER TABLE $table->schema.$table->table\n"
-                        . "\tADD $comando;";
-
-                    $this->exec($sql);
-
-                }
-
-                elseif ($columns[$key]['type'] != $type
-                    || $columns[$key]['max_length'] != $value->max_length
-                    || $columns[$key]['required'] != $value->required) {
-
-                    $sql = "ALTER TABLE $table->schema.$table->table\n"
-                        . "\tALTER COLUMN $comando;";
-
-                    $this->exec($sql);
-
-                }
-
-            }
-
-            else {
-                $_fields[] = "\t$comando";
+                $foreign_keys[$key] = $value->foreign_key;
             }
 
         }
 
-        if ($exists) {
+        # Quando a tabela já existir
 
-            # Chaves primárias
+        if ($info->exists) {
 
-            if (count($_primary_keys) > 0) {
+            $this->comment("Tabela '$table->schema.$table->table' já existe");
 
-                # Verificar se existe chave com os mesmos campos
+            foreach ($fields as $key => $value) {
 
-                $primary_key_exists = false;
+                if ($value->fake) {
+                    continue;
+                }
 
-                foreach ($primary_keys as $key => $primary_key) {
+                # Campo ainda não existe
 
-                    # Já existe uma chave com os mesmos campos
+                if (!isset($info->columns[$key])) {
 
-                    if ($primary_key['columns'] == $_primary_keys) {
+                    $this->comment("Incluindo campo '$key'", 'green');
 
-                        $primary_key_exists = true;
+                    $sql = "ALTER TABLE $table->schema.$table->table\n"
+                        . "\tADD {$this->getColumnCommand($value)};";
 
-                        echo "<span style='color: gray;'>/* Chave primária '$key' já existe */</span>\n\n";
-
-                    }
+                    $this->execute($sql);
 
                 }
 
-                if (!$primary_key_exists) {
+                # Campo existe e precisa ser alterado
 
-                    foreach ($primary_keys as $key => $primary_key) {
+                elseif ($info->columns[$key]->type != $this->getDatabaseType($value)
+                    || $info->columns[$key]->max_length != $value->max_length
+                    || $info->columns[$key]->required != $value->required) {
 
-                        echo "<span style='color: red;'>/* Apagando chave primária '$key' */</span>\n\n";
+                    $info->columns[$key]->extra = false;
+
+                    $this->comment("Alterando campo '$key'", 'magenta');
+
+                    $sql = "ALTER TABLE $table->schema.$table->table\n"
+                        . "\tALTER COLUMN {$this->getColumnCommand($value)};";
+
+                    $this->execute($sql);
+
+                }
+
+                # Campo já existe
+                else {
+
+                    $info->columns[$key]->extra = false;
+
+                    $this->comment("Campo '$key' já existe");
+
+                }
+
+            }
+
+            # Campos não utilizados
+
+            foreach ($info->columns as $key => $value) {
+
+                if (!$value->extra) {
+                    continue;
+                }
+
+                $this->comment("Campo '$key' não utilizado", '#FF5722');
+
+            }
+
+            # Chaves primárias
+
+            if (count($primary_keys) > 0) {
+
+                # Verificar se existe chave com os mesmos campos
+
+                if ($info->primary_keys == $primary_keys) {
+
+                    $this->comment("Chave primária '$info->primary_key_name' já existe");
+
+                }
+
+                else {
+
+                    if (!is_null($info->primary_key_name)) {
+
+                        $this->comment("Apagando chave primária '$info->primary_key_name'", 'red');
 
                         $sql = "ALTER TABLE $table->schema.$table->table\n"
-                            . "\tDROP CONSTRAINT $key;";
+                            . "\tDROP CONSTRAINT $info->primary_key_name;";
 
-                        $this->exec($sql);
+                        $this->execute($sql);
 
                     }
 
                     $primary_key_name = "{$prefix}_pkey";
-                    $primary_key = implode("\", \"", $_primary_keys);
+                    $primary_key = implode("\", \"", $primary_keys);
 
-                    echo "<span style='color: green;'>/* Criando chave primária '$primary_key_name' */</span>\n\n";
+                    $this->comment("Criando chave primária '$primary_key_name'", 'green');
 
                     $sql = "ALTER TABLE $table->schema.$table->table\n"
                         . "\tADD CONSTRAINT $primary_key_name PRIMARY KEY (\"$primary_key\");";
 
-                    $this->exec($sql);
+                    $this->execute($sql);
 
                 }
+
+            }
+
+            else if (!is_null($info->primary_key_name)) {
+
+                $this->comment("Chave primária '$info->primary_key_name' não utilizada", '#FF5722');
 
             }
 
             # Chaves estrangeiras
 
-            if (count($_foreign_keys) > 0) {
+            if (count($foreign_keys) > 0) {
 
                 /** @var Database\ForeignKey $foreign_key */
-                foreach ($_foreign_keys as $key => $foreign_key) {
+                foreach ($foreign_keys as $key => $foreign_key) {
 
                     $foreign_key_name = "{$prefix}_fk_$key";
 
@@ -504,24 +496,24 @@ class SQLServer2 extends SQLServer
 
                     $foreign_key_type = ($field->required) ? 'NO_ACTION' : 'SET_NULL';
 
-                    foreach ($foreign_keys as $fk_key => $fk_value) {
+                    foreach ($info->foreign_keys as $fk_key => $fk_value) {
 
-                        if ($fk_value['parent_column'] != $field->column_name) {
+                        if ($fk_value->parent_column != $field->column_name) {
                             continue;
                         }
 
-                        if ($fk_value['referenced_schema'] != $reference->schema
-                            || $fk_value['referenced_table'] != $reference->table
-                            || $fk_value['referenced_column'] != $reference_field->column_name
-                            || $fk_value['delete_rule'] != $foreign_key_type
-                            || $fk_value['update_rule'] != $foreign_key_type) {
+                        if ($fk_value->referenced_schema != $reference->schema
+                            || $fk_value->referenced_table != $reference->table
+                            || $fk_value->referenced_column != $reference_field->column_name
+                            || $fk_value->delete_rule != $foreign_key_type
+                            || $fk_value->update_rule != $foreign_key_type) {
 
-                            echo "<span style='color: red;'>/* Apagando chave estrangeira '$fk_key' */</span>\n\n";
+                            $this->comment("Apagando chave estrangeira '$fk_key'", 'red');
 
                             $sql = "ALTER TABLE $table->schema.$table->table\n"
                                 . "\tDROP CONSTRAINT $fk_key;";
 
-                            $this->exec($sql);
+                            $this->execute($sql);
 
                         }
 
@@ -529,7 +521,9 @@ class SQLServer2 extends SQLServer
 
                             $foreign_key_exists = true;
 
-                            echo "<span style='color: gray;'>/* Chave estrangeira '$fk_key' já existe */</span>\n\n";
+                            $info->foreign_keys[$fk_key]->extra = false;
+
+                            $this->comment("Chave estrangeira '$fk_key' já existe");
 
                         }
 
@@ -537,7 +531,7 @@ class SQLServer2 extends SQLServer
 
                     if (!$foreign_key_exists) {
 
-                        echo "<span style='color: green;'>/* Criando chave estrangeira '$foreign_key_name' */</span>\n\n";
+                        $this->comment("Criando chave estrangeira '$foreign_key_name'", 'green');
 
                         $foreign_key_type = ($field->required) ? 'NO ACTION' : 'SET NULL';
 
@@ -547,7 +541,7 @@ class SQLServer2 extends SQLServer
                             . "REFERENCES $reference->schema.$reference->table ($reference_field->column_name) "
                             . "ON UPDATE $foreign_key_type ON DELETE $foreign_key_type";
 
-                        $this->exec($sql);
+                        $this->execute($sql);
 
                     }
 
@@ -555,32 +549,56 @@ class SQLServer2 extends SQLServer
 
             }
 
+            foreach ($info->foreign_keys as $key => $foreign_key) {
+
+                if (!$foreign_key->extra) {
+                    continue;
+                }
+
+                $this->comment("Chave estrangeira '$key' não utilizada", '#FF5722');
+
+            }
+
         }
+
+        # Criar a tabela se não existir
 
         else {
 
-            echo "<span style='color: green;'>/* Criando tabela '$table->schema.$table->table' */</span>\n\n";
+            $this->comment("Criando tabela '$table->schema.$table->table'", 'green');
+
+            $create_fields = [];
+
+            foreach ($fields as $value) {
+
+                if ($value->fake) {
+                    continue;
+                }
+
+                $create_fields[] = "\t{$this->getColumnCommand($value)}";
+
+            }
 
             # Campos da tabela
 
-            $comando = implode(",\n", $_fields);
+            $command = implode(",\n", $create_fields);
 
             # Chaves primárias
 
-            if (count($_primary_keys) > 0) {
+            if (count($primary_keys) > 0) {
 
-                $primary_key = implode("\", \"", $_primary_keys);
+                $primary_key = implode("\", \"", $primary_keys);
 
-                $comando .= ",\n\tCONSTRAINT {$prefix}_pkey PRIMARY KEY (\"$primary_key\")";
+                $command .= ",\n\tCONSTRAINT {$prefix}_pkey PRIMARY KEY (\"$primary_key\")";
 
             }
 
             # Chaves estrangeiras
 
-            if (count($_foreign_keys) > 0) {
+            if (count($foreign_keys) > 0) {
 
                 /** @var Database\ForeignKey $foreign_key */
-                foreach ($_foreign_keys as $key => $foreign_key) {
+                foreach ($foreign_keys as $key => $foreign_key) {
 
                     if (!$foreign_key->real) {
                         continue;
@@ -589,7 +607,7 @@ class SQLServer2 extends SQLServer
                     $reference = $foreign_key->getReferenceModel()->getTable();
 
                     if ($reference->database != $table->database) {
-                        echo "<span style='color: orange;'>IMPORTANTE</span>: Não é possível a inclusão de chave estrangeira de outro banco de dados (campo '$key').</br>";
+                        $this->comment("<b>ERRO</b>: Não é possível a inclusão de chave estrangeira de outro banco de dados (campo '$key').", 'red');
                     }
 
                     else {
@@ -600,7 +618,7 @@ class SQLServer2 extends SQLServer
 
                         $foreign_key_type = ($field->required) ? 'NO ACTION' : 'SET NULL';
 
-                        $comando .= ",\n\tCONSTRAINT {$prefix}_fk_$key "
+                        $command .= ",\n\tCONSTRAINT {$prefix}_fk_$key "
                             . "FOREIGN KEY (\"$field->column_name\") "
                             . "REFERENCES $reference->schema.$reference->table ($reference_field->column_name) "
                             . "ON UPDATE $foreign_key_type ON DELETE $foreign_key_type";
@@ -613,15 +631,17 @@ class SQLServer2 extends SQLServer
 
             # Comandos
 
-            $sql = "CREATE TABLE $table->schema.$table->table (\n$comando\n);";
+            $sql = "CREATE TABLE $table->schema.$table->table (\n$command\n);";
 
-            $this->exec($sql);
+            $this->execute($sql);
 
             $sql = "EXEC sp_addextendedproperty 'MS_Description', '$model (" . AGORA . ")', 'SCHEMA', '$table->schema', 'TABLE', '$table->table';";
 
-            $this->exec($sql);
+            $this->execute($sql);
 
         }
+
+        # Índices
 
         /*foreach ($arg['indexes'] as $index) {
 
@@ -654,16 +674,33 @@ class SQLServer2 extends SQLServer
 
     }
 
-    public function exec($comando): void
+    private bool $_extra_break = false;
+
+    private function comment(string $text, string $color = 'gray'): void
     {
+
+        echo "<span style='color: $color;'>/* $text */</span>\n";
+
+        $this->_extra_break = true;
+
+    }
+
+    private function execute($comando): void
+    {
+
+        if ($this->_extra_break) {
+            echo "\n";
+        }
 
         echo SqlFormatter::highlight($comando, false) . "\n";
 
-        //return;
+        $this->_extra_break = false;
 
         try {
             $this->getPDO()->exec($comando);
-        } catch (PDOException $e) {
+        }
+
+        catch (PDOException $e) {
             $erro = $e->getMessage();
             $exp = explode('[SQL Server]', $erro);
 
@@ -671,7 +708,8 @@ class SQLServer2 extends SQLServer
                 $erro = $exp[1];
             }
 
-            echo "\n<span style='color: red;'>/* <b>ERRO</b>: $erro */</span>\n\n";
+            $this->comment("<b>ERRO</b>: $erro", 'red');
+
         }
 
     }

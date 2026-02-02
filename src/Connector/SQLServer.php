@@ -25,7 +25,7 @@ class SQLServer extends Connector
     protected $null_value = 'NULL';
     protected $utf_prefix = '';
 
-    protected $_pdo;
+    protected PDO $_pdo;
 
     protected $_connected = false;
 

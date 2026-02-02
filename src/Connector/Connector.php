@@ -27,7 +27,7 @@ class Connector
     protected $_user;
     protected $_pass;
 
-    protected $_pdo;
+    protected PDO $_pdo;
 
     protected $_connected = false;
 
