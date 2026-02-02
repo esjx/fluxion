@@ -18,6 +18,8 @@ class IntegerField extends Field
                                 public ?array          $choices_colors = null,
                                 public null|int|string $min_value = null,
                                 public null|int|string $max_value = null,
+                                public mixed           $default = null,
+                                public bool            $default_literal = false,
                                 public ?int            $size = 12)
     {
         parent::__construct();

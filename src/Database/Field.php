@@ -43,6 +43,7 @@ abstract class Field
     public ?int $size = 12;
     public ?int $decimal_places = 2;
     public mixed $default = null;
+    public bool $default_literal = false;
     public null|int|string $min_value = null;
     public null|int|string $max_value = null;
     public ?array $filter = null;

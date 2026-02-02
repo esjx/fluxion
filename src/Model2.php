@@ -143,7 +143,7 @@ abstract class Model2
 
         # Ajusta as chaves estrangeiras
 
-        foreach ($this->_foreign_keys as $key => &$foreign_key) {
+        foreach ($this->_foreign_keys as $key => $foreign_key) {
 
             $foreign_key->setModel($this);
             $foreign_key->initialize();
@@ -175,7 +175,7 @@ abstract class Model2
 
     }
 
-    public function changeState($state)
+    public function changeState($state): void
     {
 
     }
@@ -199,7 +199,34 @@ abstract class Model2
 
     public function __toString(): string
     {
-        return get_class($this);
+
+        $class = get_class($this);
+        $id = null;
+
+        foreach ($this->_primary_keys as $key => $primary_key) {
+
+            if (is_null($this->$key)) {
+                return $class . ' (Novo)';
+            }
+
+            if (is_null($id)) {
+                $id .= ' #' . $this->$key;
+            }
+
+            else {
+                $id .= '/' . $this->$key;
+            }
+
+        }
+
+        return $class . $id;
+
+    }
+
+    /** @return array<string, Connector\TableIndex> */
+    public function getIndexes(): array
+    {
+        return [];
     }
 
 }

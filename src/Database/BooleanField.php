@@ -11,10 +11,12 @@ class BooleanField extends Field
     protected string $_type_target = 'bool';
 
     public function __construct(public ?string $label = null,
-                                public ?bool $required = false,
-                                public ?bool $protected = false,
-                                public ?bool $readonly = false,
-                                public ?int $size = 12)
+                                public ?bool   $required = false,
+                                public ?bool   $protected = false,
+                                public ?bool   $readonly = false,
+                                public mixed   $default = null,
+                                public bool    $default_literal = false,
+                                public ?int    $size = 12)
     {
         parent::__construct();
     }

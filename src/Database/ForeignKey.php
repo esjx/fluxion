@@ -25,10 +25,10 @@ class ForeignKey
         $this->_model = $model;
     }
 
-    public function getModel(): Model2
+    /*public function getModel(): Model2
     {
         return $this->_model;
-    }
+    }*/
 
     public function getReferenceModel(): Model2
     {
@@ -41,10 +41,11 @@ class ForeignKey
     }
 
     /** @throws CustomException */
-    public function __construct(public string $class_name,
-                                public ?bool $real = false,
-                                public ?bool $show = false,
-                                public ?array $filter = null)
+    public function __construct(public string  $class_name,
+                                public ?bool   $real = false,
+                                public ?bool   $show = false,
+                                public ?string $type = null,
+                                public ?array  $filter = null)
     {
 
         $class = new $class_name;

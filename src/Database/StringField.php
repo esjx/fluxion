@@ -15,6 +15,8 @@ class StringField extends Field
                                 public ?int    $max_length = null,
                                 public ?array  $choices = null,
                                 public ?array  $choices_colors = null,
+                                public mixed   $default = null,
+                                public bool    $default_literal = false,
                                 public ?int    $size = 12)
     {
         parent::__construct();
