@@ -6,24 +6,40 @@ use ReflectionClass;
 abstract class Model2
 {
 
+    const STATE_VIEW = 0;
+    const STATE_EDIT = 1;
+    const STATE_EXCEL = 2;
+    const STATE_FIELDS = 3;
+    const STATE_SYNC = 4;
+    const STATE_BEFORE_SAVE = 15;
+    const STATE_SAVE = 5;
+    const STATE_FILTER = 6;
+    const STATE_FILTER_PARAMS = 7;
+    const STATE_INLINE = 8;
+    const STATE_INLINE_SAVE = 10;
+    const STATE_TYPEAHEAD = 9;
+
     /** @var array<string, Database\Field> */
-    private array $_fields = [];
+    protected array $_fields = [];
 
     /** @var array<string, Database\Searchable> */
-    private array $_searchable = [];
+    protected array $_searchable = [];
 
     /** @var array<string, Database\Filterable> */
-    private array $_filterable = [];
+    protected array $_filterable = [];
 
     /** @var array<string, Database\PrimaryKey> */
-    private array $_primary_keys = [];
+    protected array $_primary_keys = [];
 
     /** @var array<string, Database\ForeignKey> */
-    private array $_foreign_keys = [];
+    protected array $_foreign_keys = [];
+
+    /** @var array<string, Database\ManyToMany> */
+    protected array $_many_to_many = [];
 
     /** @var array<string, Database\Typeahead> */
-    private array $_typeahead = [];
-    private ?Database\Table $_table = null;
+    protected array $_typeahead = [];
+    protected ?Database\Table $_table = null;
 
     /** @throws CustomException */
     public function __construct()
@@ -86,6 +102,14 @@ abstract class Model2
                     $instance->setName($name);
 
                     $this->_primary_keys[$name] = $instance;
+
+                }
+
+                elseif ($instance instanceof Database\ManyToMany) {
+
+                    $instance->setName($name);
+
+                    $this->_many_to_many[$name] = $instance;
 
                 }
 
@@ -152,6 +176,18 @@ abstract class Model2
 
         }
 
+        # Ajusta os campos muitos para muitos
+
+        foreach ($this->_many_to_many as $key => $many_to_many) {
+
+            $many_to_many->setModel($this);
+            $many_to_many->initialize();
+
+            $this->_fields[$key]->fake = true;
+            $this->_fields[$key]->many_to_many = $many_to_many;
+
+        }
+
     }
 
     /** @throws CustomException */
@@ -197,6 +233,12 @@ abstract class Model2
         return $this->_primary_keys;
     }
 
+    /** @return array<string, Database\ManyToMany> */
+    public function getManyToMany(): array
+    {
+        return $this->_many_to_many;
+    }
+
     public function __toString(): string
     {
 
@@ -227,6 +269,32 @@ abstract class Model2
     public function getIndexes(): array
     {
         return [];
+    }
+
+    /** @throws CustomException */
+    public function getFieldId(): Database\Field
+    {
+
+        $field = null;
+
+        $class_name = get_class($this);
+
+        foreach ($this->_primary_keys as $key => $primary_key) {
+
+            if (!is_null($field)) {
+                throw new CustomException(message: "Classe '$class_name' possui mais de uma chave primária", log: false);
+            }
+
+            $field = $this->_fields[$key];
+
+        }
+
+        if (is_null($field)) {
+            throw new CustomException(message: "Classe '$class_name' não possui chave primária", log: false);
+        }
+
+        return $field;
+
     }
 
 }

@@ -621,11 +621,17 @@ class SQLServer2 extends SQLServer
 
                     $foreign_key_type = ($field->required) ? 'NO_ACTION' : 'SET_NULL';
 
+                    if (!is_null($foreign_key->type)) {
+                        $foreign_key_type = $foreign_key->type;
+                    }
+
                     foreach ($info->foreign_keys as $fk_key => $fk_value) {
 
                         if ($fk_value->parent_column != $field->column_name) {
                             continue;
                         }
+
+                        $info->foreign_keys[$fk_key]->extra = false;
 
                         if ($fk_value->referenced_schema != $reference->schema
                             || $fk_value->referenced_table != $reference->table
@@ -646,8 +652,6 @@ class SQLServer2 extends SQLServer
 
                             $foreign_key_exists = true;
 
-                            $info->foreign_keys[$fk_key]->extra = false;
-
                             $this->comment("Chave estrangeira '$fk_key' já existe");
 
                         }
@@ -658,7 +662,7 @@ class SQLServer2 extends SQLServer
 
                         $this->comment("Criando chave estrangeira '$foreign_key_name'", Color::GREEN, true);
 
-                        $foreign_key_type = ($field->required) ? 'NO ACTION' : 'SET NULL';
+                        $foreign_key_type = str_replace('_', ' ', $foreign_key_type);
 
                         $sql = "ALTER TABLE $table->schema.$table->table\n"
                             . "\tADD CONSTRAINT $foreign_key_name "

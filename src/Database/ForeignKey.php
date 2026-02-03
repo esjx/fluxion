@@ -25,11 +25,6 @@ class ForeignKey
         $this->_model = $model;
     }
 
-    /*public function getModel(): Model2
-    {
-        return $this->_model;
-    }*/
-
     public function getReferenceModel(): Model2
     {
         return $this->_reference_model;
@@ -44,7 +39,7 @@ class ForeignKey
     public function __construct(public string  $class_name,
                                 public ?bool   $real = false,
                                 public ?bool   $show = false,
-                                public ?string $type = null,
+                                public ?string $type = null, // TODO: 'CASCADE', 'RESTRICT', 'SET NULL', 'NO ACTION'
                                 public ?array  $filter = null)
     {
 
@@ -56,19 +51,7 @@ class ForeignKey
 
         $this->_reference_model = $class;
 
-        foreach ($class->getPrimaryKeys() as $key => $primary_key) {
-
-            if (!is_null($this->_field)) {
-                throw new CustomException(message: "Classe '$class_name' possui mais de uma chave primária", log: false);
-            }
-
-            $this->_field = $class->getFields()[$key];
-
-        }
-
-        if (is_null($this->_field)) {
-            throw new CustomException(message: "Classe '$class_name' não possui chave primária", log: false);
-        }
+        $this->_field = $class->getFieldId();
 
     }
 

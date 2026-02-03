@@ -1,28 +1,22 @@
 <?php
 namespace Fluxion;
 
-use Fluxion\Auth\Auth;
-use Fluxion\Auth\Models\Permission;
-
 class ModelManipulate2 extends ModelManipulate
 {
 
-    public static function synchronize(string $model): void
+    /** @throws CustomException */
+    public static function synchronize(string $class_name): void
     {
 
         /** @var Config $config */
         $config = $GLOBALS['CONFIG'];
 
-        /** @var Model2 $class_model */
-        $class_model = new $model;
+        /** @var Model2 $model */
+        $model = new $class_name;
 
-        echo "<b style='color: orange;'>/* $model */</b>\n\n";
-
-        //$dbId = $class_model->getDatabase();
+        echo "<b style='color: orange;'>/* $class_name */</b>\n\n";
 
         $connector = $config->getConnectorById(0);
-
-        $obj = $connector->getPDO();
 
         // Criar as Permissões
         /*if ($model != 'Fluxion\Auth\Models\Permission' && $model != 'Fluxion\Auth\Models\PermissionGroup') {
@@ -33,38 +27,27 @@ class ModelManipulate2 extends ModelManipulate
 
         }*/
 
-        /*if ($class_model->_view) {
+        $model->changeState(Model2::STATE_SYNC);
 
-            if ($class_model->_view_script != '') {
+        # Criar a tabela principal
 
-                $obj->beginTransaction();
-
-                if (is_array($class_model->_view_script)) {
-
-                    foreach ($class_model->_view_script as $sql) {
-
-                        $obj->exec($sql);
-
-                    }
-
-                } else {
-
-                    $obj->exec($class_model->_view_script);
-
-                }
-                $obj->commit();
-
-            }
-
-            return false;
-        }*/
-
-        $class_model->changeState(Model::STATE_SYNC);
-
-        // Criar a tabela principal
-        $connector->synchronize($class_model);
+        $connector->synchronize($model);
 
         echo "\n\n";
+
+        $many_to_many = $model->getManyToMany();
+
+        foreach ($many_to_many as $key => $mn) {
+
+            $mn_model = new MnModel2($model, $key);
+
+            # Criar a tabela de relacionamento
+
+            $connector->synchronize($mn_model);
+
+            echo "\n\n";
+
+        }
 
     }
 

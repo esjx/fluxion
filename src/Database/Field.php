@@ -47,7 +47,9 @@ abstract class Field
     public null|int|string $min_value = null;
     public null|int|string $max_value = null;
     public ?array $filter = null;
+
     public ?ForeignKey $foreign_key = null;
+    public ?ManyToMany $many_to_many = null;
 
     public function setName(string $name): void
     {
