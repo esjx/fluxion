@@ -30,7 +30,8 @@
     "require": {
         "php": "^8.2",
         "ext-pdo": "*",
-        "ext-mbstring": "*"
+        "ext-mbstring": "*",
+      "ext-zip": "*"
     },
     "require-dev": {
     },

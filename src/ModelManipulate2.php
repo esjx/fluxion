@@ -8,32 +8,22 @@ class ModelManipulate2 extends ModelManipulate
     public static function synchronize(string $class_name): void
     {
 
-        /** @var Config $config */
-        $config = $GLOBALS['CONFIG'];
-
         /** @var Model2 $model */
         $model = new $class_name;
 
+        $model->changeState(Model2::STATE_SYNC);
+
         echo "<b style='color: orange;'>/* $class_name */</b>\n\n";
 
-        $connector = $config->getConnectorById(0);
-
-        // Criar as Permissões
-        /*if ($model != 'Fluxion\Auth\Models\Permission' && $model != 'Fluxion\Auth\Models\PermissionGroup') {
-
-            $perm = Permission::filter('name', $model)->firstOrNew($config, $auth);
-            $perm->name = $model;
-            $perm->save();
-
-        }*/
-
-        $model->changeState(Model2::STATE_SYNC);
+        $connector = Config2::getConnector();
 
         # Criar a tabela principal
 
         $connector->synchronize($model);
 
         echo "\n";
+
+        # Criar as tabelas MN
 
         $many_to_many = $model->getManyToMany();
 
@@ -42,6 +32,8 @@ class ModelManipulate2 extends ModelManipulate
             echo "<b style='color: gray;'>/* Tabela MN para o campo '$key' */</b>\n\n";
 
             $mn_model = new MnModel2($model, $key);
+
+            $mn_model->changeState(Model2::STATE_SYNC);
 
             $mn_model->setComment(get_class($model) . " MN[$key]");
 

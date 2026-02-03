@@ -243,6 +243,12 @@ abstract class Model2
         return $this->_primary_keys;
     }
 
+    /** @return array<string, Database\ForeignKey> */
+    public function getForeignKeys(): array
+    {
+        return $this->_foreign_keys;
+    }
+
     /** @return array<string, Database\ManyToMany> */
     public function getManyToMany(): array
     {

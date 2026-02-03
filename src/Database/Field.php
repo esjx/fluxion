@@ -103,7 +103,7 @@ abstract class Field
     {
 
         if (!$database && !$this->validate($value)) {
-            throw new CustomException(message: "Valor '$value' inválido para o campo '$this->label'", log: false);
+            throw new CustomException(message: "Valor '$value' inválido para o campo '$this->_name'", log: false);
         }
 
         $this->_value = $this->translate($value);

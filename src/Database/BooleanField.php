@@ -21,4 +21,15 @@ class BooleanField extends Field
         parent::__construct();
     }
 
+    public function validate(mixed &$value): bool
+    {
+
+        if ($this->required && !in_array($value, [true, false], true)) {
+            return false;
+        }
+
+        return true;
+
+    }
+
 }

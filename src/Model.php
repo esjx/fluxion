@@ -12,7 +12,7 @@ abstract class Model {
 
     protected int $create_order = -1;
 
-    function getCreateOrder(): int
+    public function getCreateOrder(): int
     {
         return $this->create_order;
 
