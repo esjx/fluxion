@@ -555,7 +555,9 @@ class SQLServer2 extends SQLServer
 
                 if ($info->primary_keys == $primary_keys) {
 
-                    $this->comment("Chave primária '$info->primary_key_name' já existe");
+                    $detail = implode(", ", $primary_keys);
+
+                    $this->comment("Chave primária '$info->primary_key_name ($detail)' já existe");
 
                 }
 
@@ -639,7 +641,9 @@ class SQLServer2 extends SQLServer
                             || $fk_value->delete_rule != $foreign_key_type
                             || $fk_value->update_rule != $foreign_key_type) {
 
-                            $this->comment("Apagando chave estrangeira '$fk_key'", Color::RED, true);
+                            $detail = "($key) → $fk_value->referenced_table ($fk_value->referenced_column)";
+
+                            $this->comment("Apagando chave estrangeira '$fk_key' $detail", Color::RED, true);
 
                             $sql = "ALTER TABLE $table->schema.$table->table\n"
                                 . "\tDROP CONSTRAINT $fk_key;";
@@ -652,7 +656,9 @@ class SQLServer2 extends SQLServer
 
                             $foreign_key_exists = true;
 
-                            $this->comment("Chave estrangeira '$fk_key' já existe");
+                            $detail = "($key) → $reference->table ($reference_field->column_name)";
+
+                            $this->comment("Chave estrangeira '$fk_key $detail' já existe");
 
                         }
 
@@ -808,16 +814,22 @@ class SQLServer2 extends SQLServer
 
                     $info->indexes[$key]->extra = false;
 
+                    $detail = implode(", ", $create_index->columns);
+
+                    if ($index->unique) {
+                        $detail .= " unique";
+                    }
+
+                    if (count($create_index->includes) > 0) {
+                        $detail .= " include (" . implode(", ", $create_index->includes) . ")";
+                    }
+
                     if ($index->columns == $create_index->columns) {
-
-                        $this->comment("Índice '$key' já existe");
-
+                        $this->comment("Índice '$key ($detail)' já existe");
                     }
 
                     else {
-
-                        $this->comment("Índice '$key' já existe com outra ordem", Color::PURPLE);
-
+                        $this->comment("Índice '$key ($detail)' já existe com outra ordem", Color::PURPLE);
                     }
 
                 }
@@ -903,8 +915,8 @@ class SQLServer2 extends SQLServer
             echo "\n";
         }
 
-        $text = preg_replace('/(\'[\w\s,.-_()]*\')/m', '<b><i>${1}</i></b>', $text);
-        $text = preg_replace('/(\"[\w\s,.-_()]*\")/m', '<b>${1}</b>', $text);
+        $text = preg_replace('/(\'[\w\s,.-_()→]*\')/m', '<b><i>${1}</i></b>', $text);
+        $text = preg_replace('/(\"[\w\s,.-_()→]*\")/m', '<b>${1}</b>', $text);
 
         echo "<span style='color: $color;'>-- $text </span>\n";
 

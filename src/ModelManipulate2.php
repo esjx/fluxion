@@ -33,11 +33,13 @@ class ModelManipulate2 extends ModelManipulate
 
         $connector->synchronize($model);
 
-        echo "\n\n";
+        echo "\n";
 
         $many_to_many = $model->getManyToMany();
 
         foreach ($many_to_many as $key => $mn) {
+
+            echo "<b style='color: gray;'>/* Tabela MN para o campo '$key' */</b>\n\n";
 
             $mn_model = new MnModel2($model, $key);
 
@@ -45,7 +47,7 @@ class ModelManipulate2 extends ModelManipulate
 
             $connector->synchronize($mn_model);
 
-            echo "\n\n";
+            echo "\n";
 
         }
 
