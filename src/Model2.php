@@ -41,6 +41,16 @@ abstract class Model2
     protected array $_typeahead = [];
     protected ?Database\Table $_table = null;
 
+    protected ?string $comment = null;
+
+    public function setComment(?string $comment): void {
+        $this->comment = $comment;
+    }
+
+    public function getComment(): ?string {
+        return $this->comment;
+    }
+
     /** @throws CustomException */
     public function __construct()
     {

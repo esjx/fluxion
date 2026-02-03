@@ -9,6 +9,7 @@ abstract class Field
 {
 
     const TYPE_STRING = 'string';
+    const TYPE_TEXT = 'text';
     const TYPE_PASSWORD = 'password';
     const TYPE_INTEGER = 'integer';
     const TYPE_COLOR = 'color';

@@ -169,7 +169,10 @@ class SQLServer2 extends SQLServer
                        t.name AS type,
                        c.is_nullable,
                        c.is_identity,
-                       IIF(t.name IN ('varchar', 'nvarchar') AND c.max_length >= 1, c.max_length / 2, NULL) AS max_length,
+                       CASE
+                           WHEN t.name IN ('varchar') AND c.max_length >= 1 THEN c.max_length
+                           WHEN t.name IN ('nvarchar') AND c.max_length >= 1 THEN c.max_length / 2
+                       END AS max_length,
                        IIF(t.name IN ('numeric'), c.precision, NULL) AS precision,
                        IIF(t.name IN ('numeric'), c.scale, NULL) AS scale,
                        d.definition AS default_value,
@@ -330,8 +333,8 @@ class SQLServer2 extends SQLServer
     {
 
         return match ($value->getType()) {
-            'text', 'iframe', 'map', 'html', 'upload', 'image' => 'varchar',
-            'string', 'password', 'link', 'color' => 'nvarchar',
+            'json', 'link', 'color' => 'varchar',
+            'text', 'iframe', 'map', 'html', 'upload', 'image', 'string', 'password' => 'nvarchar',
             'integer' => 'bigint',
             'boolean' => 'bit',
             'date' => 'date',
@@ -341,6 +344,48 @@ class SQLServer2 extends SQLServer
             'geography' => 'geography',
             default => throw new CustomException("Tipo {$value->getType()} não implementado"),
         };
+
+    }
+
+    /** @throws CustomException */
+    protected function getColumnCommand(Database\Field $value): string
+    {
+
+        # Definição do tipo
+
+        $type = $this->getDatabaseType($value);
+
+        # Criação do comando
+
+        $command = "$type";
+
+        # Complementos
+
+        if (in_array($type, ['varchar', 'nvarchar']) && !$value->max_length) {
+            $command .= "(max)";
+        }
+
+        elseif (in_array($type, ['varchar', 'nvarchar'])) {
+            $command .= "($value->max_length)";
+        }
+
+        elseif ($type == 'numeric') {
+            $command .= "(18,$value->decimal_places)";
+        }
+
+        # Valores nulos
+
+        if ($value->required || $value->identity) {
+            $command .= ' not null';
+        }
+
+        # Auto incremento
+
+        if ($value->identity) {
+            $command .= ' identity(1,1)';
+        }
+
+        return $command;
 
     }
 
@@ -362,52 +407,6 @@ class SQLServer2 extends SQLServer
         }
 
         return null;
-
-    }
-
-    /** @throws CustomException */
-    protected function getColumnCommand(Database\Field $value): string
-    {
-
-        # Definição do tipo
-
-        $type = $this->getDatabaseType($value);
-
-        # Criação do comando
-
-        $command = "$type";
-
-        # Complementos
-
-        if ($type == 'varchar' && $value->max_length) {
-            $command .= "($value->max_length)";
-        }
-
-        elseif ($type == 'varchar' && !$value->max_length) {
-            $command .= "(max)";
-        }
-
-        elseif ($type == 'nvarchar') {
-            $command .= "($value->max_length)";
-        }
-
-        elseif ($type == 'numeric') {
-            $command .= "(20,$value->decimal_places)";
-        }
-
-        # Valores nulos
-
-        if ($value->required || $value->identity) {
-            $command .= ' not null';
-        }
-
-        # Auto incremento
-
-        if ($value->identity) {
-            $command .= ' identity(1,1)';
-        }
-
-        return $command;
 
     }
 
@@ -487,7 +486,7 @@ class SQLServer2 extends SQLServer
 
                     $info->columns[$key]->extra = false;
 
-                    $this->comment("Alterando campo '$key'", Color::BROWN, true);
+                    $this->comment("Alterando campo '$key: {$info->columns[$key]}'", Color::BROWN, true);
 
                     $sql = "ALTER TABLE $table->schema.$table->table\n"
                         . "\tALTER COLUMN [$value->column_name] {$this->getColumnCommand($value)};";
@@ -577,12 +576,12 @@ class SQLServer2 extends SQLServer
                     $uid = bin2hex(random_bytes(10));
 
                     $primary_key_name = "{$prefix}_pk_$uid";
-                    $primary_key = implode("\", \"", $primary_keys);
+                    $primary_key = implode("], [", $primary_keys);
 
                     $this->comment("Criando chave primária '$primary_key_name'", Color::GREEN, true);
 
                     $sql = "ALTER TABLE $table->schema.$table->table\n"
-                        . "\tADD CONSTRAINT $primary_key_name PRIMARY KEY (\"$primary_key\");";
+                        . "\tADD CONSTRAINT $primary_key_name PRIMARY KEY ([$primary_key]);";
 
                     $this->execute($sql);
 
@@ -672,8 +671,8 @@ class SQLServer2 extends SQLServer
 
                         $sql = "ALTER TABLE $table->schema.$table->table\n"
                             . "\tADD CONSTRAINT $foreign_key_name "
-                            . "FOREIGN KEY (\"$field->column_name\") "
-                            . "REFERENCES $reference->schema.$reference->table ($reference_field->column_name) "
+                            . "FOREIGN KEY ([$field->column_name]) "
+                            . "REFERENCES $reference->schema.$reference->table ([$reference_field->column_name]) "
                             . "ON UPDATE $foreign_key_type ON DELETE $foreign_key_type";
 
                         $this->execute($sql);
@@ -730,11 +729,11 @@ class SQLServer2 extends SQLServer
 
             if (count($primary_keys) > 0) {
 
-                $primary_key = implode("\", \"", $primary_keys);
+                $primary_key = implode("], [", $primary_keys);
 
                 $uid = bin2hex(random_bytes(10));
 
-                $command .= ",\n\tCONSTRAINT {$prefix}_pk_$uid PRIMARY KEY (\"$primary_key\")";
+                $command .= ",\n\tCONSTRAINT {$prefix}_pk_$uid PRIMARY KEY ([$primary_key])";
 
             }
 
@@ -761,13 +760,19 @@ class SQLServer2 extends SQLServer
 
                         $reference_field = $foreign_key->getField();
 
-                        $foreign_key_type = ($field->required) ? 'NO ACTION' : 'SET NULL';
+                        $foreign_key_type = ($field->required) ? 'NO_ACTION' : 'SET_NULL';
+
+                        if (!is_null($foreign_key->type)) {
+                            $foreign_key_type = $foreign_key->type;
+                        }
+
+                        $foreign_key_type = str_replace('_', ' ', $foreign_key_type);
 
                         $uid = bin2hex(random_bytes(10));
 
                         $command .= ",\n\tCONSTRAINT {$prefix}_fk_$uid "
-                            . "FOREIGN KEY (\"$field->column_name\") "
-                            . "REFERENCES $reference->schema.$reference->table ($reference_field->column_name) "
+                            . "FOREIGN KEY ([$field->column_name]) "
+                            . "REFERENCES $reference->schema.$reference->table ([$reference_field->column_name]) "
                             . "ON UPDATE $foreign_key_type ON DELETE $foreign_key_type";
 
                     }
@@ -783,10 +788,10 @@ class SQLServer2 extends SQLServer
             $this->comment("Criando tabela '$table->schema.$table->table'", Color::GREEN, true);
             $this->execute($sql);
 
-            $class = get_class($model);
+            $comment = $model->getComment();
 
             $this->comment("Adicionando descrição na tabela '$table->schema.$table->table'", Color::GREEN, true);
-            $sql = "EXEC sp_addextendedproperty 'MS_Description', '$class (" . AGORA . ")', 'SCHEMA', '$table->schema', 'TABLE', '$table->table';";
+            $sql = "EXEC sys.sp_addextendedproperty 'MS_Description', '$comment (" . AGORA . ")', 'SCHEMA', '$table->schema', 'TABLE', '$table->table';";
 
             $this->execute($sql);
 
@@ -814,22 +819,12 @@ class SQLServer2 extends SQLServer
 
                     $info->indexes[$key]->extra = false;
 
-                    $detail = implode(", ", $create_index->columns);
-
-                    if ($index->unique) {
-                        $detail .= " unique";
-                    }
-
-                    if (count($create_index->includes) > 0) {
-                        $detail .= " include (" . implode(", ", $create_index->includes) . ")";
-                    }
-
                     if ($index->columns == $create_index->columns) {
-                        $this->comment("Índice '$key ($detail)' já existe");
+                        $this->comment("Índice '$key ($index)' já existe");
                     }
 
                     else {
-                        $this->comment("Índice '$key ($detail)' já existe com outra ordem", Color::PURPLE);
+                        $this->comment("Índice '$key ($index)' já existe com outra ordem", Color::PURPLE);
                     }
 
                 }
@@ -864,7 +859,7 @@ class SQLServer2 extends SQLServer
 
         }
 
-        # Chaves estrangeiras não utilizadas
+        # Índices não utilizados
 
         foreach ($info->indexes as $key => $index) {
 
@@ -872,39 +867,9 @@ class SQLServer2 extends SQLServer
                 continue;
             }
 
-            $this->comment("Índice '$key' não utilizado", Color::DEEP_ORANGE);
+            $this->comment("Índice '$key ($index)' não utilizado", Color::DEEP_ORANGE);
 
         }
-
-
-        /*foreach ($arg['indexes'] as $index) {
-
-            $indexName = "{$arg['table_2']}_index";
-            $indexName2 = "{$arg['table_2']}_index";
-            $btree = '';
-
-            foreach ($index as $fld) {
-
-                $t = substr($fld, 0, 3);
-
-                $indexName .= "_$fld";
-                $indexName2 .= "_$t";
-
-                if ($btree != '')
-                    $btree .= ", ";
-
-                //$btree .=  "\"{$model->dbField($fld)}\"";
-
-            }
-
-            if (mb_strlen($indexName, 'utf8') > 128) {
-                $indexName = $indexName2;
-            }
-
-            //$indexes .= "IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = '$indexName')" . PHP_EOL;
-            //$indexes .= "CREATE INDEX $indexName ON $table->schema.$table->table ($btree);" . PHP_EOL;
-
-        }*/
 
     }
 

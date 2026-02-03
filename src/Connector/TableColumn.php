@@ -26,15 +26,11 @@ class TableColumn
 
         # Complementos
 
-        if ($this->type == 'varchar' && $this->max_length) {
-            $command .= "($this->max_length)";
-        }
-
-        elseif ($this->type == 'varchar' && !$this->max_length) {
+        if (in_array($this->type, ['varchar', 'nvarchar']) && !$this->max_length) {
             $command .= "(max)";
         }
 
-        elseif ($this->type == 'nvarchar') {
+        elseif (in_array($this->type, ['varchar', 'nvarchar'])) {
             $command .= "($this->max_length)";
         }
 

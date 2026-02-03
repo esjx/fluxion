@@ -43,6 +43,8 @@ class ModelManipulate2 extends ModelManipulate
 
             $mn_model = new MnModel2($model, $key);
 
+            $mn_model->setComment(get_class($model) . " MN[$key]");
+
             # Criar a tabela de relacionamento
 
             $connector->synchronize($mn_model);

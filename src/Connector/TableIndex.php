@@ -23,4 +23,21 @@ class TableIndex
 
     }
 
+    public function __toString(): string
+    {
+
+        $detail = implode(", ", $this->columns);
+
+        if ($this->unique) {
+            $detail .= " unique";
+        }
+
+        if (count($this->includes) > 0) {
+            $detail .= " include (" . implode(", ", $this->includes) . ")";
+        }
+
+        return $detail;
+
+    }
+
 }
