@@ -508,7 +508,8 @@ class SQLServer2 extends SQLServer
 
                 $default_value = $this->getDefaultCommand($value);
 
-                if (!is_null($info->columns[$key]->default_value)
+                if (isset($info->columns[$key])
+                    && !is_null($info->columns[$key]->default_value)
                     && $info->columns[$key]->default_value != $default_value) {
 
                     $this->comment("Excluindo valor padrão '{$info->columns[$key]->default_value}' no campo '$key'", Color::RED, true);
@@ -820,11 +821,11 @@ class SQLServer2 extends SQLServer
                     $info->indexes[$key]->extra = false;
 
                     if ($index->columns == $create_index->columns) {
-                        $this->comment("Índice '$key ($index)' já existe");
+                        $this->comment("Índice '$key $index' já existe");
                     }
 
                     else {
-                        $this->comment("Índice '$key ($index)' já existe com outra ordem", Color::PURPLE);
+                        $this->comment("Índice '$key $index' já existe com outra ordem", Color::PURPLE);
                     }
 
                 }
@@ -867,7 +868,7 @@ class SQLServer2 extends SQLServer
                 continue;
             }
 
-            $this->comment("Índice '$key ($index)' não utilizado", Color::DEEP_ORANGE);
+            $this->comment("Índice '$key $index' não utilizado", Color::DEEP_ORANGE);
 
         }
 

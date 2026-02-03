@@ -39,7 +39,7 @@ class ForeignKey
     public function __construct(public string  $class_name,
                                 public ?bool   $real = false,
                                 public ?bool   $show = false,
-                                public ?string $type = null, // TODO: 'CASCADE', 'RESTRICT', 'SET NULL', 'NO ACTION'
+                                public ?string $type = null, // TODO: validar valores 'CASCADE', 'RESTRICT', 'SET NULL', 'NO ACTION', 'SET DEFAULT'
                                 public ?array  $filter = null)
     {
 

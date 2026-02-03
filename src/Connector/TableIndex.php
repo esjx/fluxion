@@ -26,7 +26,7 @@ class TableIndex
     public function __toString(): string
     {
 
-        $detail = implode(", ", $this->columns);
+        $detail = '(' . implode(", ", $this->columns) . ')';
 
         if ($this->unique) {
             $detail .= " unique";
