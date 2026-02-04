@@ -13,7 +13,7 @@ class Route
     public function __construct(public string $route,
                                 public array $methods = ['GET'],
                                 public array $args = [],
-                                public bool $full = false)
+                                public bool $append = true)
     {
         // TODO: Validar variáveis
     }

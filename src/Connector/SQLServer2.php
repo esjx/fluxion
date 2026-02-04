@@ -412,7 +412,7 @@ class SQLServer2 extends SQLServer
      * @throws CustomException
      * @throws RandomException
      */
-    public function synchronize(Model2 $model): void
+    protected function executeSync(Model2 $model): void
     {
 
         $this->_extra_break = false;

@@ -91,9 +91,7 @@ class Controller2
 
         asort($list);
         foreach ($list as $class => $index) {
-
-            ModelManipulate2::synchronize($class);
-
+            $connector->sync($class);
         }
 
         # Executando scripts SQL
@@ -146,7 +144,7 @@ class Controller2
                 /** @var Route $instance */
                 $instance = $route->newInstance();
 
-                if (!$instance->full) {
+                if ($instance->append) {
                     $instance->route = $base_route . $instance->route;
                 }
 

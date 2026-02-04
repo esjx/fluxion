@@ -13,15 +13,11 @@ class Config2
         if (is_null(self::$connector)) {
 
             if (isset($_ENV['DB_TYPE']) && $_ENV['DB_TYPE'] == 'sqlsrv') {
-
                 self::$connector = new Connector\SQLServer2();
-
             }
 
             else {
-
                 throw new CustomException('Dados de conexão não encontrados.');
-
             }
 
         }

@@ -3,6 +3,9 @@ namespace Fluxion\Connector;
 
 use Exception;
 use Fluxion\Color;
+use Fluxion\Config2;
+use Fluxion\CustomException;
+use Fluxion\MnModel2;
 use Fluxion\SqlFormatter;
 use PDO;
 use PDOException;
@@ -340,7 +343,7 @@ class Connector
 
     }
 
-    public function synchronize(Model2 $model): void
+    protected function executeSync(Model2 $model): void
     {
 
     }
@@ -568,6 +571,43 @@ class Connector
     {
 
         Application::error($e->getMessage(), 500);
+
+    }
+
+    /** @throws CustomException */
+    public function sync(string $class_name): void
+    {
+
+        /** @var Model2 $model */
+        $model = new $class_name;
+
+        $model->changeState(Model2::STATE_SYNC);
+
+        $this->comment("<b>$class_name</b>\n", Color::ORANGE);
+
+        # Criar a tabela principal
+
+        $this->executeSync($model);
+
+        # Criar as tabelas MN
+
+        $many_to_many = $model->getManyToMany();
+
+        foreach ($many_to_many as $key => $mn) {
+
+            $this->comment("<b>Tabela MN para o campo '$key'</b>\n");
+
+            $mn_model = new MnModel2($model, $key);
+
+            $mn_model->changeState(Model2::STATE_SYNC);
+
+            $mn_model->setComment(get_class($model) . " MN[$key]");
+
+            # Criar a tabela de relacionamento
+
+            $this->executeSync($mn_model);
+
+        }
 
     }
 
