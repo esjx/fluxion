@@ -2,6 +2,8 @@
 namespace Fluxion;
 
 use stdClass;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
 
 class App
 {
@@ -75,6 +77,9 @@ class App
     public static function dispatch(string $uri, array $routes, array $args = []): bool
     {
 
+        $request = new Request('GET', $uri);
+        $response = new Response();
+
         $parameters = new stdClass();
 
         $request_method = strtoupper($_SERVER['REQUEST_METHOD']);
@@ -99,7 +104,9 @@ class App
                         if (!is_numeric($k))
                             $parameters->$k = $v;
 
-                    $control->$method($parameters);
+                    $control->$method($request, $response, $parameters);
+
+                    echo $response->getBody();
 
                     return true;
 

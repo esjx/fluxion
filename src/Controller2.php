@@ -4,6 +4,9 @@ namespace Fluxion;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use GuzzleHttp\Psr7\Stream;
 
 class Controller2
 {
@@ -22,10 +25,12 @@ class Controller2
      * @throws CustomException
      */
     #[Route(route: '/setup', methods: ['GET'])]
-    public static function setup(): void
+    public static function setup(RequestInterface $request, ResponseInterface $response): void
     {
 
         $start_time = microtime(true);
+
+        $response->getBody()->write('<pre>');
 
         echo '<pre>';
 
