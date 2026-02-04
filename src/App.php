@@ -2,32 +2,16 @@
 namespace Fluxion;
 
 use stdClass;
-use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Response;
+use Psr\Http\Message\RequestInterface;
+use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 
 class App
 {
 
     /** @var Route[] */
     protected static array $routes = [];
-
-    public static function getUri(): string
-    {
-
-        $parsed_uri = parse_url($_SERVER['REQUEST_URI']);
-
-        /*$query_params = [];
-        if (isset($parsed_uri['query'])) {
-            parse_str($parsed_uri['query'], $query_params);
-        }*/
-
-        $uri = $parsed_uri['path'];
-
-        $uri = preg_replace('/\/$/i', '', $uri);
-
-        return ($uri) ?: '/';
-
-    }
 
     public static function error404(): never
     {
@@ -43,9 +27,9 @@ class App
     public static function routeUrl(): void
     {
 
-        $uri = self::getUri();
+        $request = ServerRequest::fromGlobals();
 
-        if (!self::dispatch($uri, self::$routes)) {
+        if (!self::dispatch($request, self::$routes)) {
             self::error404();
         }
 
@@ -74,22 +58,22 @@ class App
     /**
      * @param Route[] $routes
      */
-    public static function dispatch(string $uri, array $routes, array $args = []): bool
+    public static function dispatch(RequestInterface $request, array $routes, array $args = []): bool
     {
 
-        $request = new Request('GET', $uri);
+        //$query_params = [];
+        //parse_str($request->getUri()->getQuery(), $query_params);
+
         $response = new Response();
 
         $parameters = new stdClass();
-
-        $request_method = strtoupper($_SERVER['REQUEST_METHOD']);
 
         foreach ($routes as $route_obj) {
 
             $route = self::getRegExp($route_obj->route, true);
 
-            if (in_array($request_method, $route_obj->methods)
-                && preg_match($route, $uri, $_args)
+            if (in_array($request->getMethod(), $route_obj->methods)
+                && preg_match($route, $request->getUri()->getPath(), $_args)
                 /*&& (!isset($key['model']) || $this->modelFromId($key['model'], $_args))*/) {
 
                 $args = array_merge($args, $_args, $route_obj->args);
@@ -106,7 +90,8 @@ class App
 
                     $control->$method($request, $response, $parameters);
 
-                    echo $response->getBody();
+                    $emitter = new SapiEmitter();
+                    $emitter->emit($response);
 
                     return true;
 

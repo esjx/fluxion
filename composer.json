@@ -33,7 +33,8 @@
         "ext-mbstring": "*",
         "ext-pdo": "*",
         "ext-zip": "*",
-        "guzzlehttp/guzzle": "^7.10"
+        "guzzlehttp/guzzle": "^7.10",
+        "laminas/laminas-httphandlerrunner": "^2.13"
     },
     "suggest": {
         "dompdf/dompdf": "Option for rendering PDF with PDF Writer"

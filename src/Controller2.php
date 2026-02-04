@@ -6,7 +6,6 @@ use ReflectionException;
 use ReflectionMethod;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use GuzzleHttp\Psr7\Stream;
 
 class Controller2
 {
@@ -30,7 +29,7 @@ class Controller2
 
         $start_time = microtime(true);
 
-        $response->getBody()->write('<pre>');
+        $response->getBody()->write('TESTE');
 
         echo '<pre>';
 
@@ -106,7 +105,7 @@ class Controller2
 
         echo "-- Finalizado em <b>$time segundos</b> utilizando <b>$memory</b>";
 
-        echo '<pre>';
+        echo '</pre>';
 
     }
 
