@@ -3,14 +3,25 @@ namespace Fluxion;
 
 use ReflectionClass;
 use ReflectionException;
+use ReflectionMethod;
 
 class Controller2
 {
+
+    /** @var Route[] */
+    protected array $routes = [];
+
+    /** @return  Route[] */
+    public function getRoutes(): array
+    {
+        return $this->routes;
+    }
 
     /**
      * @throws ReflectionException
      * @throws CustomException
      */
+    #[Route(route: '/setup', methods: ['GET'])]
     public static function setup(): void
     {
 
@@ -84,13 +95,60 @@ class Controller2
 
         $end_time = microtime(true);
 
-        $time = Util::formatNumber($end_time - $start_time);
+        $time = Format::number($end_time - $start_time);
 
-        $memory = Util::formatSize(memory_get_usage());
+        $memory = Format::size(memory_get_usage());
 
         echo "-- Finalizado em <b>$time segundos</b> utilizando <b>$memory</b>";
 
         echo '<pre>';
+
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function __construct()
+    {
+
+        $class_name = get_called_class();
+
+        $reflection = new ReflectionClass($class_name);
+
+        $routes = $reflection->getAttributes(Route::class);
+
+        $base_route = null;
+
+        foreach ($routes as $route) {
+
+            /** @var Route $instance */
+            $instance = $route->newInstance();
+
+            $base_route = $instance->route;
+
+        }
+
+        $methods = $reflection->getMethods(ReflectionMethod::IS_PUBLIC);
+
+        foreach ($methods as $method) {
+
+            $routes = $method->getAttributes(Route::class);
+
+            foreach ($routes as $route) {
+
+                /** @var Route $instance */
+                $instance = $route->newInstance();
+
+                $instance->route = $base_route . $instance->route;
+
+                $instance->setClass($class_name);
+                $instance->setMethod($method->getName());
+
+                $this->routes[] = $instance;
+
+            }
+
+        }
 
     }
 

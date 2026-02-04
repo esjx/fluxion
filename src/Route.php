@@ -7,9 +7,32 @@ use Attribute;
 class Route
 {
 
-    public function __construct(public string $route, public ?array $methods = null, public ?array  $args = null)
+    private ?string $class = null;
+    private ?string $method = null;
+
+    public function __construct(public string $route, public array $methods = ['GET'], public array $args = [])
     {
-        
+        // TODO: Validar variáveis
+    }
+
+    public function getClass(): ?string
+    {
+        return $this->class;
+    }
+
+    public function setClass(string $class): void
+    {
+        $this->class = $class;
+    }
+
+    public function getMethod(): ?string
+    {
+        return $this->method;
+    }
+
+    public function setMethod(string $method): void
+    {
+        $this->method = $method;
     }
 
 }
