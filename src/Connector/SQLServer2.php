@@ -1,23 +1,21 @@
 <?php
 namespace Fluxion\Connector;
 
+use Generator;
 use PDO;
 use PDOException;
-use Generator;
+use Random\RandomException;
 use Fluxion\Model2;
-use Fluxion\SqlFormatter;
 use Fluxion\Database;
 use Fluxion\CustomException;
 use Fluxion\Color;
-use Random\RandomException;
+use GuzzleHttp\Psr7\Utils;
 
 class SQLServer2 extends SQLServer
 {
 
     const DB_DATE_FORMAT = 'Y-m-d';
     const DB_DATETIME_FORMAT = 'Y-m-d H:i:s';
-
-    private bool $_extra_break = false;
 
     protected $true_value = '1';
     protected $false_value = '0';
@@ -45,7 +43,7 @@ class SQLServer2 extends SQLServer
                 //PDO::ATTR_PERSISTENT => true,
             ];
 
-            $this->_pdo = new PDO($this->_host, $this->_user, $this->_pass, $options);
+            $this->_pdo = new PDO($_ENV['DB_HOST'], $_ENV['DB_USER'], $_ENV['DB_PASS'], $options);
 
             $this->_connected = true;
 
@@ -418,6 +416,8 @@ class SQLServer2 extends SQLServer
     {
 
         $this->_extra_break = false;
+
+        //$this->log_stream = Utils::streamFor('');
 
         $table = $model->getTable();
         $fields = $model->getFields();
@@ -872,51 +872,9 @@ class SQLServer2 extends SQLServer
 
         }
 
-    }
-
-    private function comment(string $text, string $color = Color::GRAY, bool $break_before = false): void
-    {
-
-        if ($break_before && $this->_extra_break) {
-            echo "\n";
+        if (!is_null($this->log_stream)) {
+            $this->log_stream->write("\n");
         }
-
-        $text = preg_replace('/(\'[\w\s,.-_()→]*\')/m', '<b><i>${1}</i></b>', $text);
-        $text = preg_replace('/(\"[\w\s,.-_()→]*\")/m', '<b>${1}</b>', $text);
-
-        echo "<span style='color: $color;'>-- $text </span>\n";
-
-        $this->_extra_break = true;
-
-    }
-
-    private function execute($comando): void
-    {
-
-        echo SqlFormatter::highlight($comando, false);
-
-        try {
-            $this->getPDO()->exec($comando);
-        }
-
-        catch (PDOException $e) {
-
-            $erro = $e->getMessage();
-            $exp = explode('[SQL Server]', $erro);
-
-            if (isset($exp[1])) {
-                $erro = $exp[1];
-            }
-
-            $this->comment("<b>ERRO</b>: $erro", Color::RED);
-
-        }
-
-        if ($this->_extra_break) {
-            echo "\n";
-        }
-
-        $this->_extra_break = false;
 
     }
 

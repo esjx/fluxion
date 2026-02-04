@@ -29,13 +29,16 @@ class Controller2
 
         $start_time = microtime(true);
 
-        $response->getBody()->write('TESTE');
+        $stream = $response->getBody();
 
-        echo '<pre>';
+        $connector = Config2::getConnector();
+        $connector->setLogStream($stream);
+
+        $stream->write('<pre>');
 
         $class_name = get_called_class();
 
-        echo "<b style='color: black;'>/* $class_name */</b>\n\n";
+        $stream->write("<b>/* $class_name */</b>\n\n");
 
         # Buscando todos os arquivos de Models
 
@@ -88,7 +91,9 @@ class Controller2
 
         asort($list);
         foreach ($list as $class => $index) {
+
             ModelManipulate2::synchronize($class);
+
         }
 
         # Executando scripts SQL
@@ -97,15 +102,13 @@ class Controller2
 
         # Resumo do processo executado
 
-        $end_time = microtime(true);
-
-        $time = Format::number($end_time - $start_time);
+        $time = Format::number(microtime(true) - $start_time);
 
         $memory = Format::size(memory_get_usage());
 
-        echo "-- Finalizado em <b>$time segundos</b> utilizando <b>$memory</b>";
+        $stream->write("-- Finalizado em <b>$time segundos</b> utilizando <b>$memory</b>");
 
-        echo '</pre>';
+        $stream->write('</pre>');
 
     }
 
@@ -143,7 +146,9 @@ class Controller2
                 /** @var Route $instance */
                 $instance = $route->newInstance();
 
-                $instance->route = $base_route . $instance->route;
+                if (!$instance->full) {
+                    $instance->route = $base_route . $instance->route;
+                }
 
                 $instance->setClass($class_name);
                 $instance->setMethod($method->getName());

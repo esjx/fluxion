@@ -10,7 +10,10 @@ class Route
     private ?string $class = null;
     private ?string $method = null;
 
-    public function __construct(public string $route, public array $methods = ['GET'], public array $args = [])
+    public function __construct(public string $route,
+                                public array $methods = ['GET'],
+                                public array $args = [],
+                                public bool $full = false)
     {
         // TODO: Validar variáveis
     }

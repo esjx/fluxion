@@ -1,6 +1,8 @@
 <?php
 namespace Fluxion;
 
+use Psr\Http\Message\StreamInterface;
+
 class ModelManipulate2 extends ModelManipulate
 {
 
@@ -13,15 +15,13 @@ class ModelManipulate2 extends ModelManipulate
 
         $model->changeState(Model2::STATE_SYNC);
 
-        echo "<b style='color: orange;'>/* $class_name */</b>\n\n";
-
         $connector = Config2::getConnector();
+
+        $connector->comment("<b>$class_name</b>\n", Color::ORANGE);
 
         # Criar a tabela principal
 
         $connector->synchronize($model);
-
-        echo "\n";
 
         # Criar as tabelas MN
 
@@ -29,7 +29,7 @@ class ModelManipulate2 extends ModelManipulate
 
         foreach ($many_to_many as $key => $mn) {
 
-            echo "<b style='color: gray;'>/* Tabela MN para o campo '$key' */</b>\n\n";
+            $connector->comment("<b>Tabela MN para o campo '$key'</b>\n");
 
             $mn_model = new MnModel2($model, $key);
 
@@ -40,8 +40,6 @@ class ModelManipulate2 extends ModelManipulate
             # Criar a tabela de relacionamento
 
             $connector->synchronize($mn_model);
-
-            echo "\n";
 
         }
 

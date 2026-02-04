@@ -14,7 +14,7 @@ class Config2
 
             if (isset($_ENV['DB_TYPE']) && $_ENV['DB_TYPE'] == 'sqlsrv') {
 
-                self::$connector = new Connector\SQLServer2($_ENV['DB_HOST'], $_ENV['DB_USER'], $_ENV['DB_PASS']);
+                self::$connector = new Connector\SQLServer2();
 
             }
 

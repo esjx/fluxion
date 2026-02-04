@@ -2,7 +2,8 @@
 namespace Fluxion\Connector;
 
 use Exception;
-use Fluxion\Model2;
+use Fluxion\Color;
+use Fluxion\SqlFormatter;
 use PDO;
 use PDOException;
 use PDOStatement;
@@ -10,10 +11,80 @@ use Fluxion\Application;
 use Fluxion\Auth\Auth;
 use Fluxion\Config;
 use Fluxion\Model;
-use Fluxion\Database;
+use Fluxion\Model2;
+use Psr\Http\Message\StreamInterface;
+use GuzzleHttp\Psr7\Utils;
 
 class Connector
 {
+
+    protected ?StreamInterface $log_stream = null;
+    /**
+     * @var true
+     */
+    protected bool $_extra_break;
+
+    public function __construct()
+    {
+        //$this->log_stream = Utils::streamFor('');
+    }
+
+    public function setLogStream(StreamInterface $stream): void
+    {
+        $this->log_stream = $stream;
+    }
+
+    public function comment(string $text, string $color = Color::GRAY, bool $break_before = false): void
+    {
+
+        if (is_null($this->log_stream)) return;
+
+        if ($break_before && $this->_extra_break) {
+            $this->log_stream->write("\n");
+        }
+
+        $text = preg_replace('/(\'[\w\s,.-_()→]*\')/m', '<b><i>${1}</i></b>', $text);
+        $text = preg_replace('/(\"[\w\s,.-_()→]*\")/m', '<b>${1}</b>', $text);
+
+        $this->log_stream->write("<span style='color: $color;'>-- $text </span>\n");
+
+        $this->_extra_break = true;
+
+    }
+
+    protected function execute($comando): void
+    {
+
+        if (!is_null($this->log_stream)) {
+            $this->log_stream->write(SqlFormatter::highlight($comando, false));
+        }
+
+        try {
+            $this->getPDO()->exec($comando);
+        }
+
+        catch (PDOException $e) {
+
+            $erro = $e->getMessage();
+            $exp = explode('[SQL Server]', $erro);
+
+            if (isset($exp[1])) {
+                $erro = $exp[1];
+            }
+
+            $this->comment("<b>ERRO</b>: $erro", Color::RED);
+
+        }
+
+        if (!is_null($this->log_stream) && $this->_extra_break) {
+            $this->log_stream->write("\n");
+        }
+
+        $this->_extra_break = false;
+
+    }
+
+
 
     const DB_DATE_FORMAT = 'Y-m-d';
     const DB_DATETIME_FORMAT = 'Y-m-d H:i:s';
@@ -30,13 +101,6 @@ class Connector
     protected PDO $_pdo;
 
     protected $_connected = false;
-
-    public function __construct($host, $user, $pass)
-    {
-        $this->_host = $host;
-        $this->_user = $user;
-        $this->_pass = $pass;
-    }
 
     public function disconnect()
     {
