@@ -1,9 +1,8 @@
 <?php
 namespace Fluxion;
 
-use Psr\Http\Message\ResponseInterface;
 use stdClass;
-use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\{RequestInterface, ResponseInterface};
 use GuzzleHttp\Psr7\{ServerRequest, Response};
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 
@@ -80,9 +79,11 @@ class App
 
                     $control = new $control_name();
 
-                    foreach ($args as $k=>$v)
-                        if (!is_numeric($k))
+                    foreach ($args as $k=>$v) {
+                        if (!is_numeric($k)) {
                             $parameters->$k = $v;
+                        }
+                    }
 
                     $out = $control->$method($request, $response, $parameters);
 

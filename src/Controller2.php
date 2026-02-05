@@ -4,7 +4,8 @@ namespace Fluxion;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
-use Psr\Http\Message\{RequestInterface, ResponseInterface};
+use Psr\Http\Message\{MessageInterface};
+use GuzzleHttp\Psr7\{Utils, Response};
 
 class Controller2
 {
@@ -23,12 +24,12 @@ class Controller2
      * @throws CustomException
      */
     #[Route(route: '/setup', methods: ['GET'])]
-    public static function setup(RequestInterface $request, ResponseInterface $response): void
+    public static function setup(): MessageInterface
     {
 
         $start_time = microtime(true);
 
-        $stream = $response->getBody();
+        $stream = Utils::streamFor();
 
         $connector = Config2::getConnector();
         $connector->setLogStream($stream);
@@ -106,6 +107,10 @@ class Controller2
         $stream->write("-- Finalizado em <b>$time segundos</b> utilizando <b>$memory</b>");
 
         $stream->write('</pre>');
+
+        $response = new Response();
+
+        return $response->withBody($stream);
 
     }
 
