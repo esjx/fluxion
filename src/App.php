@@ -1,6 +1,7 @@
 <?php
 namespace Fluxion;
 
+use Psr\Http\Message\ResponseInterface;
 use stdClass;
 use Psr\Http\Message\RequestInterface;
 use GuzzleHttp\Psr7\{ServerRequest, Response};
@@ -39,6 +40,19 @@ class App
         return json_decode(file_get_contents('php://input')) ?? new stdClass();
     }
 
+    public static function setCache(ResponseInterface $response, $seconds = 60): ResponseInterface
+    {
+
+        $ts = gmdate("D, d M Y H:i:s", time() + $seconds) . " GMT";
+        $ls = gmdate("D, d M Y H:i:s", time()) . " GMT";
+
+        return $response->withHeader('Expires', $ts)
+            ->withHeader('Last-Modified', $ls)
+            ->withHeader('Pragma', 'cache')
+            ->withHeader('Cache-Control', "max-age=$seconds");
+
+    }
+
     /**
      * @param Route[] $routes
      */
@@ -70,7 +84,11 @@ class App
                         if (!is_numeric($k))
                             $parameters->$k = $v;
 
-                    $control->$method($request, $response, $parameters);
+                    $out = $control->$method($request, $response, $parameters);
+
+                    if ($out instanceof ResponseInterface) {
+                        $response = $out;
+                    }
 
                     $emitter = new SapiEmitter();
                     $emitter->emit($response);
