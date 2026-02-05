@@ -4,10 +4,17 @@ namespace Fluxion;
 class Environment
 {
 
+    /**
+     * @throws CustomException
+     */
     public static function load(string $file): void
     {
 
         # Load environment variables
+
+        if (!file_exists($file)) {
+            throw new CustomException("File $file not found.");
+        }
 
         $parsed = parse_ini_file($file, true);
 

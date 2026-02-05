@@ -1,26 +1,12 @@
 <?php
 namespace Fluxion;
 
-use Fluxion\Query\QuerySql;
 use Generator;
 use ReflectionClass;
-use Fluxion\Query\Query2;
+use Fluxion\Query\{Query2, QuerySql};
 
 abstract class Model2
 {
-
-    const STATE_VIEW = 0;
-    const STATE_EDIT = 1;
-    const STATE_EXCEL = 2;
-    const STATE_FIELDS = 3;
-    const STATE_SYNC = 4;
-    const STATE_BEFORE_SAVE = 15;
-    const STATE_SAVE = 5;
-    const STATE_FILTER = 6;
-    const STATE_FILTER_PARAMS = 7;
-    const STATE_INLINE = 8;
-    const STATE_INLINE_SAVE = 10;
-    const STATE_TYPEAHEAD = 9;
 
     /** @var array<string, Database\Field> */
     protected array $_fields = [];
@@ -206,6 +192,11 @@ abstract class Model2
 
     }
 
+    public function __isset($name): bool
+    {
+        return isset($this->_fields[$name]);
+    }
+
     /** @throws CustomException */
     public function __set($name, $value)
     {
@@ -216,7 +207,7 @@ abstract class Model2
 
     }
 
-    public function __get($name)
+    public function __get($name): mixed
     {
 
         if (isset($this->_fields[$name])) {
@@ -227,8 +218,63 @@ abstract class Model2
 
     }
 
-    public function changeState($state): void
+    public function changeState(State $state): void
     {
+
+    }
+
+    public function isChanged(): bool
+    {
+
+        foreach ($this->_fields as $field) {
+            if ($field->isChanged()) {
+                return true;
+            }
+        }
+
+        return false;
+
+    }
+
+    protected bool $saved = false;
+
+    public function isSaved(): bool
+    {
+        return $this->saved;
+    }
+
+    public function setSaved(bool $saved): void
+    {
+        $this->saved = $saved;
+    }
+
+    public function onSave(): bool
+    {
+        return true;
+    }
+
+    public function onSaved(): void
+    {
+
+    }
+
+    /**
+     * @throws CustomException
+     */
+    public function save(): bool
+    {
+
+        $this->changeState(State::STATE_SAVE);
+
+        if ($this->onSave() && Config2::getConnector()->save($this)) {
+
+            $this->saved = true;
+
+            $this->onSaved();
+
+        }
+
+        return false;
 
     }
 
@@ -503,7 +549,7 @@ abstract class Model2
     /**
      * @throws CustomException
      */
-    public static function loadById($id): self
+    public static function loadById(mixed $id): self
     {
 
         $class = get_called_class();
@@ -511,7 +557,28 @@ abstract class Model2
         /** @var self $obj */
         $obj = new $class();
 
-        return $obj->filter($obj->getFieldId()->getName(), $id)->firstOrNew();
+        $primary_keys = $obj->getPrimaryKeys();
+
+        if (count($primary_keys) == 0) {
+            throw new CustomException("Model '$class' não possui chave primária definida");
+        }
+
+        if (!is_array($id) && count($primary_keys) == 1) {
+            $id = [$obj->getFieldId()->getName() => $id];
+        }
+
+        $query = $obj->query();
+
+        foreach ($primary_keys as $key => $primary_key) {
+
+            $value = $id[$key]
+                ?? throw new CustomException("Valor para o campo '$key' não informado");
+
+            $query = $query->filter($key, $value);
+
+        }
+
+        return $query->firstOrNew();
 
     }
 

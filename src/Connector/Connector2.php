@@ -6,14 +6,11 @@ use PDO;
 use PDOException;
 use PDOStatement;
 use Psr\Http\Message\StreamInterface;
-use Fluxion\{Color, CustomException, MnModel2, Model2, SqlFormatter};
+use Fluxion\{Color, CustomException, MnModel2, Model2, SqlFormatter, State};
 use Fluxion\Query\{Query2, QueryWhere};
 
 abstract class Connector2
 {
-
-    //const DB_DATE_FORMAT = 'Y-m-d';
-    //const DB_DATETIME_FORMAT = 'Y-m-d H:i:s';
 
     protected ?PDO $_pdo;
 
@@ -31,12 +28,18 @@ abstract class Connector2
     protected string $true_value = 'TRUE';
     protected string $false_value = 'FALSE';
     protected string $null_value = 'NULL';
+    protected string $default_value = 'DEFAULT';
 
     protected string $utf_prefix = '';
 
     public function setLogStream(StreamInterface $stream): void
     {
         $this->log_stream = $stream;
+    }
+
+    public function getLogStream(): ?StreamInterface
+    {
+        return $this->log_stream;
     }
 
     public function comment(string $text, string $color = Color::GRAY, bool $break_before = false): void
@@ -99,24 +102,34 @@ abstract class Connector2
     public function escape($value): string
     {
 
-        if (is_string($value))
+        if (is_string($value)) {
+
+            if (preg_match('/^[\s\w\-.:]*$/i', $value)) {
+                return "'" . str_replace("'", "''", $value) . "'";
+            }
+
             return "$this->utf_prefix'" . str_replace("'", "''", $value) . "'";
-
-        if (is_array($value)) {
-
-            $ret = '';
-            foreach ($value as $k)
-                $ret .= (($ret != '') ? ", " : "") . $this->escape($k);
-
-            return "($ret)";
 
         }
 
-        if ($value === true)
-            return $this->true_value;
+        if (is_array($value)) {
 
-        if ($value === false)
+            $ret = [];
+            foreach ($value as $k) {
+                $ret[] = $this->escape($k);
+            }
+
+            return "(" . implode(", ", $ret) . ")";
+
+        }
+
+        if ($value === true) {
+            return $this->true_value;
+        }
+
+        if ($value === false) {
             return $this->false_value;
+        }
 
         if (is_null($value))
             return $this->null_value;
@@ -174,7 +187,7 @@ abstract class Connector2
         /** @var Model2 $model */
         $model = new $class_name;
 
-        $model->changeState(Model2::STATE_SYNC);
+        $model->changeState(State::STATE_SYNC);
 
         $this->comment("<b>$class_name</b>\n", Color::ORANGE);
 
@@ -192,7 +205,7 @@ abstract class Connector2
 
             $mn_model = new MnModel2($model, $key);
 
-            $mn_model->changeState(Model2::STATE_SYNC);
+            $mn_model->changeState(State::STATE_SYNC);
 
             $mn_model->setComment(get_class($model) . " MN[$key]");
 
@@ -209,7 +222,7 @@ abstract class Connector2
 
     }
 
-    public function filter(QueryWhere $filter, Query2 $query, string $id): string
+    public function filter(QueryWhere $filter, Query2 $query, ?string $id): string
     {
         return '';
     }
@@ -239,11 +252,13 @@ abstract class Connector2
             $model = new $class_name();
         }
 
+        $model->setSaved(true);
+
         $fields = $model->getFields();
 
         $sql = $this->sql_select($query) . ";\n";
 
-        //echo "<pre>$sql</pre>";
+        $this->comment("Executando consulta em '$class_name'", Color::ORANGE);
 
         $this->logSql("$sql");
 
@@ -280,26 +295,134 @@ abstract class Connector2
         return '';
     }
 
-    public function delete(Query2 $query): string
+    public function sql_insert(Model2 $model, array $data = []): string
     {
         return '';
     }
 
-    public function drop(Query2 $query): string
+    /**
+     * @throws CustomException
+     */
+    public function execute_insert(Model2 $model, array $data = []): void
     {
 
-        return '';
+        $class_name = get_class($model);
+
+        $sql = $this->sql_insert($model, $data) . ';';
+
+        $this->comment("Inserindo registro(s) em '$class_name'", Color::GREEN);
+
+        $this->logSql($sql);
+
+        $stmt = $this->getPDO()->query($sql);
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        foreach ($model->getPrimaryKeys() as $key => $pk) {
+            $field = $model->getField($key);
+            $field->setValue($result[$field->column_name]);
+        }
+
+        foreach ($model->getFields() as $field) {
+            if (!is_null($field->default)) {
+                $field->setValue($result[$field->column_name]);
+            }
+        }
 
     }
 
-    public function insert($arg, Model2 $model, $force_fields = false): string
+    public function sql_update(Model2 $model, Query2 $query): ?string
     {
         return '';
     }
 
-    public function update($arg, Model2 $model): string
+    /**
+     * @throws CustomException
+     */
+    public function execute_update(Model2 $model): void
+    {
+
+        $query = $model::query();
+        $class_name = get_class($model);
+
+        $primary_keys = $model->getPrimaryKeys();
+
+        if (count($primary_keys) == 0) {
+            throw new CustomException("Model '$class_name' não possui chave primária definida");
+        }
+
+        foreach ($primary_keys as $key => $pk) {
+            $field = $model->getField($key);
+            $query = $query->filter($key, $field->getSavedValue());
+        }
+
+        $sql = $this->sql_update($model, $query);
+
+        $this->comment("Atualizando registro(s) em '$class_name'", Color::ORANGE);
+
+        if (!is_null($sql)) {
+
+            $this->execute($sql . ';');
+
+        }
+
+        else {
+
+            $this->comment("Nenhum campo atualizável");
+
+        }
+
+    }
+
+    public function sql_delete(Query2 $query): string
     {
         return '';
+    }
+
+    public function sql_drop(Query2 $query): string
+    {
+        return '';
+    }
+
+
+    /**
+     * @throws CustomException
+     */
+    public function save(Model2 $model): bool
+    {
+
+        $class_name = get_class($model);
+
+        # Inserir dados na tabela principal
+
+        if (!$model->isSaved()) {
+
+            $primary_keys = $model->getPrimaryKeys();
+
+            if (count($primary_keys) == 0) {
+                throw new CustomException("Model '$class_name' já salvo e não possui chave primária definida");
+            }
+
+            $this->execute_insert($model);
+
+        }
+
+        # Atualizar dados na tabela principal
+
+        else {
+
+            $this->execute_update($model);
+
+        }
+
+        # Atualizar dados nas tabelas MN
+
+        $this->comment("$model->_insert");
+
+        #TODO
+
+        return true;
+
     }
 
 }

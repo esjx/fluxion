@@ -20,6 +20,7 @@ abstract class Field
     const TYPE_DATETIME = 'datetime';
 
     protected mixed $_value = null;
+    protected mixed $_saved_value = null;
     protected string $_name;
     public ?string $column_name = null;
     protected Model2 $_model;
@@ -34,6 +35,8 @@ abstract class Field
     public ?string $mask_class = null;
     public ?bool $required = false;
     public ?bool $protected = false;
+    protected bool $_changed = false;
+    protected bool $_loaded = false;
     public ?bool $readonly = false;
     public ?bool $primary_key = false;
     public ?bool $identity = false;
@@ -51,6 +54,17 @@ abstract class Field
 
     public ?ForeignKey $foreign_key = null;
     public ?ManyToMany $many_to_many = null;
+
+    public function isChanged(): bool
+    {
+        return $this->_changed;
+    }
+
+    public function isLoaded(): bool
+    {
+        return $this->_loaded;
+
+    }
 
     public function getName(): string
     {
@@ -93,9 +107,39 @@ abstract class Field
         return $value;
     }
 
-    public function getValue(): mixed
+    public function update(): void
     {
+
+    }
+
+    public function getValue($row = false): mixed
+    {
+
+        $this->update();
+
+        if ($row) {
+            return $this->_value;
+        }
+
+        if (!is_null($this->many_to_many) && is_null($this->_value) && $this->_loaded) {
+
+            #TODO: buscar dados de tabelas MN
+
+        }
+
         return $this->format($this->_value);
+
+    }
+
+    public function getSavedValue($row = false): mixed
+    {
+
+        if ($row) {
+            return $this->_saved_value;
+        }
+
+        return $this->format($this->_saved_value);
+
     }
 
     public function translate(mixed $value): mixed
@@ -111,7 +155,18 @@ abstract class Field
             throw new CustomException(message: "Valor '$value' inválido para o campo '$this->_name'", log: false);
         }
 
-        $this->_value = $this->translate($value);
+        $new_value = $this->translate($value);
+
+        if ($this->_value != $new_value) {
+            $this->_changed = true;
+            $this->_value = $new_value;
+        }
+
+        if ($database) {
+            $this->_loaded = true;
+            $this->_changed = false;
+            $this->_saved_value = $new_value;
+        }
 
     }
 

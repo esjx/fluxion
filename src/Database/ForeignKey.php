@@ -64,7 +64,7 @@ class ForeignKey
         $field = $this->_model->getFields()[$this->_name];
 
         if ($field->getType() != $this->_field->getType()) {
-            throw new CustomException(message: "Tipo do campo '$class:$this->_name' diferente da chave estrangeira.", log: false);
+            throw new CustomException(message: "Tipo do campo '$class:$this->_name ({$field->getType()})' diferente da chave estrangeira ({$this->_field->getType()}).", log: false);
         }
 
         if ($field->getType() == 'string' && $field->max_length != $this->_field->max_length) {

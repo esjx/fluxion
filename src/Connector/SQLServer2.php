@@ -13,7 +13,8 @@ class SQLServer2 extends Connector2
     protected string $true_value = '1';
     protected string $false_value = '0';
     protected string $null_value = 'NULL';
-    protected string $utf_prefix = '';
+    protected string $default_value = 'DEFAULT';
+    protected string $utf_prefix = 'N';
 
     /** @throws PDOException */
     public function getPDO(): PDO
@@ -855,10 +856,12 @@ class SQLServer2 extends Connector2
     /**
      * @throws CustomException
      */
-    public function filter(QueryWhere $filter, Query2 $query, string $id): string
+    public function filter(QueryWhere $filter, Query2 $query, ?string $id): string
     {
 
         $model = $query->getModel();
+
+        $txt_id = (!is_null($id)) ? "$id." : '';
 
         $not = ($filter->not) ? 'NOT ' : '';
 
@@ -895,7 +898,7 @@ class SQLServer2 extends Connector2
                     $json_name = $_field[$i + 1]
                         ?? throw new CustomException("Utilizar padrão 'campo__json__variavel'");
 
-                    $field = "JSON_VALUE($id.[$field], '$.$json_name')";
+                    $field = "JSON_VALUE({$txt_id}[$field], '$.$json_name')";
 
                     $filter->value = (string) $filter->value;
 
@@ -917,11 +920,11 @@ class SQLServer2 extends Connector2
 
                 $field = match ($_field[$i]) {
                     'second', 'minute', 'hour', 'day', 'week', 'month', 'year',
-                    'weekday' => "DATEPART($_field[$i], $id.[$field])",
-                    'dow' => "DATEPART(weekday, $id.[$field])",
-                    'date' => "CAST($id.[$field] AS DATE)",
-                    'length' => "LEN($id.[$field])",
-                    'only_number', 'clean' => "REPLACE(REPLACE(REPLACE(REPLACE($id.[$field], ' ', ''), '.', ''), '/', ''), '-', '')",
+                    'weekday' => "DATEPART($_field[$i], {$txt_id}[$field])",
+                    'dow' => "DATEPART(weekday, {$txt_id}[$field])",
+                    'date' => "CAST({$txt_id}[$field] AS DATE)",
+                    'length' => "LEN({$txt_id}[$field])",
+                    'only_number', 'clean' => "REPLACE(REPLACE(REPLACE(REPLACE({$txt_id}[$field], ' ', ''), '.', ''), '/', ''), '-', '')",
                     default => $field,
                 };
 
@@ -930,7 +933,7 @@ class SQLServer2 extends Connector2
         }
 
         if ($field == $field_obj->column_name) {
-            $field = "$id.[$field]";
+            $field = "{$txt_id}[$field]";
         }
 
         if (is_null($filter->value)) {
@@ -1113,6 +1116,176 @@ class SQLServer2 extends Connector2
 
         if ($inline) {
             $sql = str_replace(["\n\t", "\n", "\t"], " ", $sql);
+        }
+
+        return $sql;
+
+    }
+
+    /**
+     * @throws CustomException
+     */
+    public function sql_insert(Model2 $model, array $data = []): string
+    {
+
+        $fields = $model->getFields();
+        $primary_keys = $model->getPrimaryKeys();
+        $table = $model->getTable();
+
+        $fields_sql = [];
+
+        $inserts_sql = [];
+        $outputs_sql = [];
+
+        # Campos
+
+        foreach ($fields as $f) {
+
+            if ($f->fake) {
+                continue;
+            }
+
+            if (!$f->isChanged() && $model->isSaved()) {
+                continue;
+            }
+
+            $fields_sql[] = "[$f->column_name]";
+
+        }
+
+        # Inclusão de um único registro
+
+        if (count($data) == 0) {
+
+            # Valores a serem devolvidos
+
+            foreach ($primary_keys as $key => $p) {
+                $f = $model->getField($key);
+                $outputs_sql[] = "INSERTED.[$f->column_name]";
+            }
+
+            $values_sql = [];
+
+            foreach ($fields as $key => $f) {
+
+                if ($f->fake) {
+                    continue;
+                }
+
+                if (!$f->isChanged() && $model->isSaved()) {
+                    continue;
+                }
+
+                $value = $f->getValue(true);
+
+                if (!is_null($f->default)) {
+                    $outputs_sql[] = "INSERTED.[$f->column_name]";
+                }
+
+                if ($f->required && is_null($value) && is_null($f->default)) {
+                    throw new CustomException("Campo '$key' não pode ser nulo");
+                }
+
+                if ($f->required && is_null($value) && !is_null($f->default)) {
+                    $values_sql[] = $this->default_value;
+                }
+
+                else {
+                    $values_sql[] = $this->escape($value);
+                }
+
+            }
+
+            $inserts_sql[] = "(" . implode(", ", $values_sql) . ")";
+
+        }
+
+        # Inclusão de vários registros
+
+        else {
+
+            foreach ($data as $d) {
+
+                $values_sql = [];
+
+                foreach ($fields as $key => $f) {
+
+                    if ($f->fake) {
+                        continue;
+                    }
+
+                    if (!$f->isChanged() && $model->isSaved()) {
+                        continue;
+                    }
+
+                    $values_sql[] = $this->escape($d[$key]);
+
+                }
+
+                $inserts_sql[] = "(" . implode(", ", $values_sql) . ")";
+
+            }
+
+        }
+
+        if (count($fields_sql) == 0) {
+            throw new CustomException("Nenhum campo alterado para incluir");
+        }
+
+        if (count($inserts_sql) == 0) {
+            throw new CustomException("Nenhum registro para incluir");
+        }
+
+        $sql = "INSERT INTO $table->database.$table->schema.$table->table";
+
+        $sql .= " (\n\t" . implode(",\n\t", $fields_sql) . "\n)";
+
+        if (count($outputs_sql) > 0) {
+            $sql .= "\nOUTPUT\t" . implode(",\n\t", $outputs_sql) . "\n";
+        }
+
+        $sql .= "VALUES\t" . implode(",\n\t", $inserts_sql);
+
+        return $sql;
+
+    }
+
+    /**
+     * @throws CustomException
+     */
+    public function sql_update(Model2 $model, Query2 $query): ?string
+    {
+
+        $table = $model->getTable();
+
+        $where = [];
+
+        foreach ($query->getWhere() as $w) {
+            $where[] = $this->filter($w, $query, null);
+        }
+
+        $update = [];
+
+        foreach ($model->getFields() as $f) {
+
+            $f->update();
+
+            if ($f->isChanged()) {
+                $update[] = "[$f->column_name] = " . $this->escape($f->getValue());
+            }
+
+        }
+
+        if (count($update) == 0) {
+            return null;
+        }
+
+        $sql = "UPDATE $table->database.$table->schema.$table->table";
+
+        $sql .= "\nSET\t" . implode(",\n\t", $update);
+
+        if (count($where) > 0) {
+            $sql .= "\nWHERE\t" . implode(" AND\n\t", $where);
         }
 
         return $sql;

@@ -2,12 +2,16 @@
 namespace Fluxion\Database;
 
 use Attribute;
+use DateTime;
+use Fluxion\CustomException;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class DateField extends Field
 {
 
     protected string $_type = self::TYPE_DATE;
+
+    protected string $date_format = 'Y-m-d';
 
     public function __construct(public ?string         $label = null,
                                 public ?bool           $required = false,
@@ -20,6 +24,48 @@ class DateField extends Field
                                 public ?int            $size = 12)
     {
         parent::__construct();
+    }
+
+    /**
+     * @throws CustomException
+     */
+    public function validate(mixed &$value): bool
+    {
+
+        if (!parent::validate($value)) {
+            return false;
+        }
+
+        if (empty($value)) {
+            $value = null;
+        }
+
+        else {
+
+            $formats = ['Y-m-d H:i:s.v', 'Y-m-d H:i:s', 'Y-m-d'];
+
+            foreach ($formats as $format) {
+
+                $date = DateTime::createFromFormat($format, $value);
+
+                if ($date !== false) {
+                    break;
+                }
+
+            }
+
+            if ($date === false) {
+                throw new CustomException("Invalid date format: $value");
+            }
+
+            else {
+                $value = $date->format($this->date_format);
+            }
+
+        }
+
+        return true;
+
     }
 
 }
