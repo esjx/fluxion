@@ -4,7 +4,7 @@ namespace Fluxion\Database;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class DecimalField extends Field
+class DecimalField extends FloatField
 {
 
     protected string $_type = self::TYPE_DECIMAL;

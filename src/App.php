@@ -3,8 +3,7 @@ namespace Fluxion;
 
 use stdClass;
 use Psr\Http\Message\RequestInterface;
-use GuzzleHttp\Psr7\ServerRequest;
-use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\{ServerRequest, Response};
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 
 class App

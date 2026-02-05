@@ -1,7 +1,10 @@
 <?php
 namespace Fluxion;
 
+use Fluxion\Query\QuerySql;
+use Generator;
 use ReflectionClass;
+use Fluxion\Query\Query2;
 
 abstract class Model2
 {
@@ -42,6 +45,9 @@ abstract class Model2
     protected ?Database\Table $_table = null;
 
     protected ?string $comment = null;
+
+    #[Database\FloatField(protected: true, fake: true)]
+    public ?float $total = null;
 
     public function setComment(?string $comment): void {
         $this->comment = $comment;
@@ -237,6 +243,22 @@ abstract class Model2
         return $this->_fields;
     }
 
+    /**
+     * @throws CustomException
+     */
+    public function getField($name): ?Database\Field
+    {
+
+        if ($name == '*') {
+            return null;
+            //return new Database\StringField(column_name: '*');
+        }
+
+        return $this->_fields[$name]
+            ?? throw new CustomException("Campo '$name' não encontrado no modelo");
+
+    }
+
     /** @return array<string, Database\PrimaryKey> */
     public function getPrimaryKeys(): array
     {
@@ -310,6 +332,184 @@ abstract class Model2
         }
 
         return $field;
+
+    }
+
+    public static function query(): Query2
+    {
+
+        $class = get_called_class();
+        $obj = new $class();
+
+        return new Query2($obj);
+
+    }
+
+    public static function only($field): Query2
+    {
+
+        $class = get_called_class();
+        $obj = new $class();
+
+        return (new Query2($obj))->only($field);
+
+    }
+
+    public static function addField($field): Query2
+    {
+
+        $class = get_called_class();
+        $obj = new $class();
+
+        return (new Query2($obj))->addField($field);
+
+    }
+
+    public static function count($field = '*', $name = 'total'): Query2
+    {
+
+        $class = get_called_class();
+        $obj = new $class();
+
+        return (new Query2($obj))->count($field, $name);
+
+    }
+
+    public static function sum($field, $name = 'total'): Query2
+    {
+
+        $class = get_called_class();
+        $obj = new $class();
+
+        return (new Query2($obj))->sum($field, $name);
+
+    }
+
+    public static function avg($field, $name = 'total'): Query2
+    {
+
+        $class = get_called_class();
+        $obj = new $class();
+
+        return (new Query2($obj))->avg($field, $name);
+
+    }
+
+    public static function min($field, $name = 'total'): Query2
+    {
+
+        $class = get_called_class();
+        $obj = new $class();
+
+        return (new Query2($obj))->min($field, $name);
+
+    }
+
+    public static function max($field, $name = 'total'): Query2
+    {
+
+        $class = get_called_class();
+        $obj = new $class();
+
+        return (new Query2($obj))->sum($field, $name);
+
+    }
+
+    public static function filter(string|QuerySql $field, $value = null): Query2
+    {
+
+        $class = get_called_class();
+        $obj = new $class();
+
+        return (new Query2($obj))->filter($field, $value);
+
+    }
+
+    public static function filterIf(string|QuerySql $field, $value = null, $if = true): Query2
+    {
+
+        $class = get_called_class();
+        $obj = new $class();
+
+        return (new Query2($obj))->filterIf($field, $value, $if);
+
+    }
+
+    public static function exclude(string|QuerySql $field, $value = null): Query2
+    {
+
+        $class = get_called_class();
+        $obj = new $class();
+
+        return (new Query2($obj))->exclude($field, $value);
+
+    }
+
+    public static function excludeIf(string|QuerySql $field, $value = null, $if = true): Query2
+    {
+
+        $class = get_called_class();
+        $obj = new $class();
+
+        return (new Query2($obj))->excludeIf($field, $value, $if);
+
+    }
+
+    public static function orderBy($field, $order = 'ASC'): Query2
+    {
+
+        $class = get_called_class();
+        $obj = new $class();
+
+        return (new Query2($obj))->orderBy($field, $order);
+
+    }
+
+    public static function groupBy($field, $only = true): Query2
+    {
+
+        $class = get_called_class();
+        $obj = new $class();
+
+        return (new Query2($obj))->groupBy($field, $only);
+
+    }
+
+    public static function limit($limit, $offset = 0): Query2
+    {
+
+        $class = get_called_class();
+        $obj = new $class();
+
+        return (new Query2($obj))->limit($limit, $offset);
+
+    }
+
+    /**
+     * @throws CustomException
+     */
+    public static function select(): Generator
+    {
+
+        $class = get_called_class();
+        $obj = new $class();
+
+        return (new Query2($obj))->select();
+
+    }
+
+    /**
+     * @throws CustomException
+     */
+    public static function loadById($id): self
+    {
+
+        $class = get_called_class();
+
+        /** @var self $obj */
+        $obj = new $class();
+
+        return $obj->filter($obj->getFieldId()->getName(), $id)->firstOrNew();
 
     }
 

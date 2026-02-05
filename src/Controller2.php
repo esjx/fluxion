@@ -4,8 +4,7 @@ namespace Fluxion;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\{RequestInterface, ResponseInterface};
 
 class Controller2
 {

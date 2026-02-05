@@ -40,9 +40,15 @@ class IntegerField extends Field
 
     }
 
-    public function translate(mixed $value): int
+    public function translate(mixed $value): ?int
     {
+
+        if (empty($value)) {
+            return null;
+        }
+
         return intval($value);
+
     }
 
 }

@@ -4,10 +4,10 @@ namespace Fluxion;
 class Config2
 {
 
-    private static ?Connector\Connector $connector = null;
+    private static ?Connector\Connector2 $connector = null;
 
     /** @throws CustomException */
-    public static function getConnector(): Connector\Connector
+    public static function getConnector(): Connector\Connector2
     {
 
         if (is_null(self::$connector)) {

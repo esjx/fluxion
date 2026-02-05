@@ -1,33 +1,19 @@
 <?php
 namespace Fluxion\Connector;
 
-use Generator;
 use PDO;
 use PDOException;
 use Random\RandomException;
-use Fluxion\Model2;
-use Fluxion\Database;
-use Fluxion\CustomException;
-use Fluxion\Color;
-use GuzzleHttp\Psr7\Utils;
+use Fluxion\{Color, CustomException, Database, Database\Table, MnModel2, Model2, Util};
+use Fluxion\Query\{Query2, QueryField, QueryWhere, QueryOrderBy, QueryGroupBy, QueryLimit, QuerySql};
 
-class SQLServer2 extends SQLServer
+class SQLServer2 extends Connector2
 {
 
-    const DB_DATE_FORMAT = 'Y-m-d';
-    const DB_DATETIME_FORMAT = 'Y-m-d H:i:s';
-
-    protected $true_value = '1';
-    protected $false_value = '0';
-    protected $null_value = 'NULL';
-    protected $utf_prefix = '';
-
-    protected PDO $_pdo;
-
-    protected $_connected = false;
-
-    protected ?array $_structure = null;
-    protected ?string $_database = null;
+    protected string $true_value = '1';
+    protected string $false_value = '0';
+    protected string $null_value = 'NULL';
+    protected string $utf_prefix = '';
 
     /** @throws PDOException */
     public function getPDO(): PDO
@@ -50,18 +36,6 @@ class SQLServer2 extends SQLServer
         }
 
         return $this->_pdo;
-
-    }
-
-    /** @throws PDOException */
-    public function fetch(string $sql): Generator
-    {
-
-        $stmt = $this->getPDO()->query($sql);
-
-        while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            yield $result;
-        }
 
     }
 
@@ -875,6 +849,273 @@ class SQLServer2 extends SQLServer
         if (!is_null($this->log_stream)) {
             $this->log_stream->write("\n");
         }
+
+    }
+
+    /**
+     * @throws CustomException
+     */
+    public function filter(QueryWhere $filter, Query2 $query, string $id): string
+    {
+
+        $model = $query->getModel();
+
+        $not = ($filter->not) ? 'NOT ' : '';
+
+        if (is_object($filter->field)) {
+
+            $where = [];
+            /** @var QueryWhere $w */
+            foreach ($filter->field->_filters as $w) {
+                if (!is_null($w)) {
+                    $where[] = $this->filter($w, $query, $id);
+                }
+            }
+
+            $where = implode(" {$filter->field->_type} ", $where);
+
+            return "$not($where)";
+
+        }
+
+        $_field = explode('__', $filter->field);
+
+        $field_obj = $model->getField($_field[0]);
+
+        $field = $field_obj->column_name;
+
+        $type = '=';
+
+        for ($i = 1; $i <= count($_field); $i++) {
+
+            if (isset($_field[$i])) {
+
+                if ($_field[$i] == 'json') {
+
+                    $json_name = $_field[$i + 1]
+                        ?? throw new CustomException("Utilizar padrão 'campo__json__variavel'");
+
+                    $field = "JSON_VALUE($id.[$field], '$.$json_name')";
+
+                    $filter->value = (string) $filter->value;
+
+                    $i++;
+
+                    continue;
+
+                }
+
+                $type = match ($_field[$i]) {
+                    'ne' => '<>',
+                    'lt' => '<',
+                    'gt' => '>',
+                    'lte' => '<=',
+                    'gte' => '>=',
+                    'like' => 'LIKE',
+                    default => '=',
+                };
+
+                $field = match ($_field[$i]) {
+                    'second', 'minute', 'hour', 'day', 'week', 'month', 'year',
+                    'weekday' => "DATEPART($_field[$i], $id.[$field])",
+                    'dow' => "DATEPART(weekday, $id.[$field])",
+                    'date' => "CAST($id.[$field] AS DATE)",
+                    'length' => "LEN($id.[$field])",
+                    'only_number', 'clean' => "REPLACE(REPLACE(REPLACE(REPLACE($id.[$field], ' ', ''), '.', ''), '/', ''), '-', '')",
+                    default => $field,
+                };
+
+            }
+
+        }
+
+        if ($field == $field_obj->column_name) {
+            $field = "$id.[$field]";
+        }
+
+        if (is_null($filter->value)) {
+            return "$field IS {$not}NULL";
+        }
+
+        if (is_string($filter->value)
+            || is_numeric($filter->value)
+            || is_bool($filter->value)) {
+
+            $escaped_value = $filter->value;
+
+            if ($type == 'LIKE') {
+                $escaped_value = str_replace(['_', '%'], '', $escaped_value);
+            }
+
+            if (in_array($field_obj->getType(), ['integer', 'float', 'decimal'])
+                && $escaped_value
+                && !is_numeric($escaped_value)
+                && !is_bool($escaped_value)) {
+                throw new CustomException("O valor <b>$filter->value</b> não é numérico!");
+            }
+
+            if ($type == 'LIKE') {
+                return "$field {$not}LIKE {$this->escape($filter->value)}";
+            }
+
+            return "$not$field $type " . $this->escape($filter->value);
+
+        }
+
+        if (is_array($filter->value)) {
+
+            if (count($filter->value) > 0) {
+
+                if (in_array(null, $filter->value)) {
+                    return "($field{$not}IN " . $this->escape($filter->value) . " OR $field IS {$not}NULL)";
+                }
+
+                return "$field{$not}IN " . $this->escape($filter->value);
+
+            }
+
+            else {
+                return '1=0';
+            }
+
+        }
+
+        if (is_object($filter->value)) {
+
+            if (get_class($filter->value) == Query2::class) {
+                return "$field{$not}IN (" . self::sql_select($filter->value, true) . ")";
+            }
+
+        }
+
+        return false;
+
+    }
+
+    /**
+     * @throws CustomException
+     */
+    public function sql_select(Query2 $query, bool $inline = false): string
+    {
+
+        $id = $this->getTableId();
+        $model = $query->getModel();
+        $table = $model->getTable();
+
+        $fields = [];
+
+        if ($query->isAllFields()) {
+            foreach ($model->getFields() as $field) {
+                if (!$field->fake) {
+                    $fields[] = "$id.[$field->column_name]";
+                }
+            }
+        }
+
+        foreach ($query->getFields() as $query_field) {
+
+            $field = $model->getField($query_field->field);
+
+            if (is_null($query_field->aggregator)) {
+                $fields[] = "$id.[$field->column_name]";
+            }
+
+            elseif ($query_field->aggregator == 'COUNT') {
+
+                if (is_null($field)) {
+                    $fields[] = "COUNT(*) AS $query_field->name";
+                }
+
+                else {
+                    $fields[] = "COUNT($id.[$field->column_name]) AS $query_field->name";
+                }
+
+            }
+
+            else {
+                $fields[] = "$query_field->aggregator($id.[$field->column_name]) AS $query_field->name";
+            }
+
+        }
+
+        $where = [];
+
+        foreach ($query->getWhere() as $w) {
+            $where[] = $this->filter($w, $query, $id);
+        }
+
+        $order_by = [];
+
+        foreach ($query->getOrderBy() as $o) {
+            $field = $model->getField($o->field);
+            $order_by[] = "$id.[$field->column_name] $o->order";
+        }
+
+        $group_by = [];
+
+        foreach ($query->getGroupBy() as $g) {
+            $field = $model->getField($g->field);
+            $group_by[] = "$id.[$field->column_name]";
+        }
+
+        $top = "\t";
+        $limit_offset = null;
+
+        if (!is_null($l = $query->getLimit())) {
+
+            if ($l->offset == 0) {
+                $top = " TOP $l->limit ";
+            }
+
+            if ($l->offset > 0) {
+
+                $limit_offset = "OFFSET $l->offset ROWS FETCH NEXT $l->limit ROWS ONLY";
+
+                if (count($order_by) == 0) {
+                    foreach ($model->getPrimaryKeys() as $field => $primary_key) {
+                        $field = $model->getField($field);
+                        $order_by[] = "$id.[$field->column_name] ASC";
+                        break;
+                    }
+                }
+
+                if (count($order_by) == 0) {
+                    foreach ($model->getFields() as $field => $primary_key) {
+                        $field = $model->getField($field);
+                        $order_by[] = "$id.[$field->column_name] ASC";
+                        break;
+                    }
+                }
+
+            }
+
+        }
+
+        $sql = "SELECT$top" . implode(",\n\t", $fields);
+
+        $sql .= "\nFROM $table->database.$table->schema.$table->table AS $id WITH (nolock)";
+
+        if (count($where) > 0) {
+            $sql .= "\nWHERE\t" . implode(" AND\n\t", $where);
+        }
+
+        if (count($order_by) > 0) {
+            $sql .= "\nORDER BY " . implode(",\n\t", $order_by);
+        }
+
+        if (count($group_by) > 0) {
+            $sql .= "\nGROUP BY " . implode(",\n\t", $group_by);
+        }
+
+        if (!is_null($limit_offset)) {
+            $sql .= "\n$limit_offset";
+        }
+
+        if ($inline) {
+            $sql = str_replace(["\n\t", "\n", "\t"], " ", $sql);
+        }
+
+        return $sql;
 
     }
 

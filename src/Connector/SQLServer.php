@@ -20,14 +20,16 @@ class SQLServer extends Connector
     const DB_DATE_FORMAT = 'Y-m-d';
     const DB_DATETIME_FORMAT = 'Y-m-d H:i:s';
 
-    protected $true_value = '1';
-    protected $false_value = '0';
-    protected $null_value = 'NULL';
-    protected $utf_prefix = '';
+    protected string $true_value = '1';
+    protected string $false_value = '0';
+    protected string $null_value = 'NULL';
+    protected string $utf_prefix = '';
 
-    protected PDO $_pdo;
+    protected ?PDO $_pdo;
 
-    protected $_connected = false;
+    protected $_host;
+    protected $_user;
+    protected $_pass;
 
     public function getPDO(): PDO
     {
@@ -587,25 +589,6 @@ class SQLServer extends Connector
         }
 
         return [$database_name, $schema_name, $table_name];
-
-    }
-
-    public function error(Exception $e): never
-    {
-
-        if ($e->getCode() == 40001) {
-
-            Application::error('O registro que você tentou alterar está em uso! <br><br><b class="text-black">Tente novamente em instantes.</b>', 500, false, false);
-
-        } elseif ($e->getCode() == 22003) {
-
-            Application::error('Valor numérico acima do permitido! <br><br><b class="text-black">Verifique os valores numéricos inseridos.</b>', 500, false, false);
-
-        } else {
-
-            Application::error($e->getMessage());
-
-        }
 
     }
 

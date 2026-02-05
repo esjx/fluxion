@@ -52,6 +52,11 @@ abstract class Field
     public ?ForeignKey $foreign_key = null;
     public ?ManyToMany $many_to_many = null;
 
+    public function getName(): string
+    {
+        return $this->_name;
+    }
+
     public function setName(string $name): void
     {
         $this->_name = $name;

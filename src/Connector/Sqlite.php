@@ -11,10 +11,10 @@ use Fluxion\Model;
 class Sqlite extends Connector
 {
 
-    public function lastInsertId($pdo, PDOStatement $query, $field_id)
+    public function lastInsertId(PDOStatement $query, string $field_id)
     {
 
-        $qry = $pdo->query('SELECT last_insert_rowid() AS id;');
+        $qry = $this->_pdo->query('SELECT last_insert_rowid() AS id;');
 
         $ret = $qry->fetch(PDO::FETCH_ASSOC);
 

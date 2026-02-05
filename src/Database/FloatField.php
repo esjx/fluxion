@@ -8,7 +8,7 @@ class FloatField extends Field
 {
 
     protected string $_type = self::TYPE_FLOAT;
-    protected string $_type_target = 'string';
+    protected string $_type_target = 'float';
 
     public function __construct(public ?string         $label = null,
                                 public ?bool           $required = false,
@@ -18,9 +18,36 @@ class FloatField extends Field
                                 public null|int|string $max_value = null,
                                 public mixed           $default = null,
                                 public bool            $default_literal = false,
+                                public ?bool           $fake = false,
                                 public ?int            $size = 12)
     {
         parent::__construct();
+    }
+
+    public function validate(mixed &$value): bool
+    {
+
+        if (!parent::validate($value)) {
+            return false;
+        }
+
+        if (empty($value)) {
+            $value = null;
+        };
+
+        return is_null($value) || is_numeric($value);
+
+    }
+
+    public function translate(mixed $value): ?float
+    {
+
+        if (empty($value)) {
+            return null;
+        }
+
+        return floatval($value);
+
     }
 
 }

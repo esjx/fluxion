@@ -2,147 +2,33 @@
 namespace Fluxion\Connector;
 
 use Exception;
-use Fluxion\Color;
-use Fluxion\Config2;
-use Fluxion\CustomException;
-use Fluxion\MnModel2;
-use Fluxion\SqlFormatter;
+use Generator;
 use PDO;
 use PDOException;
 use PDOStatement;
+use Fluxion\Color;
+use Fluxion\CustomException;
+use Fluxion\MnModel2;
+use Fluxion\SqlFormatter;
 use Fluxion\Application;
 use Fluxion\Auth\Auth;
 use Fluxion\Config;
 use Fluxion\Model;
 use Fluxion\Model2;
 use Psr\Http\Message\StreamInterface;
-use GuzzleHttp\Psr7\Utils;
 
-class Connector
+abstract class Connector
 {
 
-    protected ?StreamInterface $log_stream = null;
-    /**
-     * @var true
-     */
-    protected bool $_extra_break;
+    protected ?PDO $_pdo;
 
-    public function __construct()
-    {
-        //$this->log_stream = Utils::streamFor('');
-    }
+    protected bool $_connected = false;
 
-    public function setLogStream(StreamInterface $stream): void
-    {
-        $this->log_stream = $stream;
-    }
+    protected string $true_value = 'TRUE';
+    protected string $false_value = 'FALSE';
+    protected string $null_value = 'NULL';
 
-    public function comment(string $text, string $color = Color::GRAY, bool $break_before = false): void
-    {
-
-        if (is_null($this->log_stream)) return;
-
-        if ($break_before && $this->_extra_break) {
-            $this->log_stream->write("\n");
-        }
-
-        $text = preg_replace('/(\'[\w\s,.-_()→]*\')/m', '<b><i>${1}</i></b>', $text);
-        $text = preg_replace('/(\"[\w\s,.-_()→]*\")/m', '<b>${1}</b>', $text);
-
-        $this->log_stream->write("<span style='color: $color;'>-- $text </span>\n");
-
-        $this->_extra_break = true;
-
-    }
-
-    protected function execute($comando): void
-    {
-
-        if (!is_null($this->log_stream)) {
-            $this->log_stream->write(SqlFormatter::highlight($comando, false));
-        }
-
-        try {
-            $this->getPDO()->exec($comando);
-        }
-
-        catch (PDOException $e) {
-
-            $erro = $e->getMessage();
-            $exp = explode('[SQL Server]', $erro);
-
-            if (isset($exp[1])) {
-                $erro = $exp[1];
-            }
-
-            $this->comment("<b>ERRO</b>: $erro", Color::RED);
-
-        }
-
-        if (!is_null($this->log_stream) && $this->_extra_break) {
-            $this->log_stream->write("\n");
-        }
-
-        $this->_extra_break = false;
-
-    }
-
-
-
-    const DB_DATE_FORMAT = 'Y-m-d';
-    const DB_DATETIME_FORMAT = 'Y-m-d H:i:s';
-
-    protected $true_value = 'TRUE';
-    protected $false_value = 'FALSE';
-    protected $null_value = 'NULL';
-    protected $utf_prefix = '';
-
-    protected $_host;
-    protected $_user;
-    protected $_pass;
-
-    protected PDO $_pdo;
-
-    protected $_connected = false;
-
-    public function disconnect()
-    {
-
-        $this->_connected = false;
-        $this->_pdo = null;
-
-    }
-
-    public function getPDO(): PDO
-    {
-
-        if (!$this->_connected) {
-
-            try {
-
-                $this->_pdo = new PDO(
-                    $this->_host,
-                    $this->_user,
-                    $this->_pass,
-                    [
-                        PDO::ATTR_PERSISTENT => true,
-                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    ]
-                );
-
-                //$this->_pdo->exec("SET TIMEZONE TO 'America/Recife';");
-
-                $this->_connected = true;
-
-            } catch (PDOException $e) {
-                Application::error($e->getMessage(), 207);
-            }
-
-        }
-
-        return $this->_pdo;
-
-    }
+    protected string $utf_prefix = '';
 
     public function escape($value): string
     {
@@ -173,7 +59,28 @@ class Connector
 
     }
 
-    public function lastInsertId($pdo, PDOStatement $query, $field_id)
+    /** @throws PDOException */
+    public function getPDO(): PDO
+    {
+
+        if (!$this->_connected) {
+
+            $options = [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_PERSISTENT => true,
+            ];
+
+            $this->_pdo = new PDO($_ENV['DB_HOST'], $_ENV['DB_USER'], $_ENV['DB_PASS'], $options);
+
+            $this->_connected = true;
+
+        }
+
+        return $this->_pdo;
+
+    }
+
+    public function lastInsertId(PDOStatement $query, string $field_id)
     {
 
         $ret = $query->fetch(PDO::FETCH_ASSOC);
@@ -181,6 +88,11 @@ class Connector
         return $ret[$field_id];
 
     }
+
+    // OLD
+
+    const DB_DATE_FORMAT = 'Y-m-d';
+    const DB_DATETIME_FORMAT = 'Y-m-d H:i:s';
 
     public function filter($filter, $database, Config $config, Auth $auth, Model $model): string
     {
@@ -340,11 +252,6 @@ class Connector
     {
 
         return "DROP TABLE IF EXISTS {$arg['table']} CASCADE;";
-
-    }
-
-    protected function executeSync(Model2 $model): void
-    {
 
     }
 
@@ -571,43 +478,6 @@ class Connector
     {
 
         Application::error($e->getMessage(), 500);
-
-    }
-
-    /** @throws CustomException */
-    public function sync(string $class_name): void
-    {
-
-        /** @var Model2 $model */
-        $model = new $class_name;
-
-        $model->changeState(Model2::STATE_SYNC);
-
-        $this->comment("<b>$class_name</b>\n", Color::ORANGE);
-
-        # Criar a tabela principal
-
-        $this->executeSync($model);
-
-        # Criar as tabelas MN
-
-        $many_to_many = $model->getManyToMany();
-
-        foreach ($many_to_many as $key => $mn) {
-
-            $this->comment("<b>Tabela MN para o campo '$key'</b>\n");
-
-            $mn_model = new MnModel2($model, $key);
-
-            $mn_model->changeState(Model2::STATE_SYNC);
-
-            $mn_model->setComment(get_class($model) . " MN[$key]");
-
-            # Criar a tabela de relacionamento
-
-            $this->executeSync($mn_model);
-
-        }
 
     }
 
