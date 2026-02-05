@@ -4,8 +4,8 @@ namespace Fluxion\Connector;
 use PDO;
 use PDOException;
 use Random\RandomException;
-use Fluxion\{Color, CustomException, Database, Database\Table, MnModel2, Model2, Util};
-use Fluxion\Query\{Query2, QueryField, QueryWhere, QueryOrderBy, QueryGroupBy, QueryLimit, QuerySql};
+use Fluxion\{Color, CustomException, Database, Model2};
+use Fluxion\Query\{Query2, QueryWhere};
 
 class SQLServer2 extends Connector2
 {

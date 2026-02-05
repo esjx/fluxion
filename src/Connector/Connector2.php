@@ -6,8 +6,8 @@ use PDO;
 use PDOException;
 use PDOStatement;
 use Psr\Http\Message\StreamInterface;
-use Fluxion\{Color, CustomException, Database\Table, MnModel2, Model2, SqlFormatter};
-use Fluxion\Query\{Query2, QueryField, QueryWhere, QueryOrderBy, QueryGroupBy, QueryLimit};
+use Fluxion\{Color, CustomException, MnModel2, Model2, SqlFormatter};
+use Fluxion\Query\{Query2, QueryWhere};
 
 abstract class Connector2
 {
@@ -143,14 +143,6 @@ abstract class Connector2
         }
 
         return $this->_pdo;
-
-    }
-
-    public function disconnect(): void
-    {
-
-        $this->_connected = false;
-        $this->_pdo = null;
 
     }
 
@@ -296,7 +288,7 @@ abstract class Connector2
     public function drop(Query2 $query): string
     {
 
-        return "DROP TABLE IF EXISTS {$arg['table']} CASCADE;";
+        return '';
 
     }
 

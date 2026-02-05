@@ -251,7 +251,6 @@ abstract class Model2
 
         if ($name == '*') {
             return null;
-            //return new Database\StringField(column_name: '*');
         }
 
         return $this->_fields[$name]
