@@ -304,6 +304,9 @@ class Query2
 
     }
 
+    /**
+     * @throws CustomException
+     */
     public function limit($limit, $offset = 0): self
     {
 

@@ -6,7 +6,7 @@ use Exception;
 class CustomException extends Exception
 {
 
-    private $_log;
+    private bool $_log;
 
     public function __construct($message = "", $data = [], $log = true)
     {

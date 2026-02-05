@@ -34,21 +34,6 @@ class App
 
     }
 
-    public static function getRegExp($url, $end): string
-    {
-
-        $end = ($end) ? '$' : '';
-
-        $url = preg_replace('/{([a-z0-9_]+):int}/i', '(?P<$1>[0-9]+)', $url);
-        $url = preg_replace('/{([a-z0-9_]+):string}/i', '(?P<$1>[a-z0-9-_.=%]+)', $url);
-        $url = preg_replace('/{([a-z0-9_]+):any}/i', '(?P<$1>[a-z0-9-_.=%/]+)', $url);
-
-        $url = str_replace('/', '\/', $url);
-
-        return '/^' . $url . $end . '/i';
-
-    }
-
     public static function inputStream()
     {
         return json_decode(file_get_contents('php://input')) ?? new stdClass();
@@ -67,19 +52,17 @@ class App
 
         $parameters = new stdClass();
 
-        foreach ($routes as $route_obj) {
+        foreach ($routes as $route) {
 
-            $route = self::getRegExp($route_obj->route, true);
-
-            if (in_array($request->getMethod(), $route_obj->methods)
-                && preg_match($route, $request->getUri()->getPath(), $_args)
+            if (in_array($request->getMethod(), $route->methods)
+                && preg_match($route->getRegExp(), $request->getUri()->getPath(), $_args)
                 /*&& (!isset($key['model']) || $this->modelFromId($key['model'], $_args))*/) {
 
-                $args = array_merge($args, $_args, $route_obj->args);
+                $args = array_merge($args, $_args, $route->args);
 
-                if ($method = $route_obj->getMethod()) {
+                if ($method = $route->getMethod()) {
 
-                    $control_name = $route_obj->getClass();
+                    $control_name = $route->getClass();
 
                     $control = new $control_name();
 

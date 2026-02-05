@@ -19,11 +19,6 @@ class PasswordField extends Field
         parent::__construct();
     }
 
-    public function translate(mixed $value): string
-    {
-        return password_hash($value, PASSWORD_DEFAULT);
-    }
-
     /** @throws CustomException */
     public function validadePassword($password): bool
     {
@@ -37,6 +32,17 @@ class PasswordField extends Field
         }
 
         return true;
+
+    }
+
+    public function translate(mixed $value): ?string
+    {
+
+        if (empty($value)) {
+            return null;
+        }
+
+        return password_hash($value, PASSWORD_DEFAULT);
 
     }
 

@@ -14,13 +14,13 @@ class Table
     {
 
         if (is_null($database)
-            && preg_match('/database=(?P<database>[A-Za-z0-9_]+)/si', $_ENV['DB_HOST'] ?? '', $data)) {
+            && preg_match('/database=(?P<database>[A-Za-z0-9_]+)/i', $_ENV['DB_HOST'] ?? '', $data)) {
 
             $this->database = $data['database'];
 
         }
 
-        if (preg_match('/^(?P<database>[A-Za-z0-9_]+)\.(?P<schema>[A-Za-z0-9_]+)\.(?P<table>[A-Za-z0-9_]+)$/si', $this->table, $data)) {
+        if (preg_match('/^(?P<database>[A-Za-z0-9_]+)\.(?P<schema>[A-Za-z0-9_]+)\.(?P<table>[A-Za-z0-9_]+)$/i', $this->table, $data)) {
 
             $this->database = $data['database'];
             $this->schema = $data['schema'];
@@ -28,7 +28,7 @@ class Table
 
         }
 
-        elseif (preg_match('/^(?P<schema>[A-Za-z0-9_]+)\.(?P<table>[A-Za-z0-9_]+)$/si', $this->table, $data)) {
+        elseif (preg_match('/^(?P<schema>[A-Za-z0-9_]+)\.(?P<table>[A-Za-z0-9_]+)$/i', $this->table, $data)) {
 
             $this->schema = $data['schema'];
             $this->table = $data['table'];

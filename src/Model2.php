@@ -474,6 +474,9 @@ abstract class Model2
 
     }
 
+    /**
+     * @throws CustomException
+     */
     public static function limit($limit, $offset = 0): Query2
     {
 
