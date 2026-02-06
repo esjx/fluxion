@@ -1,14 +1,21 @@
 <?php
 namespace Fluxion;
 
+use Generator;
+use ReflectionClass;
 use Fluxion\Query\{Query, QuerySql};
 use Fluxion\Database\{Detail, Table};
 use Fluxion\Database\Field\{Field, FloatField, ForeignKeyField, ManyToManyField};
-use Generator;
-use ReflectionClass;
 
 abstract class Model
 {
+
+    # Campo padrão para soma e contagem
+
+    #[FloatField(protected: true, fake: true)]
+    public ?float $total = null;
+
+    # Dados iniciais para o banco de dados
 
     protected array $_data = [];
 
@@ -17,22 +24,130 @@ abstract class Model
         return $this->_data;
     }
 
-    /** @var array<string, Field> */
-    protected array $_fields = [];
-
-    /** @var array<string, Detail> */
-    protected array $_details = [];
+    # Dados para identificação da tabela e índices
 
     protected ?Table $_table = null;
 
-    #[FloatField(protected: true, fake: true)]
-    public ?float $total = null;
+    public function getTable(): ?Table
+    {
+        return $this->_table;
+    }
+
+    /** @return array<string, Connector\TableIndex> */
+    public function getIndexes(): array
+    {
+        return [];
+    }
+
+    # Comentário para a tabela nos logs
 
     protected ?string $comment = null;
 
     public function getComment(): ?string {
         return $this->comment ?? get_class($this);
     }
+
+    # Uso e manipulação dos campos
+
+    /** @var array<string, Field> */
+    protected array $_fields = [];
+
+    /** @return array<string, Field> */
+    public function getFields(): array
+    {
+        return $this->_fields;
+    }
+
+    /**
+     * @throws CustomException
+     */
+    public function getField($name): ?Field
+    {
+
+        if ($name == '*') {
+            return null;
+        }
+
+        return $this->_fields[$name]
+            ?? throw new CustomException("Campo '$name' não encontrado no modelo");
+
+    }
+
+    /** @throws CustomException */
+    public function getFieldId(): Field
+    {
+
+        $field = null;
+
+        $class_name = get_class($this);
+
+        foreach ($this->getPrimaryKeys() as $key => $primary_key) {
+
+            if (!is_null($field)) {
+                throw new CustomException(message: "Classe '$class_name' possui mais de uma chave primária", log: false);
+            }
+
+            $field = $this->_fields[$key];
+
+        }
+
+        if (is_null($field)) {
+            throw new CustomException(message: "Classe '$class_name' não possui chave primária", log: false);
+        }
+
+        return $field;
+
+    }
+
+    /** @return array<string, Field> */
+    public function getPrimaryKeys(): array
+    {
+        return array_filter($this->_fields, function ($field) {
+            return $field->isPrimaryKey();
+        });
+    }
+
+    /** @return array<string, ForeignKeyField> */
+    public function getForeignKeys(): array
+    {
+        return array_filter($this->_fields, function ($field) {
+            return $field->isForeignKey();
+        });
+    }
+
+    /** @return array<string, ManyToManyField> */
+    public function getManyToMany(): array
+    {
+        return array_filter($this->_fields, function ($field) {
+            return $field->isManyToMany();
+        });
+    }
+
+    public function isChanged(): bool
+    {
+
+        foreach ($this->_fields as $field) {
+            if ($field->isChanged()) {
+                return true;
+            }
+        }
+
+        return false;
+
+    }
+
+    # Detalhes dos campos
+
+    /** @var array<string, Detail> */
+    protected array $_details = [];
+
+    /** @return array<string, Detail> */
+    public function getDetails(): array
+    {
+        return $this->_details;
+    }
+
+    # Construtor e métodos mágicos
 
     /** @throws CustomException */
     public function __construct()
@@ -131,20 +246,37 @@ abstract class Model
 
     }
 
-    public function changeState(State $state): void {}
-
-    public function isChanged(): bool
+    public function __toString(): string
     {
 
-        foreach ($this->_fields as $field) {
-            if ($field->isChanged()) {
-                return true;
+        $class = get_class($this);
+        $id = null;
+
+        foreach ($this->getPrimaryKeys() as $key => $primary_key) {
+
+            if (is_null($this->$key)) {
+                return $class . ' (Novo)';
             }
+
+            if (is_null($id)) {
+                $id .= ' #' . $this->$key;
+            }
+
+            else {
+                $id .= '/' . $this->$key;
+            }
+
         }
 
-        return false;
+        return $class . $id;
 
     }
+
+    # Atualização do "estado" do objeto
+
+    public function changeState(State $state): void {}
+
+    # Rotinas de salvamento
 
     protected bool $saved = false;
 
@@ -185,113 +317,7 @@ abstract class Model
 
     }
 
-    public function getTable(): ?Table
-    {
-        return $this->_table;
-    }
-
-    /** @return array<string, Field> */
-    public function getFields(): array
-    {
-        return $this->_fields;
-    }
-
-    /**
-     * @throws CustomException
-     */
-    public function getField($name): ?Field
-    {
-
-        if ($name == '*') {
-            return null;
-        }
-
-        return $this->_fields[$name]
-            ?? throw new CustomException("Campo '$name' não encontrado no modelo");
-
-    }
-
-    /** @return array<string, Field> */
-    public function getPrimaryKeys(): array
-    {
-        return array_filter($this->_fields, function ($field) {
-            return $field->isPrimaryKey();
-        });
-    }
-
-    /** @return array<string, ForeignKeyField> */
-    public function getForeignKeys(): array
-    {
-        return array_filter($this->_fields, function ($field) {
-            return $field->isForeignKey();
-        });
-    }
-
-    /** @return array<string, ManyToManyField> */
-    public function getManyToMany(): array
-    {
-        return array_filter($this->_fields, function ($field) {
-            return $field->isManyToMany();
-        });
-    }
-
-    public function __toString(): string
-    {
-
-        $class = get_class($this);
-        $id = null;
-
-        foreach ($this->getPrimaryKeys() as $key => $primary_key) {
-
-            if (is_null($this->$key)) {
-                return $class . ' (Novo)';
-            }
-
-            if (is_null($id)) {
-                $id .= ' #' . $this->$key;
-            }
-
-            else {
-                $id .= '/' . $this->$key;
-            }
-
-        }
-
-        return $class . $id;
-
-    }
-
-    /** @return array<string, Connector\TableIndex> */
-    public function getIndexes(): array
-    {
-        return [];
-    }
-
-    /** @throws CustomException */
-    public function getFieldId(): Field
-    {
-
-        $field = null;
-
-        $class_name = get_class($this);
-
-        foreach ($this->getPrimaryKeys() as $key => $primary_key) {
-
-            if (!is_null($field)) {
-                throw new CustomException(message: "Classe '$class_name' possui mais de uma chave primária", log: false);
-            }
-
-            $field = $this->_fields[$key];
-
-        }
-
-        if (is_null($field)) {
-            throw new CustomException(message: "Classe '$class_name' não possui chave primária", log: false);
-        }
-
-        return $field;
-
-    }
+    # Métodos de consulta
 
     public static function query(): Query
     {
@@ -310,16 +336,6 @@ abstract class Model
         $obj = new $class();
 
         return (new Query($obj))->only($field);
-
-    }
-
-    public static function addField($field): Query
-    {
-
-        $class = get_called_class();
-        $obj = new $class();
-
-        return (new Query($obj))->addField($field);
 
     }
 
