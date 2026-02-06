@@ -164,10 +164,7 @@ abstract class Model2
 
     }
 
-    public function changeState(State $state): void
-    {
-
-    }
+    public function changeState(State $state): void {}
 
     public function isChanged(): bool
     {
@@ -199,10 +196,7 @@ abstract class Model2
         return true;
     }
 
-    public function onSaved(): void
-    {
-
-    }
+    public function onSaved(): void {}
 
     /**
      * @throws CustomException

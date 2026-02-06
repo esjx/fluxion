@@ -30,14 +30,17 @@ class MnModel2 extends Model2
 
         if (!is_null($model)) {
 
+            /** @var array<string, Model2> $models */
+            $models = [];
+
             $fields = $this->model->getFields();
 
             # Uso normal
 
             if (!$this->inverted) {
 
-                $model_a = $this->model;
-                $model_b = $fields[$this->field]->getReferenceModel();
+                $models['a'] = $this->model;
+                $models['b'] = $fields[$this->field]->getReferenceModel();
 
                 $field_name = $this->field;
 
@@ -47,10 +50,10 @@ class MnModel2 extends Model2
 
             else {
 
-                $model_a = $fields[$this->field]->getReferenceModel();
-                $model_b = $this->model;
+                $models['a'] = $fields[$this->field]->getReferenceModel();
+                $models['b'] = $this->model;
 
-                foreach ($model_a->getManyToMany() as $key => $many_to_many) {
+                foreach ($models['a']->getManyToMany() as $key => $many_to_many) {
                     if ($many_to_many->class_name == get_class($this->model)) {
                         $field_name = $key;
                         break;
@@ -66,25 +69,21 @@ class MnModel2 extends Model2
 
             }
 
-            $this->_table = $model_a->getTable();
+            $this->_table = $models['a']->getTable();
 
             $this->_table->table .= '_has_' . $field_name;
 
-            $this->_fields['a'] = new Database\ForeignKeyField(get_class($model_a), real: true, type: 'CASCADE');
-            $this->_fields['a']->column_name = 'a';
-            $this->_fields['a']->required = true;
-            $this->_fields['a']->primary_key = true;
-            $this->_fields['a']->setName('a');
-            $this->_fields['a']->setModel($this);
-            $this->_fields['a']->initialize();
+            foreach (['a', 'b'] as $name) {
 
-            $this->_fields['b'] = new Database\ForeignKeyField(get_class($model_b), real: true, type: 'CASCADE');
-            $this->_fields['b']->column_name = 'b';
-            $this->_fields['b']->required = true;
-            $this->_fields['b']->primary_key = true;
-            $this->_fields['b']->setName('b');
-            $this->_fields['b']->setModel($this);
-            $this->_fields['b']->initialize();
+                $this->_fields[$name] = new Database\ForeignKeyField(get_class($models[$name]), real: true, type: 'CASCADE');
+                $this->_fields[$name]->column_name = $name;
+                $this->_fields[$name]->required = true;
+                $this->_fields[$name]->primary_key = true;
+                $this->_fields[$name]->setName($name);
+                $this->_fields[$name]->setModel($this);
+                $this->_fields[$name]->initialize();
+
+            }
 
             unset($this->a);
             unset($this->b);

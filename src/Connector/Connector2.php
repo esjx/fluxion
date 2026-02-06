@@ -366,8 +366,7 @@ abstract class Connector2
         }
 
         foreach ($primary_keys as $key => $pk) {
-            $field = $model->getField($key);
-            $query = $query->filter($key, $field->getSavedValue());
+            $query = $query->filter($key, $pk->getSavedValue());
         }
 
         $sql = $this->sql_update($model, $query);
@@ -424,11 +423,9 @@ abstract class Connector2
 
         foreach ($model->getManyToMany() as $key => $mn) {
 
-            $field = $model->getField($key);
-
             $field_id = $model->getFieldId();
 
-            if ($field->isChanged()) {
+            if ($mn->isChanged()) {
 
                 $mn_model = new MnModel2($model, $key, $mn->inverted);
 
@@ -448,7 +445,7 @@ abstract class Connector2
 
                 $data = [];
 
-                foreach ($field->getValue() as $item) {
+                foreach ($mn->getValue() as $item) {
                     $data[] = [$left => $id, $right => $item];
                 }
 

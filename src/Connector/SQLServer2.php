@@ -1067,17 +1067,15 @@ class SQLServer2 extends Connector2
                 $limit_offset = "OFFSET $l->offset ROWS FETCH NEXT $l->limit ROWS ONLY";
 
                 if (count($order_by) == 0) {
-                    foreach ($model->getPrimaryKeys() as $field => $primary_key) {
-                        $field = $model->getField($field);
-                        $order_by[] = "$id.[$field->column_name] ASC";
+                    foreach ($model->getPrimaryKeys() as $pk) {
+                        $order_by[] = "$id.[$pk->column_name] ASC";
                         break;
                     }
                 }
 
                 if (count($order_by) == 0) {
-                    foreach ($model->getFields() as $field => $primary_key) {
-                        $field = $model->getField($field);
-                        $order_by[] = "$id.[$field->column_name] ASC";
+                    foreach ($model->getFields() as $f) {
+                        $order_by[] = "$id.[$f->column_name] ASC";
                         break;
                     }
                 }
@@ -1151,9 +1149,8 @@ class SQLServer2 extends Connector2
 
             # Valores a serem devolvidos
 
-            foreach ($primary_keys as $key => $p) {
-                $f = $model->getField($key);
-                $outputs_sql[] = "INSERTED.[$f->column_name]";
+            foreach ($primary_keys as $p) {
+                $outputs_sql[] = "INSERTED.[$p->column_name]";
             }
 
             $values_sql = [];
