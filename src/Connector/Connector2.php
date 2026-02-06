@@ -213,8 +213,6 @@ abstract class Connector2
 
         $model->changeState(State::STATE_SYNC);
 
-        $model->setComment(get_class($model));
-
         $this->comment("<b>$class_name</b>", Color::ORANGE, break_after: true);
 
         # Criar a tabela principal

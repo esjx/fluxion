@@ -40,8 +40,6 @@ class ManyToManyField extends Field
 
             $this->_mn_model = new MnModel2($this->_model, $this->_name, $this->inverted);
 
-            $this->_mn_model->setComment(get_class($this->_model) . " MN[$this->_name]");
-
         }
 
         return $this->_mn_model;
@@ -65,8 +63,6 @@ class ManyToManyField extends Field
             $class = get_class($this->_model);
 
             $mn_model = new MnModel2(new $class(), $this->_name, $this->inverted);
-
-            $mn_model->setComment(get_class($this->_model) . " MN[$this->_name]");
 
             $field_id = $this->_model->getFieldId();
 

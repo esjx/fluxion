@@ -28,14 +28,10 @@ abstract class Model2
     protected array $_typeahead = [];
     protected ?Database\Table $_table = null;
 
-    protected ?string $comment = null;
-
     #[Database\FloatField(protected: true, fake: true)]
     public ?float $total = null;
 
-    public function setComment(?string $comment): void {
-        $this->comment = $comment;
-    }
+    protected ?string $comment = null;
 
     public function getComment(): ?string {
         return $this->comment ?? get_class($this);

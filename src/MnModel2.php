@@ -30,6 +30,8 @@ class MnModel2 extends Model2
 
         if (!is_null($model)) {
 
+            $this->comment = get_class($model) . " MN[$field]";
+
             /** @var array<string, Model2> $models */
             $models = [];
 
