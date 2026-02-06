@@ -12,6 +12,7 @@ class IntegerField extends Field
 
     public function __construct(public ?string         $label = null,
                                 public ?bool           $required = false,
+                                public ?bool           $primary_key = false,
                                 public ?bool           $protected = false,
                                 public ?bool           $readonly = false,
                                 public ?array          $choices = null,
@@ -36,10 +37,6 @@ class IntegerField extends Field
             $value = null;
         }
 
-        if ($this->_type_target == 'array') {
-            return is_array($value);
-        }
-
         return is_null($value) || is_numeric($value);
 
     }
@@ -49,10 +46,6 @@ class IntegerField extends Field
 
         if (empty($value)) {
             return null;
-        }
-
-        if (is_array($value)) {
-            return $value;
         }
 
         return intval($value);

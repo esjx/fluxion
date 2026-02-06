@@ -80,7 +80,7 @@ class Controller2
             }
 
             foreach ($model->getManyToMany() as $many_to_many) {
-                if (isset($list[$many_to_many->class_name])) {
+                if (!$many_to_many->inverted && isset($list[$many_to_many->class_name])) {
                     $list[$many_to_many->class_name] = $list[$class] - 1;
                 }
             }

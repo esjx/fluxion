@@ -10,6 +10,7 @@ class StringField extends Field
     public function __construct(public ?string $label = null,
                                 public ?string $mask_class = null,
                                 public ?bool   $required = false,
+                                public ?bool   $primary_key = false,
                                 public ?bool   $protected = false,
                                 public ?bool   $readonly = false,
                                 public ?int    $max_length = null,

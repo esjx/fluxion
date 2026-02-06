@@ -24,15 +24,6 @@ abstract class Model2
     /** @var array<string, Database\Filterable> */
     protected array $_filterable = [];
 
-    /** @var array<string, Database\PrimaryKey> */
-    protected array $_primary_keys = [];
-
-    /** @var array<string, Database\ForeignKey> */
-    protected array $_foreign_keys = [];
-
-    /** @var array<string, Database\ManyToMany> */
-    protected array $_many_to_many = [];
-
     /** @var array<string, Database\Typeahead> */
     protected array $_typeahead = [];
     protected ?Database\Table $_table = null;
@@ -76,15 +67,16 @@ abstract class Model2
 
                 if ($instance instanceof Database\Field) {
 
-                    $instance->setName($name);
-
                     $this->_fields[$name] = $instance;
 
                     if ($property->isInitialized($this)) {
-
                         $instance->setValue($this->$name);
-
                     }
+
+                    $instance->setName($name);
+                    $instance->setModel($this);
+                    $instance->setTypeProperty($property->getType());
+                    $instance->initialize();
 
                     unset($this->$name);
 
@@ -103,30 +95,6 @@ abstract class Model2
                     $instance->setName($name);
 
                     $this->_filterable[$name] = $instance;
-
-                }
-
-                elseif ($instance instanceof Database\PrimaryKey) {
-
-                    $instance->setName($name);
-
-                    $this->_primary_keys[$name] = $instance;
-
-                }
-
-                elseif ($instance instanceof Database\ManyToMany) {
-
-                    $instance->setName($name);
-
-                    $this->_many_to_many[$name] = $instance;
-
-                }
-
-                elseif ($instance instanceof Database\ForeignKey) {
-
-                    $instance->setName($name);
-
-                    $this->_foreign_keys[$name] = $instance;
 
                 }
 
@@ -165,41 +133,6 @@ abstract class Model2
 
         }
 
-        # Ajusta as chaves primárias
-
-        foreach ($this->_primary_keys as $key => $primary_key) {
-
-            $this->_fields[$key]->primary_key = true;
-
-        }
-
-        # Ajusta as chaves estrangeiras
-
-        foreach ($this->_foreign_keys as $key => $foreign_key) {
-
-            $foreign_key->setModel($this);
-
-            $this->_fields[$key]->foreign_key = $foreign_key;
-
-        }
-
-        # Ajusta os campos muitos para muitos
-
-        foreach ($this->_many_to_many as $key => $many_to_many) {
-
-            $many_to_many->setModel($this);
-
-            $this->_fields[$key]->fake = true;
-            $this->_fields[$key]->many_to_many = $many_to_many;
-
-        }
-
-        # Inicializa os campos
-
-        foreach ($this->_fields as $field) {
-            $field->initialize();
-        }
-
     }
 
     public function __isset($name): bool
@@ -217,6 +150,9 @@ abstract class Model2
 
     }
 
+    /**
+     * @throws CustomException
+     */
     public function __get($name): mixed
     {
 
@@ -314,22 +250,28 @@ abstract class Model2
 
     }
 
-    /** @return array<string, Database\PrimaryKey> */
+    /** @return array<string, Database\Field> */
     public function getPrimaryKeys(): array
     {
-        return $this->_primary_keys;
+        return array_filter($this->_fields, function ($field) {
+            return $field->isPrimaryKey();
+        });
     }
 
-    /** @return array<string, Database\ForeignKey> */
+    /** @return array<string, Database\ForeignKeyField> */
     public function getForeignKeys(): array
     {
-        return $this->_foreign_keys;
+        return array_filter($this->_fields, function ($field) {
+            return $field->isForeignKey();
+        });
     }
 
-    /** @return array<string, Database\ManyToMany> */
+    /** @return array<string, Database\ManyToManyField> */
     public function getManyToMany(): array
     {
-        return $this->_many_to_many;
+        return array_filter($this->_fields, function ($field) {
+            return $field->isManyToMany();
+        });
     }
 
     public function __toString(): string
@@ -338,7 +280,7 @@ abstract class Model2
         $class = get_class($this);
         $id = null;
 
-        foreach ($this->_primary_keys as $key => $primary_key) {
+        foreach ($this->getPrimaryKeys() as $key => $primary_key) {
 
             if (is_null($this->$key)) {
                 return $class . ' (Novo)';
@@ -372,7 +314,7 @@ abstract class Model2
 
         $class_name = get_class($this);
 
-        foreach ($this->_primary_keys as $key => $primary_key) {
+        foreach ($this->getPrimaryKeys() as $key => $primary_key) {
 
             if (!is_null($field)) {
                 throw new CustomException(message: "Classe '$class_name' possui mais de uma chave primária", log: false);

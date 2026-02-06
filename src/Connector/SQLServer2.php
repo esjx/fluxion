@@ -2,7 +2,6 @@
 namespace Fluxion\Connector;
 
 use PDO;
-use PDOException;
 use Random\RandomException;
 use Fluxion\{Color, CustomException, Database, Model2};
 use Fluxion\Query\{Query2, QueryWhere};
@@ -89,7 +88,7 @@ class SQLServer2 extends Connector2
         if ($this->_database != $table->database) {
 
             $this->comment("Alterando banco de dados para '$table->database'", Color::BROWN, true);
-            $this->execute("USE $table->database;");
+            $this->execute("USE $table->database;", true);
 
             $this->_database = $table->database;
 
@@ -98,7 +97,7 @@ class SQLServer2 extends Connector2
         if (!isset($this->_structure[$table->database][$table->schema])) {
 
             $this->comment("Criando esquema '$table->schema'", Color::GREEN, true);
-            $this->execute("CREATE SCHEMA $table->schema;");
+            $this->execute("CREATE SCHEMA $table->schema;", true);
 
             $this->_structure[$table->database][$table->schema] = [];
 
@@ -372,8 +371,6 @@ class SQLServer2 extends Connector2
     protected function executeSync(Model2 $model): void
     {
 
-        //$this->log_stream = Utils::streamFor('');
-
         $table = $model->getTable();
         $fields = $model->getFields();
 
@@ -388,22 +385,22 @@ class SQLServer2 extends Connector2
         $primary_keys = [];
         $foreign_keys = [];
 
-        foreach ($fields as $key => $value) {
+        foreach ($fields as $key => $f) {
 
-            if ($value->fake) {
+            if ($f->fake) {
                 continue;
             }
 
             # Chave primária
 
-            if ($value->primary_key) {
-                $primary_keys[] = $value->column_name;
+            if ($f->isPrimaryKey()) {
+                $primary_keys[] = $f->column_name;
             }
 
             # Chave estrangeira
 
-            if (isset($value->foreign_key)) {
-                $foreign_keys[$key] = $value->foreign_key;
+            if ($f->isForeignKey()) {
+                $foreign_keys[$key] = $f;
             }
 
         }
@@ -557,7 +554,7 @@ class SQLServer2 extends Connector2
 
             if (count($foreign_keys) > 0) {
 
-                /** @var Database\ForeignKey $foreign_key */
+                /** @var Database\ForeignKeyField $foreign_key */
                 foreach ($foreign_keys as $key => $foreign_key) {
 
                     $uid = bin2hex(random_bytes(10));
@@ -697,7 +694,7 @@ class SQLServer2 extends Connector2
 
             if (count($foreign_keys) > 0) {
 
-                /** @var Database\ForeignKey $foreign_key */
+                /** @var Database\ForeignKeyField $foreign_key */
                 foreach ($foreign_keys as $key => $foreign_key) {
 
                     if (!$foreign_key->real) {

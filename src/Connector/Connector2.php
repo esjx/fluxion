@@ -40,14 +40,18 @@ abstract class Connector2
         return $this->log_stream;
     }
 
-    public function comment(string $text, string $color = Color::GRAY, bool $break_before = false): void
+    protected bool $extra_break = false;
+
+    public function comment(string $text, string $color = Color::GRAY, bool $break_before = false, bool $break_after = false): void
     {
 
         if (is_null($this->log_stream)) return;
 
-        if ($break_before) {
+        if ($break_before || $this->extra_break) {
             $this->log_stream->write("\n");
         }
+
+        $this->extra_break = $break_after;
 
         $text = preg_replace('/(\'[\w\s,.-_()→]*\')/m', '<b><i>${1}</i></b>', $text);
         $text = preg_replace('/(\"[\w\s,.-_()→]*\")/m', '<b>${1}</b>', $text);
@@ -76,16 +80,20 @@ abstract class Connector2
     protected function logSql($sql): void
     {
 
+        $this->extra_break = false;
+
         if (!is_null($this->log_stream)) {
             $this->log_stream->write(SqlFormatter::highlight($sql, false));
         }
 
     }
 
-    protected function execute($sql): int
+    protected function execute($sql, bool $break_after = false): int
     {
 
         $this->logSql($sql);
+
+        $this->extra_break = $break_after;
 
         $stmt = $this->getPDO()->prepare($sql);
 
@@ -207,7 +215,7 @@ abstract class Connector2
 
         $model->setComment(get_class($model));
 
-        $this->comment("<b>$class_name</b>", Color::ORANGE);
+        $this->comment("<b>$class_name</b>", Color::ORANGE, break_after: true);
 
         # Criar a tabela principal
 
@@ -223,7 +231,7 @@ abstract class Connector2
                 continue;
             }
 
-            $this->comment("<b>Tabela MN para o campo '$key'</b>\n");
+            $this->comment("<b>Tabela MN para o campo '$key'</b>", break_after: true);
 
             $mn_model = new MnModel2($model, $key);
 
@@ -258,16 +266,6 @@ abstract class Connector2
         $this::$table_id = 1;
 
         $class_name = get_class($query->getModel());
-
-        /** @var Model2 $model */
-
-        /*if ($class_name == MnModel2::class) {
-            $model = new MnModel2();
-        }
-
-        else {
-            $model = new $class_name();
-        }*/
 
         $model = $query->getModel();
 
@@ -337,13 +335,8 @@ abstract class Connector2
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        foreach ($model->getPrimaryKeys() as $key => $pk) {
-            $field = $model->getField($key);
-            $field->setValue($result[$field->column_name]);
-        }
-
         foreach ($model->getFields() as $field) {
-            if (!is_null($field->default)) {
+            if ($field->isPrimaryKey() || $field->hasDefaultValue()) {
                 $field->setValue($result[$field->column_name]);
             }
         }

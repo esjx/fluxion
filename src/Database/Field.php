@@ -25,12 +25,16 @@ abstract class Field
     protected string $_name;
     public ?string $column_name = null;
     protected Model2 $_model;
+
+    protected ?Model2 $_reference_model = null;
+
     protected string $_type = self::TYPE_STRING;
     protected string $_type_target = 'string';
     protected string $_type_property;
 
     public ?string $label = null;
     public ?string $mask = null;
+    public bool $inverted = false;
     public ?string $placeholder = null;
     public ?string $pattern = null;
     public ?string $mask_class = null;
@@ -53,12 +57,20 @@ abstract class Field
     public null|int|string $max_value = null;
     public ?array $filter = null;
 
-    public ?ForeignKey $foreign_key = null;
-    public ?ManyToMany $many_to_many = null;
-
     public function isChanged(): bool
     {
         return $this->_changed;
+    }
+
+    public function hasDefaultValue(): bool
+    {
+        return !is_null($this->default);
+
+    }
+
+    public function isPrimaryKey(): bool
+    {
+        return $this->primary_key;
     }
 
     public function isLoaded(): bool
@@ -92,6 +104,11 @@ abstract class Field
         $this->_model = $model;
     }
 
+    public function getModel(): Model2
+    {
+        return $this->_model;
+    }
+
     public function validate(mixed &$value): bool
     {
 
@@ -106,6 +123,11 @@ abstract class Field
     public function format(mixed $value): mixed
     {
         return $value;
+    }
+
+    public function getReferenceModel(): Model2
+    {
+        return $this->_reference_model;
     }
 
     public function update(): void
@@ -125,11 +147,11 @@ abstract class Field
             return $this->_value;
         }
 
-        if (!is_null($this->many_to_many) && is_null($this->_value) && $this->_model->isSaved()) {
+        if ($this->isManyToMany() && is_null($this->_value) && $this->_model->isSaved()) {
 
             $class = get_class($this->_model);
 
-            $mn_model = new MnModel2(new $class(), $this->_name, $this->many_to_many->inverted);
+            $mn_model = new MnModel2(new $class(), $this->_name, $this->inverted);
 
             $field_id = $this->_model->getFieldId();
 
@@ -201,18 +223,6 @@ abstract class Field
             throw new CustomException(message: "Tamanho do campo '$class:$this->_name' inválido: '$this->size'", log: false);
         }
 
-        if (is_null($this->many_to_many) && $this->_type_property != 'mixed' && !str_contains($this->_type_property, $this->_type_target)) {
-            throw new CustomException(message: "Tipo do campo '$class:$this->_name' inválido: '$this->_type_property'", log: false);
-        }
-
-        if (!is_null($this->many_to_many)) {
-            $this->_type_target = 'array';
-        }
-
-        if (!is_null($this->many_to_many) && $this->_type_property != 'mixed' && !str_contains($this->_type_property, 'array')) {
-            throw new CustomException(message: "Tipo do campo '$class:$this->_name' inválido: '$this->_type_property'", log: false);
-        }
-
         if (!$this->required && $this->_type_property != 'mixed' && !str_contains($this->_type_property, '?')) {
             throw new CustomException(message: "Campo '$class:$this->_name' deve permitir nulos", log: false);
         }
@@ -249,9 +259,21 @@ abstract class Field
             $this->column_name = $this->_name;
         }
 
-        $this->foreign_key?->initialize();
-        $this->many_to_many?->initialize();
+    }
 
+    public function isForeignKey(): bool
+    {
+        return false;
+    }
+
+    public function isManyToMany(): bool
+    {
+        return false;
+    }
+
+    public function getTypeTarget(): string
+    {
+        return $this->_type_target;
     }
 
 }
