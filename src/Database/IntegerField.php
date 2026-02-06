@@ -44,11 +44,15 @@ class IntegerField extends Field
 
     }
 
-    public function translate(mixed $value): ?int
+    public function translate(mixed $value): null|int|array
     {
 
         if (empty($value)) {
             return null;
+        }
+
+        if (is_array($value)) {
+            return $value;
         }
 
         return intval($value);

@@ -219,6 +219,10 @@ abstract class Connector2
 
         foreach ($many_to_many as $key => $mn) {
 
+            if ($mn->inverted) {
+                continue;
+            }
+
             $this->comment("<b>Tabela MN para o campo '$key'</b>\n");
 
             $mn_model = new MnModel2($model, $key);
@@ -257,13 +261,15 @@ abstract class Connector2
 
         /** @var Model2 $model */
 
-        if ($class_name == MnModel2::class) {
+        /*if ($class_name == MnModel2::class) {
             $model = new MnModel2();
         }
 
         else {
             $model = new $class_name();
-        }
+        }*/
+
+        $model = $query->getModel();
 
         $model->setSaved(true);
 
@@ -319,11 +325,11 @@ abstract class Connector2
     public function execute_insert(Model2 $model, array $data = []): void
     {
 
-        $class_name = get_class($model);
+        $class_name = $model->getComment();
 
         $sql = $this->sql_insert($model, $data);
 
-        $this->comment("Inserindo registro(s) em '$class_name'", Color::GREEN);
+        $this->comment("Inserindo registro(s) em '$class_name'", Color::GREEN, true);
 
         $this->logSql($sql);
 
@@ -431,11 +437,34 @@ abstract class Connector2
 
             if ($field->isChanged()) {
 
-                $mn_model = new MnModel2($model, $key);
+                $mn_model = new MnModel2($model, $key, $mn->inverted);
+
+                $mn_model->setComment(get_class($model) . " MN[$key]");
+
+                $id = $field_id->getValue();
+                $left = $mn_model->getLeft();
+                $right = $mn_model->getRight();
+
+                # Apagando registros antigos
 
                 $query = new Query2($mn_model);
 
-                $query->filter('a', $field_id->getValue())->delete();
+                $query->filter($left, $id)->delete();
+
+                # Inserindo registros novos
+
+                $data = [];
+
+                foreach ($field->getValue() as $item) {
+                    $data[] = [$left => $id, $right => $item];
+                }
+
+                $this->comment("Inserindo registro(s) em '{$mn_model->getComment()}'", Color::GREEN, true);
+                $sql = $this->sql_insert($mn_model, $data);
+
+                $count = $this->execute($sql);
+
+                $this->rowCountLog($count);
 
             }
 
@@ -450,7 +479,7 @@ abstract class Connector2
 
         $model = $query->getModel();
 
-        $class_name = get_class($model);
+        $class_name = $model->getComment();
 
         $sql = $this->sql_delete($query);
 

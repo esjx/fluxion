@@ -399,11 +399,11 @@ class Query2
 
         $out = [];
 
-        if ($this->count($this->fields) == 0) {
+        if (count($this->fields) == 0) {
             throw new CustomException('Nenhum campo informado encontrado.');
         }
 
-        if ($this->count($this->fields) > 1) {
+        if (count($this->fields) > 1) {
             throw new CustomException('Mais de um campo informado encontrado.');
         }
 

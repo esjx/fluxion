@@ -1,6 +1,8 @@
 <?php
 namespace Fluxion;
 
+use Fluxion\Query\Query2;
+
 class MnModel2 extends Model2
 {
 
@@ -12,6 +14,16 @@ class MnModel2 extends Model2
 
     protected string $left = 'a';
     protected string $right = 'b';
+
+    public function getLeft(): string
+    {
+        return $this->left;
+    }
+
+    public function getRight(): string
+    {
+        return $this->right;
+    }
 
     /** @throws CustomException */
     public function __construct(protected ?Model2 $model = null,
@@ -78,9 +90,24 @@ class MnModel2 extends Model2
             $this->_fields['b']->required = true;
             $this->_fields['b']->foreign_key = $this->_foreign_keys['b'];
 
+            unset($this->a);
+            unset($this->b);
+
         }
 
         parent::__construct();
+
+    }
+
+    /**
+     * @throws CustomException
+     */
+    public function load($id): array
+    {
+
+        $query = new Query2($this);
+
+        return $query->filter($this->left, $id)->only($this->right)->toArray();
 
     }
 

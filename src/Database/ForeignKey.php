@@ -25,6 +25,11 @@ class ForeignKey
         $this->_model = $model;
     }
 
+    public function getModel(): Model2
+    {
+        return $this->_model;
+    }
+
     public function getReferenceModel(): Model2
     {
         return $this->_reference_model;
@@ -37,9 +42,10 @@ class ForeignKey
 
     /** @throws CustomException */
     public function __construct(public string  $class_name,
-                                public ?bool   $real = false,
-                                public ?bool   $show = false,
-                                public ?string $type = null, // TODO: validar valores 'CASCADE', 'RESTRICT', 'SET NULL', 'NO ACTION', 'SET DEFAULT'
+                                public bool    $real = false,
+                                public bool    $show = false,
+                                public bool    $inverted = false,
+                                public ?string $type = null,
                                 public ?array  $filter = null)
     {
 
@@ -47,6 +53,11 @@ class ForeignKey
 
         if (!$class instanceof Model2) {
             throw new CustomException(message: "Classe '$class_name' não é Model", log: false);
+        }
+
+        if (!is_null($this->type)
+            && !in_array($this->type, ['CASCADE', 'RESTRICT', 'SET NULL', 'NO ACTION', 'SET DEFAULT'])) {
+            throw new CustomException(message: "Tipo de relacionamento '$this->type' inválido", log: false);
         }
 
         $this->_reference_model = $class;

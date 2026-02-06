@@ -178,7 +178,6 @@ abstract class Model2
         foreach ($this->_foreign_keys as $key => $foreign_key) {
 
             $foreign_key->setModel($this);
-            //$foreign_key->initialize();
 
             $this->_fields[$key]->foreign_key = $foreign_key;
 
@@ -189,7 +188,6 @@ abstract class Model2
         foreach ($this->_many_to_many as $key => $many_to_many) {
 
             $many_to_many->setModel($this);
-            //$many_to_many->initialize();
 
             $this->_fields[$key]->fake = true;
             $this->_fields[$key]->many_to_many = $many_to_many;

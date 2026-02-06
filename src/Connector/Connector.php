@@ -2,20 +2,14 @@
 namespace Fluxion\Connector;
 
 use Exception;
-use Generator;
 use PDO;
 use PDOException;
 use PDOStatement;
-use Fluxion\Color;
-use Fluxion\CustomException;
-use Fluxion\MnModel2;
-use Fluxion\SqlFormatter;
 use Fluxion\Application;
 use Fluxion\Auth\Auth;
 use Fluxion\Config;
 use Fluxion\Model;
 use Fluxion\Model2;
-use Psr\Http\Message\StreamInterface;
 
 abstract class Connector
 {

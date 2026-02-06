@@ -1,6 +1,7 @@
 <?php
 namespace Fluxion\Database;
 
+use Fluxion\MnModel2;
 use Fluxion\Model2;
 use Fluxion\Mask\Mask;
 use Fluxion\CustomException;
@@ -112,6 +113,9 @@ abstract class Field
 
     }
 
+    /**
+     * @throws CustomException
+     */
     public function getValue($row = false): mixed
     {
 
@@ -121,9 +125,15 @@ abstract class Field
             return $this->_value;
         }
 
-        if (!is_null($this->many_to_many) && is_null($this->_value) && $this->_loaded) {
+        if (!is_null($this->many_to_many) && is_null($this->_value) && $this->_model->isSaved()) {
 
-            #TODO: buscar dados de tabelas MN
+            $class = get_class($this->_model);
+
+            $mn_model = new MnModel2(new $class(), $this->_name, $this->many_to_many->inverted);
+
+            $field_id = $this->_model->getFieldId();
+
+            return $mn_model->load($field_id->getValue());
 
         }
 
