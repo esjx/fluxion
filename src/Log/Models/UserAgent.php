@@ -1,9 +1,9 @@
 <?php
 namespace Fluxion\Log\Models;
 
-use Fluxion\Model;
+use Fluxion\ModelOld;
 
-class UserAgent extends Model
+class UserAgent extends ModelOld
 {
 
     protected $_verbose_name = 'Navegador';

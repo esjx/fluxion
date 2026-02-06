@@ -2,9 +2,9 @@
 namespace Fluxion\Query;
 
 use Generator;
-use Fluxion\{Config2, Model2, CustomException};
+use Fluxion\{Config, Model, CustomException};
 
-class Query2
+class Query
 {
 
     protected string $_class_name;
@@ -17,7 +17,7 @@ class Query2
      * @param QueryOrderBy[] $order_by
      * @param QueryGroupBy[] $group_by
      */
-    function __construct(protected Model2      $model,
+    function __construct(protected Model       $model,
                          protected array       $fields = [],
                          protected array       $where = [],
                          protected array       $order_by = [],
@@ -31,7 +31,7 @@ class Query2
 
     }
 
-    public function getModel(): Model2
+    public function getModel(): Model
     {
         return $this->model;
     }
@@ -330,7 +330,7 @@ class Query2
      */
     public function select(): Generator
     {
-        return Config2::getConnector()->select($this);
+        return Config::getConnector()->select($this);
     }
 
     /**
@@ -356,7 +356,7 @@ class Query2
     /**
      * @throws CustomException
      */
-    public function first(): ?Model2
+    public function first(): ?Model
     {
 
         foreach ($this->limit(1)->select() as $model) {
@@ -370,7 +370,7 @@ class Query2
     /**
      * @throws CustomException
      */
-    public function firstOrNew(): Model2
+    public function firstOrNew(): Model
     {
         return $this->first() ?? new $this->_class_name();
     }
@@ -380,7 +380,7 @@ class Query2
      */
     public function sql(): string
     {
-        return Config2::getConnector()->sql_select($this);
+        return Config::getConnector()->sql_select($this);
     }
 
     /**
@@ -388,7 +388,7 @@ class Query2
      */
     public function delete(): bool
     {
-        return Config2::getConnector()->delete($this);
+        return Config::getConnector()->delete($this);
     }
 
     /**
@@ -409,7 +409,7 @@ class Query2
 
         $field = $this->fields[0]->field;
 
-        /** @var Model2 $key */
+        /** @var Model $key */
         foreach ($this->select() as $key) {
             $out[] = $key->$field;
         }

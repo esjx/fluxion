@@ -135,10 +135,10 @@ class App
             throw new CustomException("Classe $controller não encontrada!");
         }
 
-        /** @var Controller $control */
+        /** @var ControllerOld $control */
         $control = new $control_name();
 
-        if (!$control instanceof Controller2) {
+        if (!$control instanceof Controller) {
             throw new CustomException("Classe $controller não é um Controller!");
         }
 

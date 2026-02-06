@@ -4,10 +4,10 @@ namespace Fluxion\Auth\Models;
 use Fluxion\Sql;
 use Fluxion\Util;
 use stdClass;
-use Fluxion\Model;
+use Fluxion\ModelOld;
 use Fluxion\Query;
 
-class Group extends Model
+class Group extends ModelOld
 {
 
     const USUARIO_COMUM = 10;

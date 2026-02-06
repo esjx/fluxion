@@ -4,8 +4,8 @@ namespace Fluxion\Connector;
 use Fluxion\Application;
 use Fluxion\Auth\Auth;
 use Fluxion\Config;
+use Fluxion\ModelOld;
 use Fluxion\Model;
-use Fluxion\Model2;
 
 class PostgreSQL {
 
@@ -83,7 +83,7 @@ class PostgreSQL {
     const DB_DATE_FORMAT = 'Y-m-d';
     const DB_DATETIME_FORMAT = 'Y-m-d H:i:s';
 
-    public function filter($filter, $database, Config $config, Auth $auth, Model $model): string
+    public function filter($filter, $database, Config $config, Auth $auth, ModelOld $model): string
     {
 
         $not = ($filter['not']) ? ' NOT ' : '';
@@ -214,7 +214,7 @@ class PostgreSQL {
 
     }
 
-    public function select($arg, Config $config, Auth $auth, Model $model): string
+    public function select($arg, Config $config, Auth $auth, ModelOld $model): string
     {
 
         $where = '';
@@ -244,7 +244,7 @@ class PostgreSQL {
 
     }
 
-    public function create($arg, Model|Model2 $model): string
+    public function create($arg, ModelOld|Model $model): string
     {
 
         $fields = '';
@@ -398,7 +398,7 @@ class PostgreSQL {
 
     }
 
-    public function insert($arg, Model $model, $force_fields = false): string
+    public function insert($arg, ModelOld $model, $force_fields = false): string
     {
 
         $fields = '';
@@ -427,7 +427,7 @@ class PostgreSQL {
 
     }
 
-    public function update($arg, Config $config, Auth $auth, Model $model): string
+    public function update($arg, Config $config, Auth $auth, ModelOld $model): string
     {
 
         $changes = '';
@@ -452,7 +452,7 @@ class PostgreSQL {
 
     }
 
-    public function delete($arg, Config $config, Auth $auth, Model $model): string
+    public function delete($arg, Config $config, Auth $auth, ModelOld $model): string
     {
 
         $where = '';

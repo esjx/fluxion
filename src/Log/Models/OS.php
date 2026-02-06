@@ -1,9 +1,9 @@
 <?php
 namespace Fluxion\Log\Models;
 
-use Fluxion\Model;
+use Fluxion\ModelOld;
 
-class OS extends Model
+class OS extends ModelOld
 {
 
     protected $_verbose_name = 'Grupo';

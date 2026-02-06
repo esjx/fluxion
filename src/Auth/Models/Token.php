@@ -1,11 +1,11 @@
 <?php
 namespace Fluxion\Auth\Models;
 
-use Fluxion\Model;
+use Fluxion\ModelOld;
 use Firebase\JWT\JWT;
 use Firebase\JWT\SignatureInvalidException;
 
-class Token extends Model {
+class Token extends ModelOld {
 
     protected $_verbose_name_plural = 'Autenticação - Tokens';
 

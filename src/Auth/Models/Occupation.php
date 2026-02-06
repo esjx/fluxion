@@ -1,9 +1,9 @@
 <?php
 namespace Fluxion\Auth\Models;
 
-use Fluxion\Model;
+use Fluxion\ModelOld;
 
-class Occupation extends Model
+class Occupation extends ModelOld
 {
 
     const GERENTE_NACIONAL = 2037;

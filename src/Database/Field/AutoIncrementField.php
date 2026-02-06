@@ -1,5 +1,5 @@
 <?php
-namespace Fluxion\Database;
+namespace Fluxion\Database\Field;
 
 use Attribute;
 
@@ -11,11 +11,9 @@ class AutoIncrementField extends Field
 
     public ?bool $identity = true;
 
-    public function __construct(public ?string $label = '#',
-                                public ?bool $required = false,
+    public function __construct(public ?bool $required = false,
                                 public ?bool $protected = false,
-                                public ?bool $readonly = true,
-                                public ?int $size = 12)
+                                public ?bool $readonly = true)
     {
         parent::__construct();
     }

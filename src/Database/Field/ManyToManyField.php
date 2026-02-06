@@ -1,16 +1,16 @@
 <?php
-namespace Fluxion\Database;
+namespace Fluxion\Database\Field;
 
 use Attribute;
 use Fluxion\CustomException;
-use Fluxion\MnModel2;
-use Fluxion\Model2;
+use Fluxion\MnModel;
+use Fluxion\Model;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class ManyToManyField extends Field
 {
 
-    protected MnModel2 $_mn_model;
+    protected MnModel $_mn_model;
 
     private ?Field $_field = null;
 
@@ -25,7 +25,7 @@ class ManyToManyField extends Field
         $this->_name = $name;
     }
 
-    public function setModel(Model2 $model): void
+    public function setModel(Model $model): void
     {
         $this->_model = $model;
     }
@@ -33,12 +33,12 @@ class ManyToManyField extends Field
     /**
      * @throws CustomException
      */
-    public function getMnModel(): MnModel2
+    public function getMnModel(): MnModel
     {
 
         if (empty($this->_mn_model)) {
 
-            $this->_mn_model = new MnModel2($this->_model, $this->_name, $this->inverted);
+            $this->_mn_model = new MnModel($this->_model, $this->_name, $this->inverted);
 
         }
 
@@ -62,7 +62,7 @@ class ManyToManyField extends Field
 
             $class = get_class($this->_model);
 
-            $mn_model = new MnModel2(new $class(), $this->_name, $this->inverted);
+            $mn_model = new MnModel(new $class(), $this->_name, $this->inverted);
 
             $field_id = $this->_model->getFieldId();
 
@@ -81,18 +81,15 @@ class ManyToManyField extends Field
                                 public bool    $show = false,
                                 public ?string $type = null,
                                 public ?array  $filter = null,
-                                public ?string $label = null,
-                                public ?string $mask_class = null,
                                 public ?bool   $required = false,
                                 public ?bool   $protected = false,
                                 public ?bool   $readonly = false,
-                                public ?string $column_name = null,
-                                public ?int    $size = 12)
+                                public ?string $column_name = null,)
     {
 
         $class = new $class_name;
 
-        if (!$class instanceof Model2) {
+        if (!$class instanceof Model) {
             throw new CustomException(message: "Classe '$class_name' não é Model", log: false);
         }
 

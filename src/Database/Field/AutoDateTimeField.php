@@ -1,5 +1,5 @@
 <?php
-namespace Fluxion\Database;
+namespace Fluxion\Database\Field;
 
 use Attribute;
 use Fluxion\CustomException;

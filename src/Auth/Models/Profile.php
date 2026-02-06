@@ -3,7 +3,7 @@ namespace Fluxion\Auth\Models;
 
 use Fluxion as Esj;
 
-class Profile extends Esj\Model
+class Profile extends Esj\ModelOld
 {
 
     protected $_verbose_name = 'Perfil';

@@ -1,10 +1,8 @@
 <?php
-namespace Fluxion\Database;
+namespace Fluxion\Database\Field;
 
-use Fluxion\MnModel2;
-use Fluxion\Model2;
-use Fluxion\Mask\Mask;
 use Fluxion\CustomException;
+use Fluxion\Model;
 
 abstract class Field
 {
@@ -24,20 +22,15 @@ abstract class Field
     protected mixed $_saved_value = null;
     protected string $_name;
     public ?string $column_name = null;
-    protected Model2 $_model;
+    protected Model $_model;
 
-    protected ?Model2 $_reference_model = null;
+    protected ?Model $_reference_model = null;
 
     protected string $_type = self::TYPE_STRING;
     protected string $_type_target = 'string';
     protected string $_type_property;
 
-    public ?string $label = null;
-    public ?string $mask = null;
     public bool $inverted = false;
-    public ?string $placeholder = null;
-    public ?string $pattern = null;
-    public ?string $mask_class = null;
     public ?bool $required = false;
     public ?bool $protected = false;
     protected bool $_changed = false;
@@ -49,7 +42,6 @@ abstract class Field
     public ?int $max_length = null;
     public ?array $choices = null;
     public ?array $choices_colors = null;
-    public ?int $size = 12;
     public ?int $decimal_places = 2;
     public mixed $default = null;
     public bool $default_literal = false;
@@ -93,7 +85,7 @@ abstract class Field
         $this->_type_property = $type_property;
     }
 
-    public function setModel(Model2 $model): void
+    public function setModel(Model $model): void
     {
         $this->_model = $model;
     }
@@ -114,7 +106,7 @@ abstract class Field
         return $value;
     }
 
-    public function getReferenceModel(): Model2
+    public function getReferenceModel(): Model
     {
         return $this->_reference_model;
     }
@@ -124,9 +116,6 @@ abstract class Field
 
     }
 
-    /**
-     * @throws CustomException
-     */
     public function getValue($row = false): mixed
     {
 
@@ -196,36 +185,8 @@ abstract class Field
 
         $class = get_class($this->_model);
 
-        if (!in_array($this->size, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])) {
-            throw new CustomException(message: "Tamanho do campo '$class:$this->_name' inválido: '$this->size'", log: false);
-        }
-
         if (!$this->required && $this->_type_property != 'mixed' && !str_contains($this->_type_property, '?')) {
             throw new CustomException(message: "Campo '$class:$this->_name' deve permitir nulos", log: false);
-        }
-
-        if (empty($this->label)) {
-            $this->label = ucfirst($this->_name);
-        }
-
-        if (!is_null($this->mask_class)) {
-
-            if (!class_exists($this->mask_class)) {
-                throw new CustomException(message: "Mascára '$class:$this->mask_class' não encontrada", log: false);
-            }
-
-            $mask = new $this->mask_class;
-
-            if (!is_subclass_of($mask, Mask::class)) {
-                throw new CustomException(message: "Classe '$this->mask_class' não herda 'Mask'", log: false);
-            }
-
-            $this->mask = $mask->mask;
-            $this->placeholder = $mask->placeholder;
-            $this->pattern = $mask->pattern_validator;
-            $this->label = $this->label ?? $mask->label;
-            $this->max_length = $this->max_length ?? $mask->max_length;
-
         }
 
         if (is_null($this->max_length) && in_array($this->_type, [self::TYPE_STRING, self::TYPE_PASSWORD])) {

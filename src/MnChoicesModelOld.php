@@ -3,7 +3,7 @@ namespace Fluxion;
 
 use Fluxion\Auth\Auth;
 
-class MnChoicesModel extends Model
+class MnChoicesModelOld extends ModelOld
 {
 
     protected $_field_id = '';

@@ -1,25 +1,25 @@
 <?php
-namespace Fluxion\Database;
+namespace Fluxion\Database\Field;
 
 use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class FloatField extends Field
+class IntegerField extends Field
 {
 
-    protected string $_type = self::TYPE_FLOAT;
-    protected string $_type_target = 'float';
+    protected string $_type = self::TYPE_INTEGER;
+    protected string $_type_target = 'int';
 
-    public function __construct(public ?string         $label = null,
-                                public ?bool           $required = false,
+    public function __construct(public ?bool           $required = false,
+                                public ?bool           $primary_key = false,
                                 public ?bool           $protected = false,
                                 public ?bool           $readonly = false,
+                                public ?array          $choices = null,
+                                public ?array          $choices_colors = null,
                                 public null|int|string $min_value = null,
                                 public null|int|string $max_value = null,
                                 public mixed           $default = null,
-                                public bool            $default_literal = false,
-                                public ?bool           $fake = false,
-                                public ?int            $size = 12)
+                                public bool            $default_literal = false,)
     {
         parent::__construct();
     }
@@ -39,14 +39,14 @@ class FloatField extends Field
 
     }
 
-    public function translate(mixed $value): ?float
+    public function translate(mixed $value): null|int|array
     {
 
         if (empty($value)) {
             return null;
         }
 
-        return floatval($value);
+        return intval($value);
 
     }
 

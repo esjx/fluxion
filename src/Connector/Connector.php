@@ -1,13 +1,13 @@
 <?php
 namespace Fluxion\Connector;
 
-use Generator;
 use PDO;
 use PDOException;
 use PDOStatement;
+use Generator;
 use Psr\Http\Message\StreamInterface;
-use Fluxion\{Color, CustomException, CustomMessage, Model2, SqlFormatter, State};
-use Fluxion\Query\{Query2, QueryWhere};
+use Fluxion\{Color, CustomException, CustomMessage, Model, SqlFormatter, State};
+use Fluxion\Query\{Query, QueryWhere};
 
 abstract class Connector
 {
@@ -209,7 +209,7 @@ abstract class Connector
     public function sync(string $class_name): void
     {
 
-        /** @var Model2 $model */
+        /** @var Model $model */
         $model = new $class_name;
 
         $model->changeState(State::STATE_SYNC);
@@ -240,12 +240,12 @@ abstract class Connector
 
     }
 
-    protected function executeSync(Model2 $model): void
+    protected function executeSync(Model $model): void
     {
 
     }
 
-    public function filter(QueryWhere $filter, Query2 $query, ?string $id): string
+    public function filter(QueryWhere $filter, Query $query, ?string $id): string
     {
         return '';
     }
@@ -253,7 +253,7 @@ abstract class Connector
     /**
      * @throws CustomException
      */
-    public function select(Query2 $query): ?Generator
+    public function select(Query $query): ?Generator
     {
 
         $this::$table_id = 1;
@@ -300,12 +300,12 @@ abstract class Connector
 
     }
 
-    public function sql_select(Query2 $query, bool $inline = false): string
+    public function sql_select(Query $query, bool $inline = false): string
     {
         return '';
     }
 
-    public function sql_insert(Model2 $model, array $data = []): string
+    public function sql_insert(Model $model, array $data = []): string
     {
         return '';
     }
@@ -313,7 +313,7 @@ abstract class Connector
     /**
      * @throws CustomException
      */
-    public function execute_insert(Model2 $model, array $data = []): void
+    public function execute_insert(Model $model, array $data = []): void
     {
 
         $class_name = $model->getComment();
@@ -338,7 +338,7 @@ abstract class Connector
 
     }
 
-    public function sql_update(Model2 $model, Query2 $query): ?string
+    public function sql_update(Model $model, Query $query): ?string
     {
         return '';
     }
@@ -346,7 +346,7 @@ abstract class Connector
     /**
      * @throws CustomException
      */
-    public function execute_update(Model2 $model): void
+    public function execute_update(Model $model): void
     {
 
         $query = $model::query();
@@ -385,7 +385,7 @@ abstract class Connector
     /**
      * @throws CustomException
      */
-    public function save(Model2 $model): bool
+    public function save(Model $model): bool
     {
 
         $class_name = get_class($model);
@@ -427,7 +427,7 @@ abstract class Connector
 
                 # Apagando registros antigos
 
-                $query = new Query2($mn_model);
+                $query = new Query($mn_model);
 
                 $query->filter($left, $id)->delete();
 
@@ -457,7 +457,7 @@ abstract class Connector
     /**
      * @throws CustomException
      */
-    public function delete(Query2 $query): bool
+    public function delete(Query $query): bool
     {
 
         $model = $query->getModel();
@@ -479,7 +479,7 @@ abstract class Connector
     /**
      * @throws CustomException
      */
-    public function sql_delete(Query2 $query): string
+    public function sql_delete(Query $query): string
     {
 
         $model = $query->getModel();
@@ -503,7 +503,7 @@ abstract class Connector
 
     }
 
-    public function truncate(Query2 $query): bool
+    public function truncate(Query $query): bool
     {
 
         $model = $query->getModel();
@@ -520,7 +520,7 @@ abstract class Connector
 
     }
 
-    public function sql_truncate(Query2 $query): string
+    public function sql_truncate(Query $query): string
     {
 
         $table = $query->getModel()->getTable();
@@ -529,7 +529,7 @@ abstract class Connector
 
     }
 
-    public function drop(Query2 $query): bool
+    public function drop(Query $query): bool
     {
 
         $model = $query->getModel();
@@ -546,7 +546,7 @@ abstract class Connector
 
     }
 
-    public function sql_drop(Query2 $query): string
+    public function sql_drop(Query $query): string
     {
 
         $table = $query->getModel()->getTable();

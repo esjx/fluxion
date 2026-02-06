@@ -1,9 +1,9 @@
 <?php
 namespace Fluxion\Log\Models;
 
-use Fluxion\Model;
+use Fluxion\ModelOld;
 
-class Log extends Model
+class Log extends ModelOld
 {
 
     protected $_verbose_name = 'Log de Acessos';
@@ -26,7 +26,7 @@ class Log extends Model
             'type' => 'string',
             'label' => 'Matrícula',
             'required' => false,
-            'foreign_key' => 'Fluxion\Auth\Models\User',
+            'foreign_key' => 'Fluxion\Auth\Models\UserOld',
             'foreign_key_fake' => true,
         ],
         'user_agent' => [

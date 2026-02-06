@@ -64,7 +64,7 @@ class Service
     }
 
     /** @throws Exception */
-    public function getFields(Model &$model, $id, $save = true): array
+    public function getFields(ModelOld &$model, $id, $save = true): array
     {
 
         $fields = [
@@ -224,7 +224,7 @@ class Service
 
             $field['type'] = $value['form_type'] ?? 'choices';
 
-            /** @var Model $m */
+            /** @var ModelOld $m */
             $m = new $value['foreign_key']();
             $m_id = $m->getFieldId();
 
@@ -328,7 +328,7 @@ class Service
 
             $m_name = $value[$mn_type];
 
-            /** @var Model $m */
+            /** @var ModelOld $m */
             $m = new $m_name();
             $m_id = $m->getFieldId();
 
@@ -419,7 +419,7 @@ class Service
 
             if (!is_null($id)) {
 
-                $mn = new MnChoicesModel($model_name, $name);
+                $mn = new MnChoicesModelOld($model_name, $name);
                 $field['value'] = $mn->load($model->$id_field);
 
             }
@@ -478,7 +478,7 @@ class Service
 
         foreach ($model->getInlines() as $key => $inline) {
 
-            /** @var Model $inline_model */
+            /** @var ModelOld $inline_model */
             $inline_model = new $inline['model']();
 
             $field_rel = null;
@@ -500,7 +500,7 @@ class Service
 
             $inline_model->$field_rel = $model->id();
 
-            $inline_model->changeState($inline['state'] ?? Model::STATE_INLINE);
+            $inline_model->changeState($inline['state'] ?? ModelOld::STATE_INLINE);
 
             $inline_model_fields = $inline_model->getFields();
 
@@ -620,13 +620,13 @@ class Service
     }
 
     /** @throws Exception */
-    public function saveToModel(Model &$model, $data): ?Model
+    public function saveToModel(ModelOld &$model, $data): ?ModelOld
     {
 
         /** @var Auth\Auth $auth */
         $auth = $GLOBALS['AUTH'];
 
-        $model->changeState(Model::STATE_BEFORE_SAVE);
+        $model->changeState(ModelOld::STATE_BEFORE_SAVE);
 
         $model_name = get_class($model);
 
@@ -718,7 +718,7 @@ class Service
                     //Application::error('!!!');
                 }
 
-                /** @var Model $inline_model */
+                /** @var ModelOld $inline_model */
                 $inline_model = new $inline['model']();
 
                 $field_rel = null;
@@ -738,7 +738,7 @@ class Service
 
                 $inline_model->$field_rel = $model->id();
 
-                $inline_model->changeState($inline['state'] ?? Model::STATE_INLINE_SAVE);
+                $inline_model->changeState($inline['state'] ?? ModelOld::STATE_INLINE_SAVE);
 
                 foreach ($data->__inlines->$id as $inline_data) {
 

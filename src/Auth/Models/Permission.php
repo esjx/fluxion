@@ -1,9 +1,9 @@
 <?php
 namespace Fluxion\Auth\Models;
 
-use Fluxion\Model;
+use Fluxion\ModelOld;
 
-class Permission extends Model
+class Permission extends ModelOld
 {
 
     protected int $create_order = -10;

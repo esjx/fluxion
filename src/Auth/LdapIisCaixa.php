@@ -8,7 +8,7 @@ use Fluxion\Application;
 use Fluxion\Auth\Models\CostCenter;
 use Fluxion\Auth\Models\Occupation;
 use Fluxion\Auth\Models\Rule;
-use Fluxion\Auth\Models\User;
+use Fluxion\Auth\Models\UserOld;
 use Fluxion\Auth\Models\UserGroup;
 use Fluxion\Config;
 use Fluxion\ImageManipulate;
@@ -173,7 +173,7 @@ class LdapIisCaixa extends Auth
 
         $config = $this->_config;
 
-        $user = User::filter('login', $login)->firstOrNew($config, $this);
+        $user = UserOld::filter('login', $login)->firstOrNew($config, $this);
 
         try {
 

@@ -1,12 +1,12 @@
 <?php
 namespace Fluxion\Connector;
 
-use Fluxion\Model2;
+use Fluxion\Model;
 use PDO;
 use PDOStatement;
 use Fluxion\Auth\Auth;
 use Fluxion\Config;
-use Fluxion\Model;
+use Fluxion\ModelOld;
 
 class Sqlite extends Connector
 {
@@ -22,7 +22,7 @@ class Sqlite extends Connector
 
     }
 
-    public function select($arg, Config $config, Auth $auth, Model $model): string
+    public function select($arg, Config $config, Auth $auth, ModelOld $model): string
     {
 
         $arg['table_2'] = str_replace('.', '_', $arg['table']);
@@ -52,7 +52,7 @@ class Sqlite extends Connector
 
     }
 
-    public function create($arg, Model|Model2 $model): string
+    public function create($arg, ModelOld|Model $model): string
     {
 
         $fields = '';
@@ -146,7 +146,7 @@ class Sqlite extends Connector
 
     }
 
-    public function insert($arg, Model $model, $force_fields = false): string
+    public function insert($arg, ModelOld $model, $force_fields = false): string
     {
 
         $arg['table_2'] = str_replace('.', '_', $arg['table']);
@@ -175,7 +175,7 @@ class Sqlite extends Connector
 
     }
 
-    public function update($arg, Config $config, Auth $auth, Model $model): string
+    public function update($arg, Config $config, Auth $auth, ModelOld $model): string
     {
 
         $arg['table_2'] = str_replace('.', '_', $arg['table']);
@@ -195,7 +195,7 @@ class Sqlite extends Connector
 
     }
 
-    public function delete($arg, Config $config, Auth $auth, Model $model): string
+    public function delete($arg, Config $config, Auth $auth, ModelOld $model): string
     {
 
         $arg['table_2'] = str_replace('.', '_', $arg['table']);

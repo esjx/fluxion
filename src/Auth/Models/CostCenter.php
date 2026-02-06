@@ -1,10 +1,10 @@
 <?php
 namespace Fluxion\Auth\Models;
 
-use Fluxion\Model;
+use Fluxion\ModelOld;
 use Fluxion\Util;
 
-class CostCenter extends Model
+class CostCenter extends ModelOld
 {
 
     const PRESI = 5802;

@@ -1,5 +1,5 @@
 <?php
-namespace Fluxion\Database;
+namespace Fluxion\Database\Field;
 
 use Attribute;
 use Fluxion\Color;
@@ -13,13 +13,11 @@ class ColorField extends Field
     public ?array $choices = Color::COLORS;
     public ?int $max_length = 15;
 
-    public function __construct(public ?string $label = 'Cor',
-                                public ?bool   $required = false,
+    public function __construct(public ?bool   $required = false,
                                 public ?bool   $protected = false,
                                 public ?bool   $readonly = false,
                                 public mixed   $default = null,
-                                public bool    $default_literal = false,
-                                public ?int    $size = 12)
+                                public bool    $default_literal = false)
     {
         parent::__construct();
     }

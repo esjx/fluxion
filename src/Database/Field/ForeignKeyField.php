@@ -1,8 +1,8 @@
 <?php
-namespace Fluxion\Database;
+namespace Fluxion\Database\Field;
 
 use Attribute;
-use Fluxion\{Model2, CustomException};
+use Fluxion\{CustomException, Model};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class ForeignKeyField extends Field
@@ -17,7 +17,7 @@ class ForeignKeyField extends Field
         $this->_name = $name;
     }
 
-    public function setModel(Model2 $model): void
+    public function setModel(Model $model): void
     {
         $this->_model = $model;
     }
@@ -33,19 +33,16 @@ class ForeignKeyField extends Field
                                 public bool    $show = false,
                                 public ?string $type = null,
                                 public ?array  $filter = null,
-                                public ?string $label = null,
-                                public ?string $mask_class = null,
                                 public ?bool   $required = false,
                                 public ?bool   $primary_key = false,
                                 public ?bool   $protected = false,
                                 public ?bool   $readonly = false,
-                                public ?string $column_name = null,
-                                public ?int    $size = 12)
+                                public ?string $column_name = null)
     {
 
         $class = new $class_name;
 
-        if (!$class instanceof Model2) {
+        if (!$class instanceof Model) {
             throw new CustomException(message: "Classe '$class_name' não é Model", log: false);
         }
 

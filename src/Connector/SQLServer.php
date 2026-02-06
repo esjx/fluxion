@@ -1,10 +1,10 @@
 <?php
 namespace Fluxion\Connector;
 
+use Fluxion\{Color, CustomException, Database, Model};
+use Fluxion\Query\{Query, QueryWhere};
 use PDO;
 use Random\RandomException;
-use Fluxion\{Color, CustomException, Database, Model2};
-use Fluxion\Query\{Query2, QueryWhere};
 
 class SQLServer extends Connector
 {
@@ -283,7 +283,7 @@ class SQLServer extends Connector
     }
 
     /** @throws CustomException */
-    protected function getDatabaseType(Database\Field $value): string
+    protected function getDatabaseType(Database\Field\Field $value): string
     {
 
         return match ($value->getType()) {
@@ -302,7 +302,7 @@ class SQLServer extends Connector
     }
 
     /** @throws CustomException */
-    protected function getColumnCommand(Database\Field $value): string
+    protected function getColumnCommand(Database\Field\Field $value): string
     {
 
         # Definição do tipo
@@ -343,7 +343,7 @@ class SQLServer extends Connector
 
     }
 
-    protected function getDefaultCommand(Database\Field $value): ?string
+    protected function getDefaultCommand(Database\Field\Field $value): ?string
     {
 
         # Valor padrão
@@ -368,7 +368,7 @@ class SQLServer extends Connector
      * @throws CustomException
      * @throws RandomException
      */
-    protected function executeSync(Model2 $model): void
+    protected function executeSync(Model $model): void
     {
 
         $table = $model->getTable();
@@ -554,7 +554,7 @@ class SQLServer extends Connector
 
             if (count($foreign_keys) > 0) {
 
-                /** @var Database\ForeignKeyField $foreign_key */
+                /** @var \Fluxion\Database\Field\ForeignKeyField $foreign_key */
                 foreach ($foreign_keys as $key => $foreign_key) {
 
                     $uid = bin2hex(random_bytes(10));
@@ -694,7 +694,7 @@ class SQLServer extends Connector
 
             if (count($foreign_keys) > 0) {
 
-                /** @var Database\ForeignKeyField $foreign_key */
+                /** @var \Fluxion\Database\Field\ForeignKeyField $foreign_key */
                 foreach ($foreign_keys as $key => $foreign_key) {
 
                     if (!$foreign_key->real) {
@@ -848,7 +848,7 @@ class SQLServer extends Connector
     /**
      * @throws CustomException
      */
-    public function filter(QueryWhere $filter, Query2 $query, ?string $id): string
+    public function filter(QueryWhere $filter, Query $query, ?string $id): string
     {
 
         $model = $query->getModel();
@@ -977,7 +977,7 @@ class SQLServer extends Connector
 
         if (is_object($filter->value)) {
 
-            if (get_class($filter->value) == Query2::class) {
+            if (get_class($filter->value) == Query::class) {
                 return "$field{$not}IN (" . self::sql_select($filter->value, true) . ")";
             }
 
@@ -990,7 +990,7 @@ class SQLServer extends Connector
     /**
      * @throws CustomException
      */
-    public function sql_select(Query2 $query, bool $inline = false): string
+    public function sql_select(Query $query, bool $inline = false): string
     {
 
         $id = $this->getTableId();
@@ -1115,7 +1115,7 @@ class SQLServer extends Connector
     /**
      * @throws CustomException
      */
-    public function sql_insert(Model2 $model, array $data = []): string
+    public function sql_insert(Model $model, array $data = []): string
     {
 
         $fields = $model->getFields();
@@ -1254,7 +1254,7 @@ class SQLServer extends Connector
     /**
      * @throws CustomException
      */
-    public function sql_update(Model2 $model, Query2 $query): ?string
+    public function sql_update(Model $model, Query $query): ?string
     {
 
         $table = $model->getTable();

@@ -1,9 +1,9 @@
 <?php
 namespace Fluxion\Auth\Models;
 
-use Fluxion\Model;
+use Fluxion\ModelOld;
 
-class PermissionProfile extends Model
+class PermissionProfile extends ModelOld
 {
 
     protected $_verbose_name_plural = 'Autenticação - Permissões de Grupos';

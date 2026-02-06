@@ -2,7 +2,7 @@
 namespace Fluxion\Auth;
 
 use Fluxion\Auth\Models\CostCenter;
-use Fluxion\Auth\Models\User;
+use Fluxion\Auth\Models\UserOld;
 use Fluxion\Config;
 
 class Development extends LdapIisCaixa
@@ -16,7 +16,7 @@ class Development extends LdapIisCaixa
 
         $this->_config = $config;
 
-        $user = User::loadById($_ENV['MASTER_USER'], $config, $this);
+        $user = UserOld::loadById($_ENV['MASTER_USER'], $config, $this);
 
         $cs = CostCenter::loadById($user->cost_center, $config, $this);
 

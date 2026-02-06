@@ -1,5 +1,5 @@
 <?php
-namespace Fluxion\Database;
+namespace Fluxion\Database\Field;
 
 use Attribute;
 
@@ -7,9 +7,7 @@ use Attribute;
 class StringField extends Field
 {
 
-    public function __construct(public ?string $label = null,
-                                public ?string $mask_class = null,
-                                public ?bool   $required = false,
+    public function __construct(public ?bool   $required = false,
                                 public ?bool   $primary_key = false,
                                 public ?bool   $protected = false,
                                 public ?bool   $readonly = false,
@@ -18,8 +16,7 @@ class StringField extends Field
                                 public ?array  $choices_colors = null,
                                 public mixed   $default = null,
                                 public bool    $default_literal = false,
-                                public ?string $column_name = null,
-                                public ?int    $size = 12)
+                                public ?string $column_name = null)
     {
         parent::__construct();
     }

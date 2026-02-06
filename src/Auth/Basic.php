@@ -3,7 +3,7 @@ namespace Fluxion\Auth;
 
 use Fluxion\Application;
 use Fluxion\Auth\Models\CostCenter;
-use Fluxion\Auth\Models\User;
+use Fluxion\Auth\Models\UserOld;
 use Fluxion\Config;
 use Fluxion\Sql;
 
@@ -31,7 +31,7 @@ class Basic extends Auth
         $usuario = $partes[0] ?? '';
         $senha = $partes[1] ?? '';
 
-        $user = User::loadById($usuario, $config, $this);
+        $user = UserOld::loadById($usuario, $config, $this);
 
         if (is_null($user->login)) {
             Application::error("Usuário $usuario não encontrado!", 401);

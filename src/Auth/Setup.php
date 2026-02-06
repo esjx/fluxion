@@ -2,7 +2,7 @@
 namespace Fluxion\Auth;
 
 use Fluxion\Auth\Models\CostCenter;
-use Fluxion\Auth\Models\User;
+use Fluxion\Auth\Models\UserOld;
 use Fluxion\Config;
 
 class Setup extends Auth
@@ -13,7 +13,7 @@ class Setup extends Auth
 
         parent::__construct($config);
 
-        $this->_user = User::loadById($_ENV['MASTER_USER'], $config, $this);
+        $this->_user = UserOld::loadById($_ENV['MASTER_USER'], $config, $this);
         $this->_cost_center = CostCenter::loadById($this->_user->cost_center ?? CostCenter::GENAG, $config, $this);
 
         $this->_user->cost_center2 = CostCenter::GENAG;

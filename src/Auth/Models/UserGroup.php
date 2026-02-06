@@ -1,9 +1,9 @@
 <?php
 namespace Fluxion\Auth\Models;
 
-use Fluxion\Model;
+use Fluxion\ModelOld;
 
-class UserGroup extends Model
+class UserGroup extends ModelOld
 {
 
     const AUTOMATICO = 1;

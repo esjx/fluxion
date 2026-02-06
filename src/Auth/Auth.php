@@ -9,7 +9,7 @@ use Fluxion\Config;
 use Fluxion\Log\Models as Log;
 use Fluxion\Auth\Models\CostCenter;
 use Fluxion\Auth\Models\PermissionGroup;
-use Fluxion\Auth\Models\User;
+use Fluxion\Auth\Models\UserOld;
 use Fluxion\Auth\Models\UserGroup;
 
 class Auth
@@ -51,7 +51,7 @@ class Auth
 
     protected $_authenticated;
 
-    /** @var User|null */
+    /** @var UserOld|null */
     protected $_user;
     /** @var CostCenter|null */
     protected $_cost_center;
@@ -104,7 +104,7 @@ class Auth
 
     }
 
-    public function getUser(): ?User
+    public function getUser(): ?UserOld
     {
         return $this->_user;
     }
@@ -374,7 +374,7 @@ class Auth
 
         try {
 
-            $user = User::filter('login', $login)->firstOrNew($config, $this);
+            $user = UserOld::filter('login', $login)->firstOrNew($config, $this);
 
             $file = $this->_user_image_dir . $login . '.jpg';
 

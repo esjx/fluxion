@@ -83,7 +83,7 @@ class Application
 
     }
 
-    public function createController($namespace, $controller): Controller
+    public function createController($namespace, $controller): ControllerOld
     {
         $name = $namespace . '\\' . $controller;
         return new $name($this->_config, $this->_auth, $this);

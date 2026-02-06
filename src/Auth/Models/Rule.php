@@ -1,9 +1,9 @@
 <?php
 namespace Fluxion\Auth\Models;
 
-use Fluxion\Model;
+use Fluxion\ModelOld;
 
-class Rule extends Model
+class Rule extends ModelOld
 {
 
     const TODOS = 0;

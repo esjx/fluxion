@@ -1,5 +1,5 @@
 <?php
-namespace Fluxion\Database;
+namespace Fluxion\Database\Field;
 
 use Attribute;
 use DateTime;
@@ -13,15 +13,13 @@ class DateField extends Field
 
     protected string $date_format = 'Y-m-d';
 
-    public function __construct(public ?string         $label = null,
-                                public ?bool           $required = false,
+    public function __construct(public ?bool           $required = false,
                                 public ?bool           $protected = false,
                                 public ?bool           $readonly = false,
                                 public null|int|string $min_value = null,
                                 public null|int|string $max_value = null,
                                 public mixed           $default = null,
-                                public bool            $default_literal = false,
-                                public ?int            $size = 12)
+                                public bool            $default_literal = false)
     {
         parent::__construct();
     }

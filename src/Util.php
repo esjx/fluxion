@@ -805,7 +805,7 @@ class Util
     public static function trataCoresQuill(string $texto): string
     {
 
-        foreach (Model::COLOR_MAP as $nome => $cor) {
+        foreach (ModelOld::COLOR_MAP as $nome => $cor) {
 
             $cor = self::hexToRgb("#$cor");
 
