@@ -119,11 +119,12 @@ abstract class Field
     public function getValue($row = false): mixed
     {
 
-        $this->update();
-
         if ($row) {
+            $this->update();
             return $this->_value;
         }
+
+        if (empty($this->_value)) return null;
 
         return $this->format($this->_value);
 
@@ -185,7 +186,7 @@ abstract class Field
 
         $class = get_class($this->_model);
 
-        if (!$this->required && $this->_type_property != 'mixed' && !str_contains($this->_type_property, '?')) {
+        if ($this->_type_property != 'mixed' && !str_contains($this->_type_property, '?')) {
             throw new CustomException(message: "Campo '$class:$this->_name' deve permitir nulos", log: false);
         }
 

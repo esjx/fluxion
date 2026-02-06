@@ -17,7 +17,7 @@ class App
 
         http_response_code(404);
 
-        echo '<h1>404</h1>';
+        echo '<h1>404</h1>' . $_SERVER['REQUEST_URI'];
 
         exit;
 

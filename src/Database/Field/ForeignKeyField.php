@@ -62,6 +62,7 @@ class ForeignKeyField extends Field
 
         $this->_type = $this->_field->getType();
         $this->_type_target = $this->_field->getTypeTarget();
+        $this->_type_property = $this->_field->_type_property;
 
         if ($field->getType() == 'string') {
             $this->max_length = $this->_field->max_length;

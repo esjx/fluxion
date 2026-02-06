@@ -52,6 +52,13 @@ abstract class Model
     /** @var array<string, Field> */
     protected array $_fields = [];
 
+    public function getFieldsValues(): array
+    {
+        return array_map(function ($field) {
+            return $field->getValue();
+        }, $this->_fields);
+    }
+
     /** @return array<string, Field> */
     public function getFields(): array
     {
@@ -202,8 +209,6 @@ abstract class Model
                     $instance->setTypeProperty($property->getType());
                     $instance->initialize();
 
-                    unset($this->$name);
-
                 }
 
                 elseif ($instance instanceof Detail) {
@@ -215,6 +220,8 @@ abstract class Model
                 }
 
             }
+
+            unset($this->$name);
 
         }
 

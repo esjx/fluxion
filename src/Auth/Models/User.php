@@ -4,11 +4,11 @@ namespace Fluxion\Auth\Models;
 use Fluxion\{Model, Connector};
 use Fluxion\Database\Field\{StringField, BooleanField};
 
-class User extends Model
+abstract class User extends Model
 {
 
     #[StringField(required: true)]
-    public string $login;
+    public ?string $login;
 
     #[StringField]
     public ?string $mail;
