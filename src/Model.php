@@ -2,6 +2,8 @@
 namespace Fluxion;
 
 use Fluxion\Query\{Query, QuerySql};
+use Fluxion\Database\{Detail, Table};
+use Fluxion\Database\Field\{Field, FloatField, ForeignKeyField, ManyToManyField};
 use Generator;
 use ReflectionClass;
 
@@ -15,20 +17,15 @@ abstract class Model
         return $this->_data;
     }
 
-    /** @var array<string, \Fluxion\Database\Field\Field> */
+    /** @var array<string, Field> */
     protected array $_fields = [];
 
-    /** @var array<string, Database\Searchable> */
-    protected array $_searchable = [];
+    /** @var array<string, Detail> */
+    protected array $_details = [];
 
-    /** @var array<string, Database\Filterable> */
-    protected array $_filterable = [];
+    protected ?Table $_table = null;
 
-    /** @var array<string, Database\Typeahead> */
-    protected array $_typeahead = [];
-    protected ?Database\Table $_table = null;
-
-    #[Database\Field\FloatField(protected: true, fake: true)]
+    #[FloatField(protected: true, fake: true)]
     public ?float $total = null;
 
     protected ?string $comment = null;
@@ -51,7 +48,7 @@ abstract class Model
 
             $instance = $attribute->newInstance();
 
-            if ($instance instanceof Database\Table) {
+            if ($instance instanceof Table) {
 
                 $this->_table = $instance;
 
@@ -77,7 +74,7 @@ abstract class Model
 
                 $instance = $attribute->newInstance();
 
-                if ($instance instanceof Database\Field\Field) {
+                if ($instance instanceof Field) {
 
                     $this->_fields[$name] = $instance;
 
@@ -94,34 +91,11 @@ abstract class Model
 
                 }
 
-                elseif ($instance instanceof Database\Searchable) {
+                elseif ($instance instanceof Detail) {
+
+                    $this->_details[$name] = $instance;
 
                     $instance->setName($name);
-
-                    $this->_searchable[$name] = $instance;
-
-                }
-
-                elseif ($instance instanceof Database\Filterable) {
-
-                    $instance->setName($name);
-
-                    $this->_filterable[$name] = $instance;
-
-                }
-
-                elseif ($instance instanceof Database\Typeahead) {
-
-                    $instance->setName($name);
-
-                    $this->_typeahead[$name] = $instance;
-
-                }
-
-                if ($instance instanceof Database\Field\Field) {
-
-                    $instance->setTypeProperty($property->getType());
-                    $instance->setModel($this);
 
                 }
 
@@ -146,9 +120,6 @@ abstract class Model
 
     }
 
-    /**
-     * @throws CustomException
-     */
     public function __get($name): mixed
     {
 
@@ -214,12 +185,12 @@ abstract class Model
 
     }
 
-    public function getTable(): ?Database\Table
+    public function getTable(): ?Table
     {
         return $this->_table;
     }
 
-    /** @return array<string, \Fluxion\Database\Field\Field> */
+    /** @return array<string, Field> */
     public function getFields(): array
     {
         return $this->_fields;
@@ -228,7 +199,7 @@ abstract class Model
     /**
      * @throws CustomException
      */
-    public function getField($name): ?Database\Field\Field
+    public function getField($name): ?Field
     {
 
         if ($name == '*') {
@@ -240,7 +211,7 @@ abstract class Model
 
     }
 
-    /** @return array<string, \Fluxion\Database\Field\Field> */
+    /** @return array<string, Field> */
     public function getPrimaryKeys(): array
     {
         return array_filter($this->_fields, function ($field) {
@@ -248,7 +219,7 @@ abstract class Model
         });
     }
 
-    /** @return array<string, \Fluxion\Database\Field\ForeignKeyField> */
+    /** @return array<string, ForeignKeyField> */
     public function getForeignKeys(): array
     {
         return array_filter($this->_fields, function ($field) {
@@ -256,7 +227,7 @@ abstract class Model
         });
     }
 
-    /** @return array<string, \Fluxion\Database\Field\ManyToManyField> */
+    /** @return array<string, ManyToManyField> */
     public function getManyToMany(): array
     {
         return array_filter($this->_fields, function ($field) {
@@ -297,7 +268,7 @@ abstract class Model
     }
 
     /** @throws CustomException */
-    public function getFieldId(): Database\Field\Field
+    public function getFieldId(): Field
     {
 
         $field = null;
