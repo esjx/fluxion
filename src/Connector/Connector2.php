@@ -6,7 +6,7 @@ use PDO;
 use PDOException;
 use PDOStatement;
 use Psr\Http\Message\StreamInterface;
-use Fluxion\{Color, CustomException, MnModel2, Model2, SqlFormatter, State};
+use Fluxion\{Color, CustomException, CustomMessage, MnModel2, Model2, SqlFormatter, State};
 use Fluxion\Query\{Query2, QueryWhere};
 
 abstract class Connector2
@@ -19,8 +19,6 @@ abstract class Connector2
     protected ?StreamInterface $log_stream = null;
 
     protected bool $_connected = false;
-
-    protected bool $_extra_break;
 
     protected ?array $_structure = null;
     protected ?string $_database = null;
@@ -47,7 +45,7 @@ abstract class Connector2
 
         if (is_null($this->log_stream)) return;
 
-        if ($break_before && $this->_extra_break) {
+        if ($break_before) {
             $this->log_stream->write("\n");
         }
 
@@ -56,7 +54,22 @@ abstract class Connector2
 
         $this->log_stream->write("<span style='color: $color;'>-- $text </span>\n");
 
-        $this->_extra_break = true;
+    }
+
+    public function rowCountLog(int $count): void
+    {
+
+        if ($count == 0) {
+            $this->comment("Nenhum registro alterado");
+        }
+
+        elseif ($count == 1) {
+            $this->comment("<b>1</b> registro alterado");
+        }
+
+        else {
+            $this->comment(CustomMessage::create("{{count:number:0:b}} registros alterados", ['count' => $count]));
+        }
 
     }
 
@@ -69,13 +82,15 @@ abstract class Connector2
 
     }
 
-    protected function execute($comando): void
+    protected function execute($sql): int
     {
 
-        $this->logSql($comando);
+        $this->logSql($sql);
+
+        $stmt = $this->getPDO()->prepare($sql);
 
         try {
-            $this->getPDO()->exec($comando);
+            $stmt->execute();
         }
 
         catch (PDOException $e) {
@@ -91,11 +106,7 @@ abstract class Connector2
 
         }
 
-        if (!is_null($this->log_stream) && $this->_extra_break) {
-            $this->log_stream->write("\n");
-        }
-
-        $this->_extra_break = false;
+        return $stmt->rowCount();
 
     }
 
@@ -138,18 +149,18 @@ abstract class Connector2
 
     }
 
+    protected array $pdo_options = [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_PERSISTENT => true,
+    ];
+
     /** @throws PDOException */
     public function getPDO(): PDO
     {
 
         if (!$this->_connected) {
 
-            $options = [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_PERSISTENT => true,
-            ];
-
-            $this->_pdo = new PDO($_ENV['DB_HOST'], $_ENV['DB_USER'], $_ENV['DB_PASS'], $options);
+            $this->_pdo = new PDO($_ENV['DB_HOST'], $_ENV['DB_USER'], $_ENV['DB_PASS'], $this->pdo_options);
 
             $this->_connected = true;
 
@@ -180,6 +191,11 @@ abstract class Connector2
 
     }
 
+    public function getTableId(): string
+    {
+        return "T" . $this::$table_id++;
+    }
+
     /** @throws CustomException */
     public function sync(string $class_name): void
     {
@@ -189,7 +205,9 @@ abstract class Connector2
 
         $model->changeState(State::STATE_SYNC);
 
-        $this->comment("<b>$class_name</b>\n", Color::ORANGE);
+        $model->setComment(get_class($model));
+
+        $this->comment("<b>$class_name</b>", Color::ORANGE);
 
         # Criar a tabela principal
 
@@ -225,11 +243,6 @@ abstract class Connector2
     public function filter(QueryWhere $filter, Query2 $query, ?string $id): string
     {
         return '';
-    }
-
-    public function getTableId(): string
-    {
-        return "T" . $this::$table_id++;
     }
 
     /**
@@ -308,7 +321,7 @@ abstract class Connector2
 
         $class_name = get_class($model);
 
-        $sql = $this->sql_insert($model, $data) . ';';
+        $sql = $this->sql_insert($model, $data);
 
         $this->comment("Inserindo registro(s) em '$class_name'", Color::GREEN);
 
@@ -328,6 +341,8 @@ abstract class Connector2
                 $field->setValue($result[$field->column_name]);
             }
         }
+
+        $this->rowCountLog($stmt->rowCount());
 
     }
 
@@ -362,7 +377,9 @@ abstract class Connector2
 
         if (!is_null($sql)) {
 
-            $this->execute($sql . ';');
+            $count = $this->execute($sql);
+
+            $this->rowCountLog($count);
 
         }
 
@@ -373,17 +390,6 @@ abstract class Connector2
         }
 
     }
-
-    public function sql_delete(Query2 $query): string
-    {
-        return '';
-    }
-
-    public function sql_drop(Query2 $query): string
-    {
-        return '';
-    }
-
 
     /**
      * @throws CustomException
@@ -417,12 +423,60 @@ abstract class Connector2
 
         # Atualizar dados nas tabelas MN
 
-        $this->comment("$model->_insert");
+        foreach ($model->getManyToMany() as $key => $mn) {
 
-        #TODO
+            $field = $model->getField($key);
+
+            $field_id = $model->getFieldId();
+
+            if ($field->isChanged()) {
+
+                $mn_model = new MnModel2($model, $key);
+
+                $query = new Query2($mn_model);
+
+                $query->filter('a', $field_id->getValue())->delete();
+
+            }
+
+        }
 
         return true;
 
+    }
+
+    public function delete(Query2 $query): bool
+    {
+
+        $model = $query->getModel();
+
+        $class_name = get_class($model);
+
+        $sql = $this->sql_delete($query);
+
+        $this->comment("Apagando registro(s) em '$class_name'", Color::RED, true);
+
+        $count = $this->execute($sql);
+
+        $this->rowCountLog($count);
+
+        return true;
+
+    }
+
+    public function sql_delete(Query2 $query): string
+    {
+        return '';
+    }
+
+    public function sql_truncate(Query2 $query): string
+    {
+        return '';
+    }
+
+    public function sql_drop(Query2 $query): string
+    {
+        return '';
     }
 
 }

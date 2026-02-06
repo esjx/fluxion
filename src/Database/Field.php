@@ -185,7 +185,11 @@ abstract class Field
             throw new CustomException(message: "Tamanho do campo '$class:$this->_name' inválido: '$this->size'", log: false);
         }
 
-        if ($this->_type_property != 'mixed' && !str_contains($this->_type_property, $this->_type_target)) {
+        if (is_null($this->many_to_many) && $this->_type_property != 'mixed' && !str_contains($this->_type_property, $this->_type_target)) {
+            throw new CustomException(message: "Tipo do campo '$class:$this->_name' inválido: '$this->_type_property'", log: false);
+        }
+
+        if (!is_null($this->many_to_many) && $this->_type_property != 'mixed' && !str_contains($this->_type_property, 'array')) {
             throw new CustomException(message: "Tipo do campo '$class:$this->_name' inválido: '$this->_type_property'", log: false);
         }
 
@@ -224,6 +228,9 @@ abstract class Field
         if (is_null($this->column_name)) {
             $this->column_name = $this->_name;
         }
+
+        $this->foreign_key?->initialize();
+        $this->many_to_many?->initialize();
 
     }
 

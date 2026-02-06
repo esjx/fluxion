@@ -16,29 +16,11 @@ class SQLServer2 extends Connector2
     protected string $default_value = 'DEFAULT';
     protected string $utf_prefix = 'N';
 
-    /** @throws PDOException */
-    public function getPDO(): PDO
-    {
-
-        if (!$this->_connected) {
-
-            $options = [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::SQLSRV_ATTR_QUERY_TIMEOUT => 15,
-                PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_UTF8,
-                //PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_SYSTEM,
-                //PDO::ATTR_PERSISTENT => true,
-            ];
-
-            $this->_pdo = new PDO($_ENV['DB_HOST'], $_ENV['DB_USER'], $_ENV['DB_PASS'], $options);
-
-            $this->_connected = true;
-
-        }
-
-        return $this->_pdo;
-
-    }
+    protected array $pdo_options = [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::SQLSRV_ATTR_QUERY_TIMEOUT => 15,
+        PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_UTF8,
+    ];
 
     protected function updateStructure(): void
     {
@@ -389,8 +371,6 @@ class SQLServer2 extends Connector2
      */
     protected function executeSync(Model2 $model): void
     {
-
-        $this->_extra_break = false;
 
         //$this->log_stream = Utils::streamFor('');
 
@@ -771,6 +751,21 @@ class SQLServer2 extends Connector2
 
             $this->execute($sql);
 
+            # Dados iniciais
+
+            $data = $model->getData();
+
+            if (count($data) > 0) {
+
+                $this->comment("Incluindo dados iniciais na tabela '$table->schema.$table->table'", Color::GREEN, true);
+                $sql = $this->sql_insert($model, $data);
+
+                $count = $this->execute($sql);
+
+                $this->rowCountLog($count);
+
+            }
+
         }
 
         # Índices
@@ -814,22 +809,22 @@ class SQLServer2 extends Connector2
                 $this->comment("Criando índice '$index_name'", Color::GREEN, true);
 
                 if ($create_index->unique) {
-                    $command = "CREATE UNIQUE INDEX $index_name ON $table->schema.$table->table";
+                    $sql = "CREATE UNIQUE INDEX $index_name ON $table->schema.$table->table";
                 }
 
                 else {
-                    $command = "CREATE INDEX $index_name ON $table->schema.$table->table";
+                    $sql = "CREATE INDEX $index_name ON $table->schema.$table->table";
                 }
 
-                $command .= ' ("' . implode('", "', $create_index->columns) . '")';
+                $sql .= ' ("' . implode('", "', $create_index->columns) . '")';
 
                 if (count($create_index->includes) > 0) {
-                    $command .= ' INCLUDE ("' . implode('", "', $create_index->includes) . '")';
+                    $sql .= ' INCLUDE ("' . implode('", "', $create_index->includes) . '")';
                 }
 
-                $command .= ';';
+                $sql .= ';';
 
-                $this->execute($command);
+                $this->execute($sql);
 
             }
 
@@ -1218,7 +1213,19 @@ class SQLServer2 extends Connector2
                         continue;
                     }
 
-                    $values_sql[] = $this->escape($d[$key]);
+                    $value = $d[$key] ?? null;
+
+                    if ($f->required && is_null($value) && is_null($f->default)) {
+                        throw new CustomException("Campo '$key' não pode ser nulo");
+                    }
+
+                    if ($f->required && is_null($value) && !is_null($f->default)) {
+                        $values_sql[] = $this->default_value;
+                    }
+
+                    else {
+                        $values_sql[] = $this->escape($value);
+                    }
 
                 }
 
@@ -1241,12 +1248,12 @@ class SQLServer2 extends Connector2
         $sql .= " (\n\t" . implode(",\n\t", $fields_sql) . "\n)";
 
         if (count($outputs_sql) > 0) {
-            $sql .= "\nOUTPUT\t" . implode(",\n\t", $outputs_sql) . "\n";
+            $sql .= "\nOUTPUT\t" . implode(",\n\t", $outputs_sql);
         }
 
-        $sql .= "VALUES\t" . implode(",\n\t", $inserts_sql);
+        $sql .= "\nVALUES\t" . implode(",\n\t", $inserts_sql);
 
-        return $sql;
+        return "$sql;";
 
     }
 
@@ -1268,6 +1275,10 @@ class SQLServer2 extends Connector2
 
         foreach ($model->getFields() as $f) {
 
+            if ($f->fake) {
+                continue;
+            }
+
             $f->update();
 
             if ($f->isChanged()) {
@@ -1288,7 +1299,34 @@ class SQLServer2 extends Connector2
             $sql .= "\nWHERE\t" . implode(" AND\n\t", $where);
         }
 
-        return $sql;
+        return "$sql;";
+
+    }
+
+    /**
+     * @throws CustomException
+     */
+    public function sql_delete(Query2 $query): string
+    {
+
+        $model = $query->getModel();
+
+        $table = $model->getTable();
+
+        $where = [];
+
+        foreach ($query->getWhere() as $w) {
+            $where[] = $this->filter($w, $query, null);
+        }
+
+        if (count($where) == 0) {
+            throw new CustomException("Nenhum filtro para exclusão");
+        }
+
+        $sql = "DELETE FROM $table->database.$table->schema.$table->table"
+            . "\nWHERE\t" . implode(" AND\n\t", $where);
+
+        return "$sql;";
 
     }
 

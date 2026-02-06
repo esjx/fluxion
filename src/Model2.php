@@ -8,6 +8,13 @@ use Fluxion\Query\{Query2, QuerySql};
 abstract class Model2
 {
 
+    protected array $_data = [];
+
+    public function getData(): array
+    {
+        return $this->_data;
+    }
+
     /** @var array<string, Database\Field> */
     protected array $_fields = [];
 
@@ -135,7 +142,6 @@ abstract class Model2
 
                     $instance->setTypeProperty($property->getType());
                     $instance->setModel($this);
-                    $instance->initialize();
 
                 }
 
@@ -172,7 +178,7 @@ abstract class Model2
         foreach ($this->_foreign_keys as $key => $foreign_key) {
 
             $foreign_key->setModel($this);
-            $foreign_key->initialize();
+            //$foreign_key->initialize();
 
             $this->_fields[$key]->foreign_key = $foreign_key;
 
@@ -183,11 +189,17 @@ abstract class Model2
         foreach ($this->_many_to_many as $key => $many_to_many) {
 
             $many_to_many->setModel($this);
-            $many_to_many->initialize();
+            //$many_to_many->initialize();
 
             $this->_fields[$key]->fake = true;
             $this->_fields[$key]->many_to_many = $many_to_many;
 
+        }
+
+        # Inicializa os campos
+
+        foreach ($this->_fields as $field) {
+            $field->initialize();
         }
 
     }
