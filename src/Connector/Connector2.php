@@ -233,15 +233,9 @@ abstract class Connector2
 
             $this->comment("<b>Tabela MN para o campo '$key'</b>", break_after: true);
 
-            $mn_model = new MnModel2($model, $key);
-
-            $mn_model->changeState(State::STATE_SYNC);
-
-            $mn_model->setComment(get_class($model) . " MN[$key]");
-
             # Criar a tabela de relacionamento
 
-            $this->executeSync($mn_model);
+            $this->executeSync($mn->getMnModel());
 
         }
 
@@ -265,9 +259,9 @@ abstract class Connector2
 
         $this::$table_id = 1;
 
-        $class_name = get_class($query->getModel());
-
         $model = $query->getModel();
+
+        $class_name = $model->getComment();
 
         $model->setSaved(true);
 
@@ -427,10 +421,7 @@ abstract class Connector2
 
             if ($mn->isChanged()) {
 
-                $mn_model = new MnModel2($model, $key, $mn->inverted);
-
-                $mn_model->setComment(get_class($model) . " MN[$key]");
-
+                $mn_model = $mn->getMnModel();
                 $id = $field_id->getValue();
                 $left = $mn_model->getLeft();
                 $right = $mn_model->getRight();

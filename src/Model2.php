@@ -38,7 +38,7 @@ abstract class Model2
     }
 
     public function getComment(): ?string {
-        return $this->comment;
+        return $this->comment ?? get_class($this);
     }
 
     /** @throws CustomException */
@@ -46,6 +46,22 @@ abstract class Model2
     {
 
         $reflection = new ReflectionClass(get_class($this));
+
+        # Carrega os atributos do modelo
+
+        $attributes = $reflection->getAttributes();
+
+        foreach ($attributes as $attribute) {
+
+            $instance = $attribute->newInstance();
+
+            if ($instance instanceof Database\Table) {
+
+                $this->_table = $instance;
+
+            }
+
+        }
 
         # Carrega os atributos dos campos do modelo
 
@@ -112,22 +128,6 @@ abstract class Model2
                     $instance->setModel($this);
 
                 }
-
-            }
-
-        }
-
-        # Carrega os atributos do modelo
-
-        $attributes = $reflection->getAttributes();
-
-        foreach ($attributes as $attribute) {
-
-            $instance = $attribute->newInstance();
-
-            if ($instance instanceof Database\Table) {
-
-                $this->_table = $instance;
 
             }
 

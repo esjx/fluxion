@@ -78,7 +78,7 @@ class ForeignKeyField extends Field
     {
 
         return match ($this->_type) {
-            'int' => (new IntegerField())->translate($value),
+            'integer' => (new IntegerField())->translate($value),
             'float' => (new FloatField())->translate($value),
             'date' => (new DateField())->translate($value),
             'datetime' => (new DateTimeField())->translate($value),
@@ -94,7 +94,7 @@ class ForeignKeyField extends Field
     {
 
         return match ($this->_type) {
-            'int' => (new IntegerField())->validate($value),
+            'integer' => (new IntegerField())->validate($value),
             'float' => (new FloatField())->validate($value),
             'date' => (new DateField())->validate($value),
             'datetime' => (new DateTimeField())->validate($value),

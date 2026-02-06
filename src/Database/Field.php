@@ -73,12 +73,6 @@ abstract class Field
         return $this->primary_key;
     }
 
-    public function isLoaded(): bool
-    {
-        return $this->_loaded;
-
-    }
-
     public function getName(): string
     {
         return $this->_name;
@@ -102,11 +96,6 @@ abstract class Field
     public function setModel(Model2 $model): void
     {
         $this->_model = $model;
-    }
-
-    public function getModel(): Model2
-    {
-        return $this->_model;
     }
 
     public function validate(mixed &$value): bool
@@ -145,18 +134,6 @@ abstract class Field
 
         if ($row) {
             return $this->_value;
-        }
-
-        if ($this->isManyToMany() && is_null($this->_value) && $this->_model->isSaved()) {
-
-            $class = get_class($this->_model);
-
-            $mn_model = new MnModel2(new $class(), $this->_name, $this->inverted);
-
-            $field_id = $this->_model->getFieldId();
-
-            return $mn_model->load($field_id->getValue());
-
         }
 
         return $this->format($this->_value);

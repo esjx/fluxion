@@ -30,6 +30,54 @@ class ManyToManyField extends Field
         $this->_model = $model;
     }
 
+    /**
+     * @throws CustomException
+     */
+    public function getMnModel(): MnModel2
+    {
+
+        if (empty($this->_mn_model)) {
+
+            $this->_mn_model = new MnModel2($this->_model, $this->_name, $this->inverted);
+
+            $this->_mn_model->setComment(get_class($this->_model) . " MN[$this->_name]");
+
+        }
+
+        return $this->_mn_model;
+
+    }
+
+    /**
+     * @throws CustomException
+     */
+    public function getValue($row = false): mixed
+    {
+
+        $this->update();
+
+        if ($row) {
+            return $this->_value;
+        }
+
+        if (is_null($this->_value) && $this->_model->isSaved()) {
+
+            $class = get_class($this->_model);
+
+            $mn_model = new MnModel2(new $class(), $this->_name, $this->inverted);
+
+            $mn_model->setComment(get_class($this->_model) . " MN[$this->_name]");
+
+            $field_id = $this->_model->getFieldId();
+
+            return $mn_model->load($field_id->getValue());
+
+        }
+
+        return $this->format($this->_value);
+
+    }
+
     /** @throws CustomException */
     public function __construct(public string  $class_name,
                                 public bool    $inverted = false,
