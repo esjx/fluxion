@@ -6,7 +6,7 @@ use PDO;
 use PDOException;
 use PDOStatement;
 use Psr\Http\Message\StreamInterface;
-use Fluxion\{Color, CustomException, CustomMessage, MnModel2, Model2, SqlFormatter, State};
+use Fluxion\{Color, CustomException, CustomMessage, Model2, SqlFormatter, State};
 use Fluxion\Query\{Query2, QueryWhere};
 
 abstract class Connector2
@@ -413,7 +413,7 @@ abstract class Connector2
 
         # Atualizar dados nas tabelas MN
 
-        foreach ($model->getManyToMany() as $key => $mn) {
+        foreach ($model->getManyToMany() as $mn) {
 
             $field_id = $model->getFieldId();
 
@@ -453,6 +453,9 @@ abstract class Connector2
 
     }
 
+    /**
+     * @throws CustomException
+     */
     public function delete(Query2 $query): bool
     {
 
@@ -472,19 +475,83 @@ abstract class Connector2
 
     }
 
+    /**
+     * @throws CustomException
+     */
     public function sql_delete(Query2 $query): string
     {
-        return '';
+
+        $model = $query->getModel();
+
+        $table = $model->getTable();
+
+        $where = [];
+
+        foreach ($query->getWhere() as $w) {
+            $where[] = $this->filter($w, $query, null);
+        }
+
+        if (count($where) == 0) {
+            throw new CustomException("Nenhum filtro para exclusão");
+        }
+
+        $sql = "DELETE FROM $table->database.$table->schema.$table->table"
+            . "\nWHERE\t" . implode(" AND\n\t", $where);
+
+        return "$sql;";
+
+    }
+
+    public function truncate(Query2 $query): bool
+    {
+
+        $model = $query->getModel();
+
+        $class_name = $model->getComment();
+
+        $sql = $this->sql_truncate($query);
+
+        $this->comment("Truncando dados em '$class_name'", Color::RED, true);
+
+        $this->execute($sql);
+
+        return true;
+
     }
 
     public function sql_truncate(Query2 $query): string
     {
-        return '';
+
+        $table = $query->getModel()->getTable();
+
+        return "TRUNCATE TABLE $table->database.$table->schema.$table->table;";
+
+    }
+
+    public function drop(Query2 $query): bool
+    {
+
+        $model = $query->getModel();
+
+        $class_name = $model->getComment();
+
+        $sql = $this->sql_drop($query);
+
+        $this->comment("Apagando tabela '$class_name'", Color::RED, true);
+
+        $this->execute($sql);
+
+        return true;
+
     }
 
     public function sql_drop(Query2 $query): string
     {
-        return '';
+
+        $table = $query->getModel()->getTable();
+
+        return "DROP TABLE $table->database.$table->schema.$table->table;";
+
     }
 
 }

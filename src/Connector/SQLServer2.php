@@ -1297,31 +1297,4 @@ class SQLServer2 extends Connector2
 
     }
 
-    /**
-     * @throws CustomException
-     */
-    public function sql_delete(Query2 $query): string
-    {
-
-        $model = $query->getModel();
-
-        $table = $model->getTable();
-
-        $where = [];
-
-        foreach ($query->getWhere() as $w) {
-            $where[] = $this->filter($w, $query, null);
-        }
-
-        if (count($where) == 0) {
-            throw new CustomException("Nenhum filtro para exclusão");
-        }
-
-        $sql = "DELETE FROM $table->database.$table->schema.$table->table"
-            . "\nWHERE\t" . implode(" AND\n\t", $where);
-
-        return "$sql;";
-
-    }
-
 }
