@@ -152,7 +152,13 @@ abstract class Field
     {
 
         if (!$database && !$this->validate($value)) {
+
+            if (is_array($value) || is_object($value)) {
+                $value = json_encode($value);
+            }
+
             throw new CustomException(message: "Valor '$value' inválido para o campo '$this->_name'", log: false);
+
         }
 
         $new_value = $this->translate($value);
@@ -187,6 +193,10 @@ abstract class Field
 
         if (is_null($this->many_to_many) && $this->_type_property != 'mixed' && !str_contains($this->_type_property, $this->_type_target)) {
             throw new CustomException(message: "Tipo do campo '$class:$this->_name' inválido: '$this->_type_property'", log: false);
+        }
+
+        if (!is_null($this->many_to_many)) {
+            $this->_type_target = 'array';
         }
 
         if (!is_null($this->many_to_many) && $this->_type_property != 'mixed' && !str_contains($this->_type_property, 'array')) {

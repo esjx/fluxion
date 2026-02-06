@@ -36,6 +36,10 @@ class IntegerField extends Field
             $value = null;
         }
 
+        if ($this->_type_target == 'array') {
+            return is_array($value);
+        }
+
         return is_null($value) || is_numeric($value);
 
     }
