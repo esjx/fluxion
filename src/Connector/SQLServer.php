@@ -426,7 +426,12 @@ class SQLServer extends Connector
                     $sql = "ALTER TABLE $table->schema.$table->table\n"
                         . "\tADD [$value->column_name] {$this->getColumnCommand($value)};";
 
-                    $this->execute($sql);
+                    $info->columns[$key] = new TableColumn();
+                    $info->columns[$key]->type = $this->getDatabaseType($value);
+                    $info->columns[$key]->required = $value->required;
+                    $info->columns[$key]->extra = false;
+
+                    $this->execute($sql, true);
 
                 }
 
@@ -443,7 +448,7 @@ class SQLServer extends Connector
                     $sql = "ALTER TABLE $table->schema.$table->table\n"
                         . "\tALTER COLUMN [$value->column_name] {$this->getColumnCommand($value)};";
 
-                    $this->execute($sql);
+                    $this->execute($sql, true);
 
                 }
 
@@ -469,7 +474,7 @@ class SQLServer extends Connector
                     $sql = "ALTER TABLE $table->schema.$table->table\n"
                         . "\tDROP CONSTRAINT {$info->columns[$key]->default_constraint};";
 
-                    $this->execute($sql);
+                    $this->execute($sql, true);
 
                 }
 
@@ -481,7 +486,7 @@ class SQLServer extends Connector
                     $sql = "ALTER TABLE $table->schema.$table->table\n"
                         . "\tADD DEFAULT $default_value FOR [$value->column_name];";
 
-                    $this->execute($sql);
+                    $this->execute($sql, true);
 
                 }
 
@@ -522,7 +527,7 @@ class SQLServer extends Connector
                         $sql = "ALTER TABLE $table->schema.$table->table\n"
                             . "\tDROP CONSTRAINT $info->primary_key_name;";
 
-                        $this->execute($sql);
+                        $this->execute($sql, true);
 
                     }
 
@@ -536,7 +541,7 @@ class SQLServer extends Connector
                     $sql = "ALTER TABLE $table->schema.$table->table\n"
                         . "\tADD CONSTRAINT $primary_key_name PRIMARY KEY ([$primary_key]);";
 
-                    $this->execute($sql);
+                    $this->execute($sql, true);
 
                 }
 
@@ -600,7 +605,7 @@ class SQLServer extends Connector
                             $sql = "ALTER TABLE $table->schema.$table->table\n"
                                 . "\tDROP CONSTRAINT $fk_key;";
 
-                            $this->execute($sql);
+                            $this->execute($sql, true);
 
                         }
 
@@ -628,7 +633,7 @@ class SQLServer extends Connector
                             . "REFERENCES $reference->schema.$reference->table ([$reference_field->column_name]) "
                             . "ON UPDATE $foreign_key_type ON DELETE $foreign_key_type";
 
-                        $this->execute($sql);
+                        $this->execute($sql, true);
 
                     }
 
@@ -739,14 +744,14 @@ class SQLServer extends Connector
             $sql = "CREATE TABLE $table->schema.$table->table (\n$command\n);";
 
             $this->comment("Criando tabela '$table->schema.$table->table'", Color::GREEN, true);
-            $this->execute($sql);
+            $this->execute($sql, true);
 
             $comment = $model->getComment();
 
             $this->comment("Adicionando descrição na tabela '$table->schema.$table->table'", Color::GREEN, true);
             $sql = "EXEC sys.sp_addextendedproperty 'MS_Description', '$comment (" . AGORA . ")', 'SCHEMA', '$table->schema', 'TABLE', '$table->table';";
 
-            $this->execute($sql);
+            $this->execute($sql, true);
 
             # Dados iniciais
 
@@ -821,7 +826,7 @@ class SQLServer extends Connector
 
                 $sql .= ';';
 
-                $this->execute($sql);
+                $this->execute($sql, true);
 
             }
 

@@ -29,7 +29,7 @@ class ResponseFactory
 
         $stream = Utils::streamFor();
 
-        $stream->write(json_encode($json));
+        $stream->write(json_encode($json, JSON_PRETTY_PRINT));
 
         return $response->withStatus($code)
             ->withBody($stream)

@@ -9,15 +9,20 @@ class Route
 
     private ?string $class = null;
     private ?string $method = null;
+    private ?Model $model = null;
 
     /**
      * @throws CustomException
      */
     public function __construct(public string $route,
-                                public array  $methods = ['GET'],
+                                public array|string  $methods = 'GET',
                                 public array  $args = [],
                                 public bool   $append = true)
     {
+
+        if (is_string($methods)) {
+            $this->methods = [$methods];
+        }
 
         foreach ($this->methods as $method) {
 
@@ -47,6 +52,16 @@ class Route
     public function setMethod(string $method): void
     {
         $this->method = $method;
+    }
+
+    public function getModel(): ?Model
+    {
+        return $this->model;
+    }
+
+    public function setModel(Model $model): void
+    {
+        $this->model = $model;
     }
 
     public function getRegExp($end = true): string

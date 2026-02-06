@@ -11,12 +11,24 @@ class Controller
 {
 
     /** @var Route[] */
-    protected array $routes = [];
+    private array $routes = [];
+
+    private string $base_route = '';
+
+    public function getBaseRoute(): string
+    {
+        return $this->base_route;
+    }
 
     /** @return  Route[] */
     public function getRoutes(): array
     {
         return $this->routes;
+    }
+
+    public function addRoute(Route $route): void
+    {
+        $this->routes[] = $route;
     }
 
     /**
@@ -124,18 +136,22 @@ class Controller
 
         $reflection = new ReflectionClass($class_name);
 
+        # Busca as rotas do Controller
+
         $routes = $reflection->getAttributes(Route::class);
 
-        $base_route = null;
+        $this->base_route = '';
 
         foreach ($routes as $route) {
 
             /** @var Route $instance */
             $instance = $route->newInstance();
 
-            $base_route = $instance->route;
+            $this->base_route = $instance->route;
 
         }
+
+        # Buscas as rotas dos métodos existentes
 
         $methods = $reflection->getMethods(ReflectionMethod::IS_PUBLIC);
 
@@ -149,13 +165,13 @@ class Controller
                 $instance = $route->newInstance();
 
                 if ($instance->append) {
-                    $instance->route = $base_route . $instance->route;
+                    $instance->route = $this->base_route . $instance->route;
                 }
 
                 $instance->setClass($class_name);
                 $instance->setMethod($method->getName());
 
-                $this->routes[] = $instance;
+                $this->addRoute($instance);
 
             }
 

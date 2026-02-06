@@ -617,6 +617,58 @@ class ControllerOld extends Service
 
     }
 
+    public function typeahead($arr)
+    {
+
+        $config = $this->_config;
+        $auth = $this->_auth;
+
+        $choices = [];
+
+        $is = Application::inputStream();
+
+        $m = $this->createModelFromRoute($arr, 'view');
+
+        $m->changeState(ModelOld::STATE_TYPEAHEAD);
+
+        $field = $m->getFields()[$arr->field] ?? Application::error("Campos <b>$arr->field</b> não encontrado!");
+
+        $model_name = $field['foreign_key']
+            ?? $field['many_to_many']
+            ?? $field['i_many_to_many']
+            ?? Application::error("Campos <b>$arr->field</b> não possui fonte de dados!");
+
+        $filters = $field['foreign_key_filter']
+            ?? $field['many_to_many_filter']
+            ?? $field['i_many_to_many_filter']
+            ?? [];
+
+        $model = $this->createModelFromName($model_name);
+
+        $m_id = $model->getFieldId();
+
+        $query = $model->query();
+
+        $query = $model->search($query, $is->busca);
+
+        foreach ($model->getOrder() as $k)
+            $query = $query->orderBy($k[0], $k[1]);
+
+        foreach ($filters as $f => $v)
+            $query = $query->filter($f, $v);
+
+        $limit = self::TYPEAHEAD_LIMIT;
+
+        foreach ($query->limit($limit)->xselect($config, $auth) as $k) {
+            $choices[] = ['id' => $k->$m_id, 'label' => strval($k)];
+        }
+
+        Application::printJson([
+            'dados' => $choices,
+        ]);
+
+    }
+
     /*
      * EXCEL
      * */
@@ -1114,58 +1166,6 @@ class ControllerOld extends Service
         }
 
         return $arr;
-
-    }
-
-    public function typeahead($arr)
-    {
-
-        $config = $this->_config;
-        $auth = $this->_auth;
-
-        $choices = [];
-
-        $is = Application::inputStream();
-
-        $m = $this->createModelFromRoute($arr, 'view');
-
-        $m->changeState(ModelOld::STATE_TYPEAHEAD);
-
-        $field = $m->getFields()[$arr->field] ?? Application::error("Campos <b>$arr->field</b> não encontrado!");
-
-        $model_name = $field['foreign_key']
-            ?? $field['many_to_many']
-            ?? $field['i_many_to_many']
-            ?? Application::error("Campos <b>$arr->field</b> não possui fonte de dados!");
-
-        $filters = $field['foreign_key_filter']
-            ?? $field['many_to_many_filter']
-            ?? $field['i_many_to_many_filter']
-            ?? [];
-
-        $model = $this->createModelFromName($model_name);
-
-        $m_id = $model->getFieldId();
-
-        $query = $model->query();
-
-        $query = $model->search($query, $is->busca);
-
-        foreach ($model->getOrder() as $k)
-            $query = $query->orderBy($k[0], $k[1]);
-
-        foreach ($filters as $f => $v)
-            $query = $query->filter($f, $v);
-
-        $limit = self::TYPEAHEAD_LIMIT;
-
-        foreach ($query->limit($limit)->xselect($config, $auth) as $k) {
-            $choices[] = ['id' => $k->$m_id, 'label' => strval($k)];
-        }
-
-        Application::printJson([
-            'dados' => $choices,
-        ]);
 
     }
 

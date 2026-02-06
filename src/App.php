@@ -85,7 +85,7 @@ class App
                         }
                     }
 
-                    $out = $control->$method($request, $response, $parameters);
+                    $out = $control->$method($request, $response, $parameters, $route);
 
                     if ($out instanceof ResponseInterface) {
                         $response = $out;
