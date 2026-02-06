@@ -127,7 +127,7 @@ class App
     public static function registerApp(string $namespace, string $dir, string $controller): void
     {
 
-        AutoLoader2::addNamespace($namespace, $dir);
+        AutoLoader::addNamespace($namespace, $dir);
 
         $control_name = $namespace . '\\' . $controller;
 

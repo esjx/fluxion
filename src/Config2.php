@@ -68,16 +68,16 @@ define('MAIS_DEZ_DIAS', $mais_dez_dias->format('Y-m-d'));
 class Config2
 {
 
-    private static ?Connector\Connector2 $connector = null;
+    private static ?Connector\Connector $connector = null;
 
     /** @throws CustomException */
-    public static function getConnector(): Connector\Connector2
+    public static function getConnector(): Connector\Connector
     {
 
         if (is_null(self::$connector)) {
 
             if (isset($_ENV['DB_TYPE']) && $_ENV['DB_TYPE'] == 'sqlsrv') {
-                self::$connector = new Connector\SQLServer2();
+                self::$connector = new Connector\SQLServer();
             }
 
             else {

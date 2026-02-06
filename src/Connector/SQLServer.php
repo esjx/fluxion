@@ -1,357 +1,885 @@
 <?php
 namespace Fluxion\Connector;
 
-use Fluxion\Model2;
 use PDO;
-use Exception;
-use PDOException;
-use Fluxion\Application;
-use Fluxion\Auth\Auth;
-use Fluxion\Config;
-use Fluxion\Model;
-use Fluxion\MnModel;
-use Fluxion\MnChoicesModel;
-use Fluxion\SqlFormatter;
-use Fluxion\Util;
+use Random\RandomException;
+use Fluxion\{Color, CustomException, Database, Model2};
+use Fluxion\Query\{Query2, QueryWhere};
 
 class SQLServer extends Connector
 {
 
-    const DB_DATE_FORMAT = 'Y-m-d';
-    const DB_DATETIME_FORMAT = 'Y-m-d H:i:s';
-
     protected string $true_value = '1';
     protected string $false_value = '0';
     protected string $null_value = 'NULL';
-    protected string $utf_prefix = '';
+    protected string $default_value = 'DEFAULT';
+    protected string $utf_prefix = 'N';
 
-    protected ?PDO $_pdo;
+    protected array $pdo_options = [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::SQLSRV_ATTR_QUERY_TIMEOUT => 15,
+        PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_UTF8,
+    ];
 
-    protected $_host;
-    protected $_user;
-    protected $_pass;
-
-    public function getPDO(): PDO
+    protected function updateStructure(): void
     {
 
-        if (!$this->_connected) {
+        if (is_array($this->_structure)) return;
 
-            try {
+        $this->_structure = [];
 
-                $this->_pdo = new PDO(
-                    $this->_host,
-                    $this->_user,
-                    $this->_pass,
-                    [
-                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                        PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_UTF8,
-                        //PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_SYSTEM,
-                        //PDO::ATTR_PERSISTENT => true,
-                        //PDO::SQLSRV_ATTR_QUERY_TIMEOUT => 30,
-                    ]
-                );
+        # Buscando bancos de dados
 
-                $this->_connected = true;
+        $sql = "SELECT name
+                FROM sys.databases
+                WHERE name NOT IN ('master', 'tempdb', 'model', 'msdb')
+                ORDER BY name";
 
-            } catch (PDOException $e) {
-                Application::error($e->getMessage(), 207);
+        foreach ($this->fetch($sql) as $result) {
+
+            $this->_structure[$result['name']] = [];
+
+        }
+
+        # Buscando esquemas
+
+        $sql = "SELECT name, schema_id
+                FROM sys.schemas
+                WHERE name = 'dbo' OR (name NOT IN ('guest', 'INFORMATION_SCHEMA', 'sys')
+                    AND name NOT LIKE 'db_%')
+                ORDER BY name;";
+
+        foreach ($this->_structure as $database => $value) {
+
+            $this->getPDO()->exec("USE $database;");
+
+            foreach ($this->fetch($sql) as $result) {
+
+                $this->_structure[$database][$result['name']] = [
+                    'id' => $result['schema_id'],
+                    'tables' => [],
+                ];
+
             }
 
         }
 
-        return $this->_pdo;
-
     }
 
-    public function select($arg, Config $config, Auth $auth, Model $model): string
+    protected function updateDatabase(Database\Table $table): void
     {
 
-        $where = '';
-        foreach ($arg['where'] as $k)
-            $where .= (($where == '') ? " WHERE " : " AND ") . $this->filter($k, $arg['database'], $config, $auth, $model);
+        $this->updateStructure();
 
-        $orderBy = '';
-        foreach ($arg['orderBy'] as $k)
-            $orderBy .= (($orderBy == '') ? " ORDER BY" : ",") . " [{$model->dbField($k['field'])}] {$k['order']}";
+        if (!isset($this->_structure[$table->database])) {
 
-        $groupBy = '';
-        foreach ($arg['groupBy'] as $k)
-            $groupBy .= (($groupBy == '') ? " GROUP BY" : ",") . " [{$model->dbField($k['field'])}]";
+            $this->comment("Criando banco de dados '$table->database'", Color::GREEN, true);
+            $this->execute("CREATE DATABASE $table->database;");
 
-        $top = (isset($arg['limit']['limit']) && $arg['limit']['offset'] == 0) ?
-            " TOP {$arg['limit']['limit']} " :
-            '';
+            $this->_structure[$table->database] = [
+                'dbo' => [
+                    'id' => 1,
+                    'tables' => [],
+                ],
+            ];
 
-        $limit = (isset($arg['limit']['limit']) && $arg['limit']['offset'] > 0) ?
-            " OFFSET {$arg['limit']['offset']} ROWS FETCH NEXT {$arg['limit']['limit']} ROWS ONLY " :
-            '';
-
-        if ((isset($arg['limit']['limit']) && $arg['limit']['offset'] > 0) && $orderBy == '') {
-            $orderBy = " ORDER BY [{$model->dbField($model->getFieldId())}]";
         }
 
-        list($database_name, $schema_name, $table_name) = $this->names($arg);
+        if ($this->_database != $table->database) {
 
-        $lock = /*($this->getPDO()->inTransaction()) ? ' WITH (tablock, holdlock) ' :*/ ' WITH (nolock) ';
+            $this->comment("Alterando banco de dados para '$table->database'", Color::BROWN, true);
+            $this->execute("USE $table->database;", true);
 
-        return "SELECT $top {$arg['fields']} FROM [$database_name].[$schema_name].[$table_name] $lock $where $groupBy $orderBy $limit";
+            $this->_database = $table->database;
+
+        }
+
+        if (!isset($this->_structure[$table->database][$table->schema])) {
+
+            $this->comment("Criando esquema '$table->schema'", Color::GREEN, true);
+            $this->execute("CREATE SCHEMA $table->schema;", true);
+
+            $this->_structure[$table->database][$table->schema] = [];
+
+        }
 
     }
 
-    public function insert($arg, Model $model, $force_fields = false): string
+    public function getTableInfo(Database\Table $table): TableInfo
     {
 
-        $fields = '';
-        $regs = '';
+        # Dados em branco
 
-        foreach ($arg['fields'] as $i) {
+        $info = new TableInfo();
 
-            $fields = '';
-            $values = '';
+        # Alterando banco de dados atual
 
-            foreach ($i as $key => $value)
-                if (!isset($value['many_to_many']) && !isset($value['i_many_to_many']) && !isset($value['many_choices']) && (isset($value['value']) || $force_fields)) {
+        $this->getPDO()->exec("USE $table->database;");
 
-                    $fields .= (($fields != '') ? ", " : "") . "[{$model->dbField($key)}]";
-                    $values .= (($values != '') ? ", " : "") . $this->escape((isset($value['value'])) ? $value['value'] : null);
+        # Buscando campos da tabela
+
+        $sql = "SELECT c.name AS column_name,
+                       c.column_id,
+                       t.name AS type,
+                       c.is_nullable,
+                       c.is_identity,
+                       CASE
+                           WHEN t.name IN ('varchar') AND c.max_length >= 1 THEN c.max_length
+                           WHEN t.name IN ('nvarchar') AND c.max_length >= 1 THEN c.max_length / 2
+                       END AS max_length,
+                       IIF(t.name IN ('numeric'), c.precision, NULL) AS precision,
+                       IIF(t.name IN ('numeric'), c.scale, NULL) AS scale,
+                       d.definition AS default_value,
+                       d.name AS default_constraint
+                FROM sys.columns c
+                         LEFT JOIN sys.types t ON c.user_type_id = t.user_type_id
+                         LEFT JOIN sys.default_constraints d ON c.default_object_id = d.object_id
+                WHERE c.object_id = OBJECT_ID('$table->schema.$table->table')
+                ORDER BY c.column_id;";
+
+        foreach ($this->fetch($sql) as $result) {
+
+            $info->exists = true;
+
+            $column = new TableColumn();
+
+            $column->name = $result['column_name'];
+            $column->id = $result['column_id'];
+            $column->type = $result['type'];
+            $column->nullable = $result['is_nullable'];
+            $column->required = !$result['is_nullable'];
+            $column->identity = $result['is_identity'];
+            $column->max_length = $result['max_length'];
+            $column->precision = $result['precision'];
+            $column->scale = $result['scale'];
+
+            if (!is_null($result['default_value'])) {
+
+                if (str_starts_with($result['default_value'], '((')) {
+                    $result['default_value'] = substr($result['default_value'], 2, -2);
+                }
+
+                /*elseif (str_starts_with($result['default_value'], '(\'')) {
+                    $result['default_value'] = substr($result['default_value'], 2, -2);
+                }*/
+
+                elseif (str_starts_with($result['default_value'], '(')) {
+                    $result['default_value'] = substr($result['default_value'], 1, -1);
+                }
+
+            }
+
+            $column->default_value = $result['default_value'];
+            $column->default_constraint = $result['default_constraint'];
+
+            $info->columns[$result['column_name']] = $column;
+
+        }
+
+        # Retornando dados se não existir tabela
+
+        if (!$info->exists) {
+            return $info;
+        }
+
+        # Buscando chaves primarias da tabela
+
+        $sql = "SELECT kc.name        AS pk_name,
+                       c.name         AS column_name,
+                       ic.key_ordinal AS column_order
+                FROM sys.key_constraints kc
+                         INNER JOIN sys.index_columns ic
+                                    ON kc.parent_object_id = ic.object_id
+                                        AND kc.unique_index_id = ic.index_id
+                         INNER JOIN sys.columns c
+                                    ON ic.object_id = c.object_id
+                                        AND ic.column_id = c.column_id
+                WHERE kc.type = 'PK'
+                  AND kc.parent_object_id = OBJECT_ID('$table->schema.$table->table')
+                ORDER BY column_order;";
+
+        foreach ($this->fetch($sql) as $result) {
+
+            $info->primary_key_name = $result['pk_name'];
+            $info->primary_keys[] = $result['column_name'];
+
+        }
+
+        # Buscando chaves estrangeiras da tabela
+
+        $sql = "SELECT f.name                                                     AS fk_name,
+                       COL_NAME(fc.parent_object_id, fc.parent_column_id)         AS parent_column,
+                       SCHEMA_NAME(f.schema_id)                                   AS referenced_schema,
+                       OBJECT_NAME(f.referenced_object_id)                        AS referenced_table,
+                       COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS referenced_column,
+                       f.delete_referential_action_desc                           AS delete_rule,
+                       f.update_referential_action_desc                           AS update_rule
+                FROM sys.foreign_keys AS f
+                         INNER JOIN sys.foreign_key_columns AS fc
+                                    ON f.object_id = fc.constraint_object_id
+                WHERE f.type = 'F'
+                  AND f.parent_object_id = OBJECT_ID('$table->schema.$table->table')
+                ORDER BY fk_name;";
+
+        foreach ($this->fetch($sql) as $result) {
+
+            $foreign_key = new TableForeignKey();
+
+            $foreign_key->name = $result['fk_name'];
+            $foreign_key->parent_column = $result['parent_column'];
+            $foreign_key->referenced_schema = $result['referenced_schema'];
+            $foreign_key->referenced_table = $result['referenced_table'];
+            $foreign_key->referenced_column = $result['referenced_column'];
+            $foreign_key->delete_rule = $result['delete_rule'];
+            $foreign_key->update_rule = $result['update_rule'];
+
+            $info->foreign_keys[$result['fk_name']] = $foreign_key;
+
+        }
+
+        # Buscando índices da tabela
+
+        $sql = "SELECT i.name,
+                       i.type_desc,
+                       i.is_unique,
+                       COL_NAME(ic.object_id, ic.column_id) AS column_name,
+                       ic.is_included_column,
+                       ic.key_ordinal
+                FROM sys.indexes AS i
+                         INNER JOIN sys.index_columns AS ic
+                                    ON i.object_id = ic.object_id AND i.index_id = ic.index_id
+                WHERE i.object_id = OBJECT_ID('$table->schema.$table->table')
+                  AND i.is_primary_key = 0
+                ORDER BY i.name, ic.key_ordinal;";
+
+        foreach ($this->fetch($sql) as $result) {
+
+            if (!isset($info->indexes[$result['name']])) {
+
+                $index = new TableIndex();
+
+                $index->name = $result['name'];
+                $index->type = $result['type_desc'];
+                $index->unique = $result['is_unique'];
+
+                $info->indexes[$result['name']] = $index;
+
+            }
+
+            if ($result['is_included_column']) {
+                $info->indexes[$result['name']]->includes[] = $result['column_name'];
+            }
+
+            else {
+                $info->indexes[$result['name']]->columns[] = $result['column_name'];
+            }
+
+        }
+
+        # Retornando dados
+
+        return $info;
+
+    }
+
+    /** @throws CustomException */
+    protected function getDatabaseType(Database\Field $value): string
+    {
+
+        return match ($value->getType()) {
+            'json', 'link', 'color' => 'varchar',
+            'text', 'iframe', 'map', 'html', 'upload', 'image', 'string', 'password' => 'nvarchar',
+            'integer' => 'bigint',
+            'boolean' => 'bit',
+            'date' => 'date',
+            'datetime' => 'datetime',
+            'float' => 'float',
+            'decimal', 'numeric' => "numeric",
+            'geography' => 'geography',
+            default => throw new CustomException("Tipo {$value->getType()} não implementado"),
+        };
+
+    }
+
+    /** @throws CustomException */
+    protected function getColumnCommand(Database\Field $value): string
+    {
+
+        # Definição do tipo
+
+        $type = $this->getDatabaseType($value);
+
+        # Criação do comando
+
+        $command = "$type";
+
+        # Complementos
+
+        if (in_array($type, ['varchar', 'nvarchar']) && !$value->max_length) {
+            $command .= "(max)";
+        }
+
+        elseif (in_array($type, ['varchar', 'nvarchar'])) {
+            $command .= "($value->max_length)";
+        }
+
+        elseif ($type == 'numeric') {
+            $command .= "(18,$value->decimal_places)";
+        }
+
+        # Valores nulos
+
+        if ($value->required || $value->identity) {
+            $command .= ' not null';
+        }
+
+        # Auto incremento
+
+        if ($value->identity) {
+            $command .= ' identity(1,1)';
+        }
+
+        return $command;
+
+    }
+
+    protected function getDefaultCommand(Database\Field $value): ?string
+    {
+
+        # Valor padrão
+
+        if (!is_null($value->default)) {
+
+            $default = $value->default;
+
+            if ($default != 'getdate()' && !$value->default_literal) {
+                $default = $this->escape($value->default);
+            }
+
+            return "$default";
+
+        }
+
+        return null;
+
+    }
+
+    /**
+     * @throws CustomException
+     * @throws RandomException
+     */
+    protected function executeSync(Model2 $model): void
+    {
+
+        $table = $model->getTable();
+        $fields = $model->getFields();
+
+        $this->updateDatabase($table);
+
+        $prefix = strtolower("{$table->schema}_$table->table");
+
+        $info = $this->getTableInfo($table);
+
+        # Buscando as chaves necessárias
+
+        $primary_keys = [];
+        $foreign_keys = [];
+
+        foreach ($fields as $key => $f) {
+
+            if ($f->fake) {
+                continue;
+            }
+
+            # Chave primária
+
+            if ($f->isPrimaryKey()) {
+                $primary_keys[] = $f->column_name;
+            }
+
+            # Chave estrangeira
+
+            if ($f->isForeignKey()) {
+                $foreign_keys[$key] = $f;
+            }
+
+        }
+
+        # Quando a tabela já existir
+
+        if ($info->exists) {
+
+            $this->comment("Tabela '$table->schema.$table->table' já existe");
+
+            foreach ($fields as $key => $value) {
+
+                if ($value->fake) {
+                    continue;
+                }
+
+                # Campo ainda não existe
+
+                if (!isset($info->columns[$key])) {
+
+                    $this->comment("Incluindo campo '$key'", Color::GREEN, true);
+
+                    $sql = "ALTER TABLE $table->schema.$table->table\n"
+                        . "\tADD [$value->column_name] {$this->getColumnCommand($value)};";
+
+                    $this->execute($sql);
 
                 }
 
-            $regs .= (($regs != '') ? ", " : "") . "($values)";
+                # Campo existe e precisa ser alterado
 
-        }
+                elseif ($info->columns[$key]->type != $this->getDatabaseType($value)
+                    || $info->columns[$key]->max_length != $value->max_length
+                    || $info->columns[$key]->required != $value->required) {
 
-        $extra = ($arg['field_id'] != '') ? "OUTPUT INSERTED.[{$model->dbField($arg['field_id'])}] " : "";
+                    $info->columns[$key]->extra = false;
 
-        list($database_name, $schema_name, $table_name) = $this->names($arg);
+                    $this->comment("Alterando campo '$key: {$info->columns[$key]}'", Color::BROWN, true);
 
-        return "INSERT INTO [$database_name].[$schema_name].[$table_name] ($fields) $extra VALUES $regs;";
+                    $sql = "ALTER TABLE $table->schema.$table->table\n"
+                        . "\tALTER COLUMN [$value->column_name] {$this->getColumnCommand($value)};";
 
-    }
+                    $this->execute($sql);
 
-    public function create($arg, Model|Model2 $model): string
-    {
+                }
 
-        $fields = '';
-        $constraints = '';
-        $primary_key = '';
-        $indexes = '';
+                # Campo já existe
+                else {
 
-        list($database_name, $schema_name, $table_name) = $this->names($arg);
+                    $info->columns[$key]->extra = false;
 
-        $arg['table_2'] = strtolower("{$database_name}_{$schema_name}_{$table_name}");
+                    $this->comment("Campo '$key: {$info->columns[$key]}' já existe");
 
-        foreach ($arg['fields'] as $key=>$value) {
+                }
 
-            if (isset($value['primary_key'])) {
+                # Valor padrão do campo
 
-                if ($value['primary_key']) {
+                $default_value = $this->getDefaultCommand($value);
 
-                    if ($primary_key != '')
-                        $primary_key .= ", ";
+                if (isset($info->columns[$key])
+                    && !is_null($info->columns[$key]->default_value)
+                    && $info->columns[$key]->default_value != $default_value) {
 
-                    $primary_key .= "\"{$model->dbField($key)}\"";
+                    $this->comment("Excluindo valor padrão '{$info->columns[$key]->default_value}' no campo '$key'", Color::RED, true);
+
+                    $sql = "ALTER TABLE $table->schema.$table->table\n"
+                        . "\tDROP CONSTRAINT {$info->columns[$key]->default_constraint};";
+
+                    $this->execute($sql);
+
+                }
+
+                if (!is_null($value->default)
+                    && $info->columns[$key]->default_value != $default_value) {
+
+                    $this->comment("Incluindo valor padrão '$default_value' no campo '$key'", Color::BROWN, true);
+
+                    $sql = "ALTER TABLE $table->schema.$table->table\n"
+                        . "\tADD DEFAULT $default_value FOR [$value->column_name];";
+
+                    $this->execute($sql);
 
                 }
 
             }
 
-            if (!isset($value['many_to_many']) && !isset($value['i_many_to_many']) && !isset($value['many_choices'])) {
+            # Campos não utilizados
 
-                if (!isset($value['required'])) $value['required'] = false;
-                if (!isset($value['maxlength'])) $value['maxlength'] = 255;
+            foreach ($info->columns as $key => $value) {
 
-                if ($fields != '') $fields .= ' , ';
-
-                $id = '';
-
-                if ($arg['field_id_ai'] && $key == $arg['field_id']) {
-                    $id = 'IDENTITY(1,1)';
+                if (!$value->extra) {
+                    continue;
                 }
 
-                switch($value['type']) {
-
-                    case 'text':
-                    case 'iframe':
-                    case 'map':
-                    case 'html':
-                    case 'upload':
-                    case 'image':
-                        $type = 'VARCHAR(MAX)';
-                        break;
-
-                    case 'string':
-                    case 'password':
-                    case 'link':
-                        $type = "NVARCHAR({$value['maxlength']})";
-                        break;
-
-                    case 'integer':
-                        $type = 'BIGINT';
-                        break;
-
-                    case 'boolean':
-                        $type = 'BIT';
-                        break;
-
-                    case 'date':
-                        $type = 'DATE';
-                        break;
-
-                    case 'datetime':
-                        $type = 'DATETIME';
-                        break;
-
-                    case 'float':
-                        $type = 'FLOAT';
-                        break;
-
-                    case 'decimal':
-                    case 'numeric':
-                        $decimal_places = $value['decimalplaces'] ?? 2;
-                        $type = "NUMERIC(20,$decimal_places)";
-                        break;
-
-                    case 'geography':
-                        $type = 'GEOGRAPHY';
-
-                        $field = $model->dbField($key);
-
-                        $indexName = "{$arg['table_2']}_spacial_$field";
-
-                        $indexes .= "IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = '$indexName')" . PHP_EOL;
-                        $indexes .= "CREATE SPATIAL INDEX $indexName ON $schema_name.$table_name ($field) USING GEOGRAPHY_GRID WITH (GRIDS =(LEVEL_1 = MEDIUM,LEVEL_2 = MEDIUM,LEVEL_3 = MEDIUM,LEVEL_4 = MEDIUM), CELLS_PER_OBJECT = 16, PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 90) ON [PRIMARY];" . PHP_EOL;
-
-                        break;
-
-                    default:
-                        $type = 'NVARCHAR(255)';
-
-                }
-
-                $fields .= "[{$model->dbField($key)}] $type $id";
-
-                if ($value['required']) $fields .= ' NOT NULL';
-
-                if (isset($value['default']) && !is_null($value['default'])) {
-
-
-                    $default = ($value['default'] == Model::NOW) ? 'GETDATE()' : $this->escape($value['default']);
-
-                    $fields .= ' DEFAULT ';
-                    $fields .= $default;
-
-                }
-
-                $fields .= PHP_EOL;
+                $this->comment("Campo '$key: $value' não utilizado", Color::DEEP_ORANGE);
 
             }
 
-            if (isset($value['foreign_key']))
-                if (!isset($value['foreign_key_fake']) || !$value['foreign_key_fake']) {
+            # Chaves primárias
 
-                    $foreignkey_model = new $value['foreign_key'];
-                    $foreignkey_table = $foreignkey_model->_table;
-                    $foreignkey_field_id = $foreignkey_model->dbField($foreignkey_model->_field_id);
-                    $foreignkey_type = ($value['required']) ? 'NO ACTION' : 'SET NULL';
+            if (count($primary_keys) > 0) {
 
-                    if (($value['cascade']) ?? false) {
-                        $foreignkey_type = 'CASCADE';
+                # Verificar se existe chave com os mesmos campos
+
+                if ($info->primary_keys == $primary_keys) {
+
+                    $detail = implode(", ", $primary_keys);
+
+                    $this->comment("Chave primária '$info->primary_key_name ($detail)' já existe");
+
+                }
+
+                else {
+
+                    if (!is_null($info->primary_key_name)) {
+
+                        $this->comment("Apagando chave primária '$info->primary_key_name'", Color::RED, true);
+
+                        $sql = "ALTER TABLE $table->schema.$table->table\n"
+                            . "\tDROP CONSTRAINT $info->primary_key_name;";
+
+                        $this->execute($sql);
+
                     }
 
-                    $constraints .= " , CONSTRAINT {$arg['table_2']}_fk_{$key} FOREIGN KEY (\"$key\") "
-                        . "REFERENCES $foreignkey_table ($foreignkey_field_id) "
-                        . "ON UPDATE $foreignkey_type ON DELETE $foreignkey_type" . PHP_EOL;
+                    $uid = bin2hex(random_bytes(10));
+
+                    $primary_key_name = "{$prefix}_pk_$uid";
+                    $primary_key = implode("], [", $primary_keys);
+
+                    $this->comment("Criando chave primária '$primary_key_name'", Color::GREEN, true);
+
+                    $sql = "ALTER TABLE $table->schema.$table->table\n"
+                        . "\tADD CONSTRAINT $primary_key_name PRIMARY KEY ([$primary_key]);";
+
+                    $this->execute($sql);
 
                 }
 
-        }
+            }
+            
+            # Chave primária não utilizada
 
-        if ($primary_key != '')
-            $constraints .= " , CONSTRAINT {$arg['table_2']}_pkey PRIMARY KEY ($primary_key)";
+            else if (!is_null($info->primary_key_name)) {
 
-        foreach ($arg['indexes'] as $index) {
-
-            $indexName = "{$arg['table_2']}_index";
-            $indexName2 = "{$arg['table_2']}_index";
-            $btree = '';
-
-            foreach ($index as $fld) {
-
-                $t = substr($fld, 0, 3);
-
-                $indexName .= "_$fld";
-                $indexName2 .= "_$t";
-
-                if ($btree != '')
-                    $btree .= ", ";
-
-                $btree .=  "\"{$model->dbField($fld)}\"";
+                $this->comment("Chave primária '$info->primary_key_name' não utilizada", Color::DEEP_ORANGE);
 
             }
 
-            if (mb_strlen($indexName, 'utf8') > 128) {
-                $indexName = $indexName2;
-            }
+            # Chaves estrangeiras
 
-            $indexes .= "IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = '$indexName')" . PHP_EOL;
-            $indexes .= "CREATE INDEX $indexName ON $schema_name.$table_name ($btree);" . PHP_EOL;
+            if (count($foreign_keys) > 0) {
+
+                /** @var Database\ForeignKeyField $foreign_key */
+                foreach ($foreign_keys as $key => $foreign_key) {
+
+                    $uid = bin2hex(random_bytes(10));
+
+                    $foreign_key_name = "{$prefix}_fk_$uid";
+
+                    if (!$foreign_key->real) {
+                        continue;
+                    }
+
+                    $reference = $foreign_key->getReferenceModel()->getTable();
+
+                    $field = $fields[$key];
+
+                    $foreign_key_exists = false;
+
+                    $reference_field = $foreign_key->getField();
+
+                    $foreign_key_type = ($field->required) ? 'NO_ACTION' : 'SET_NULL';
+
+                    if (!is_null($foreign_key->type)) {
+                        $foreign_key_type = $foreign_key->type;
+                    }
+
+                    foreach ($info->foreign_keys as $fk_key => $fk_value) {
+
+                        if ($fk_value->parent_column != $field->column_name) {
+                            continue;
+                        }
+
+                        $info->foreign_keys[$fk_key]->extra = false;
+
+                        if ($fk_value->referenced_schema != $reference->schema
+                            || $fk_value->referenced_table != $reference->table
+                            || $fk_value->referenced_column != $reference_field->column_name
+                            || $fk_value->delete_rule != $foreign_key_type
+                            || $fk_value->update_rule != $foreign_key_type) {
+
+                            $detail = "($key) → $fk_value->referenced_table ($fk_value->referenced_column)";
+
+                            $this->comment("Apagando chave estrangeira '$fk_key' $detail", Color::RED, true);
+
+                            $sql = "ALTER TABLE $table->schema.$table->table\n"
+                                . "\tDROP CONSTRAINT $fk_key;";
+
+                            $this->execute($sql);
+
+                        }
+
+                        else {
+
+                            $foreign_key_exists = true;
+
+                            $detail = "($key) → $reference->table ($reference_field->column_name)";
+
+                            $this->comment("Chave estrangeira '$fk_key $detail' já existe");
+
+                        }
+
+                    }
+
+                    if (!$foreign_key_exists) {
+
+                        $this->comment("Criando chave estrangeira '$foreign_key_name'", Color::GREEN, true);
+
+                        $foreign_key_type = str_replace('_', ' ', $foreign_key_type);
+
+                        $sql = "ALTER TABLE $table->schema.$table->table\n"
+                            . "\tADD CONSTRAINT $foreign_key_name "
+                            . "FOREIGN KEY ([$field->column_name]) "
+                            . "REFERENCES $reference->schema.$reference->table ([$reference_field->column_name]) "
+                            . "ON UPDATE $foreign_key_type ON DELETE $foreign_key_type";
+
+                        $this->execute($sql);
+
+                    }
+
+                }
+
+            }
+            
+            # Chaves estrangeiras não utilizadas
+
+            foreach ($info->foreign_keys as $key => $foreign_key) {
+
+                if (!$foreign_key->extra) {
+                    continue;
+                }
+
+                $this->comment("Chave estrangeira '$key' não utilizada", Color::DEEP_ORANGE);
+
+            }
 
         }
 
-        $use = ($database_name == '') ? '' : "USE $database_name;" . PHP_EOL;
+        # Criar a tabela se não existir
 
-        $schema = '';
+        else {
 
-        if ($schema_name != 'dbo')
-            $schema = "IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = '$schema_name')" . PHP_EOL
-                . "BEGIN" . PHP_EOL
-                . "EXEC('CREATE SCHEMA $schema_name')" . PHP_EOL
-                . "END;" . PHP_EOL;
+            $create_fields = [];
 
-        $create = "IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES"
-            ." WHERE TABLE_SCHEMA = '$schema_name' AND TABLE_NAME = '$table_name')" . PHP_EOL;
+            foreach ($fields as $value) {
 
-        $create .= "CREATE TABLE $schema_name.$table_name ($fields $constraints);" . PHP_EOL;
+                if ($value->fake) {
+                    continue;
+                }
 
-        $comment = "EXEC sp_addextendedproperty 'MS_Description', '{$arg['model']} (" . AGORA . ")', 'SCHEMA', '$schema_name', 'TABLE', '$table_name';";
+                $command = "\t[$value->column_name] {$this->getColumnCommand($value)}";
 
-        echo SqlFormatter::format($use);
-        echo SqlFormatter::format($schema);
-        echo SqlFormatter::format($create);
-        echo SqlFormatter::format($indexes);
-        echo SqlFormatter::format($comment);
+                $default_value = $this->getDefaultCommand($value);
 
-        return $use . $schema . $create . $indexes . $comment;
+                if (!is_null($default_value)) {
+                    $command .= " default $default_value";
+                }
+
+                $create_fields[] = $command;
+
+            }
+
+            # Campos da tabela
+
+            $command = implode(",\n", $create_fields);
+
+            # Chaves primárias
+
+            if (count($primary_keys) > 0) {
+
+                $primary_key = implode("], [", $primary_keys);
+
+                $uid = bin2hex(random_bytes(10));
+
+                $command .= ",\n\tCONSTRAINT {$prefix}_pk_$uid PRIMARY KEY ([$primary_key])";
+
+            }
+
+            # Chaves estrangeiras
+
+            if (count($foreign_keys) > 0) {
+
+                /** @var Database\ForeignKeyField $foreign_key */
+                foreach ($foreign_keys as $key => $foreign_key) {
+
+                    if (!$foreign_key->real) {
+                        continue;
+                    }
+
+                    $reference = $foreign_key->getReferenceModel()->getTable();
+
+                    if ($reference->database != $table->database) {
+                        $this->comment("<b>ERRO</b>: Não é possível a inclusão de chave estrangeira de outro banco de dados (campo '$key').", Color::RED);
+                    }
+
+                    else {
+
+                        $field = $fields[$key];
+
+                        $reference_field = $foreign_key->getField();
+
+                        $foreign_key_type = ($field->required) ? 'NO_ACTION' : 'SET_NULL';
+
+                        if (!is_null($foreign_key->type)) {
+                            $foreign_key_type = $foreign_key->type;
+                        }
+
+                        $foreign_key_type = str_replace('_', ' ', $foreign_key_type);
+
+                        $uid = bin2hex(random_bytes(10));
+
+                        $command .= ",\n\tCONSTRAINT {$prefix}_fk_$uid "
+                            . "FOREIGN KEY ([$field->column_name]) "
+                            . "REFERENCES $reference->schema.$reference->table ([$reference_field->column_name]) "
+                            . "ON UPDATE $foreign_key_type ON DELETE $foreign_key_type";
+
+                    }
+
+                }
+
+            }
+
+            # Comandos
+
+            $sql = "CREATE TABLE $table->schema.$table->table (\n$command\n);";
+
+            $this->comment("Criando tabela '$table->schema.$table->table'", Color::GREEN, true);
+            $this->execute($sql);
+
+            $comment = $model->getComment();
+
+            $this->comment("Adicionando descrição na tabela '$table->schema.$table->table'", Color::GREEN, true);
+            $sql = "EXEC sys.sp_addextendedproperty 'MS_Description', '$comment (" . AGORA . ")', 'SCHEMA', '$table->schema', 'TABLE', '$table->table';";
+
+            $this->execute($sql);
+
+            # Dados iniciais
+
+            $data = $model->getData();
+
+            if (count($data) > 0) {
+
+                $this->comment("Incluindo dados iniciais na tabela '$table->schema.$table->table'", Color::GREEN, true);
+                $sql = $this->sql_insert($model, $data);
+
+                $count = $this->execute($sql);
+
+                $this->rowCountLog($count);
+
+            }
+
+        }
+
+        # Índices
+
+        foreach ($model->getIndexes() as $create_index) {
+
+            $index_exists = false;
+
+            foreach ($info->indexes as $key => $index) {
+
+                $a = $index->columns;
+                $b = $create_index->columns;
+
+                sort($a);
+                sort($b);
+
+                if ($index->unique == $create_index->unique
+                    && $a == $b
+                    && $index->includes == $create_index->includes) {
+
+                    $index_exists = true;
+
+                    $info->indexes[$key]->extra = false;
+
+                    if ($index->columns == $create_index->columns) {
+                        $this->comment("Índice '$key $index' já existe");
+                    }
+
+                    else {
+                        $this->comment("Índice '$key $index' já existe com outra ordem", Color::PURPLE);
+                    }
+
+                }
+
+            }
+
+            if (!$index_exists) {
+
+                $index_name = $prefix . '_index_' . bin2hex(random_bytes(10));
+
+                $this->comment("Criando índice '$index_name'", Color::GREEN, true);
+
+                if ($create_index->unique) {
+                    $sql = "CREATE UNIQUE INDEX $index_name ON $table->schema.$table->table";
+                }
+
+                else {
+                    $sql = "CREATE INDEX $index_name ON $table->schema.$table->table";
+                }
+
+                $sql .= ' ("' . implode('", "', $create_index->columns) . '")';
+
+                if (count($create_index->includes) > 0) {
+                    $sql .= ' INCLUDE ("' . implode('", "', $create_index->includes) . '")';
+                }
+
+                $sql .= ';';
+
+                $this->execute($sql);
+
+            }
+
+        }
+
+        # Índices não utilizados
+
+        foreach ($info->indexes as $key => $index) {
+
+            if (!$index->extra) {
+                continue;
+            }
+
+            $this->comment("Índice '$key $index' não utilizado", Color::DEEP_ORANGE);
+
+        }
+
+        if (!is_null($this->log_stream)) {
+            $this->log_stream->write("\n");
+        }
 
     }
 
-    public function filter($filter, $database, Config $config, Auth $auth, Model $model): string
+    /**
+     * @throws CustomException
+     */
+    public function filter(QueryWhere $filter, Query2 $query, ?string $id): string
     {
 
-        $not = ($filter['not']) ? ' NOT ' : '';
+        $model = $query->getModel();
 
-        if (is_object($filter['field']))
-            if (get_class($filter['field']) == 'Fluxion\Sql') {
+        $txt_id = (!is_null($id)) ? "$id." : '';
 
-                $where = '';
-                foreach ($filter['field']->_filters as $k) {
-                    if ($k != []) {
-                        $where .= (($where == '') ? "" : " {$filter['field']->_type} ") . $this->filter($k, $database, $config, $auth, $model);
-                    }
+        $not = ($filter->not) ? 'NOT ' : '';
+
+        if (is_object($filter->field)) {
+
+            $where = [];
+            /** @var QueryWhere $w */
+            foreach ($filter->field->_filters as $w) {
+                if (!is_null($w)) {
+                    $where[] = $this->filter($w, $query, $id);
                 }
-
-                return "$not($where)";
-
             }
 
-        $_field = explode('__', $filter['field']);
+            $where = implode(" {$filter->field->_type} ", $where);
 
-        $field = $model->dbField($_field[0]);
+            return "$not($where)";
+
+        }
+
+        $_field = explode('__', $filter->field);
+
+        $field_obj = $model->getField($_field[0]);
+
+        $field = $field_obj->column_name;
 
         $type = '=';
-        $pure = true;
-        $like = false;
 
         for ($i = 1; $i <= count($_field); $i++) {
 
@@ -359,236 +887,413 @@ class SQLServer extends Connector
 
                 if ($_field[$i] == 'json') {
 
-                    $json_name = $_field[$i + 1] ?? Application::error('Utilizar padrão campo__json__variavel');
+                    $json_name = $_field[$i + 1]
+                        ?? throw new CustomException("Utilizar padrão 'campo__json__variavel'");
 
-                    $field = "JSON_VALUE(\"$field\", '$.$json_name')";
-                    $pure = false;
+                    $field = "JSON_VALUE({$txt_id}[$field], '$.$json_name')";
+
+                    $filter->value = (string) $filter->value;
 
                     $i++;
-
-                    $filter['value'] = (string) $filter['value'];
 
                     continue;
 
                 }
 
-                switch ($_field[$i]) {
+                $type = match ($_field[$i]) {
+                    'ne' => '<>',
+                    'lt' => '<',
+                    'gt' => '>',
+                    'lte' => '<=',
+                    'gte' => '>=',
+                    'like' => 'LIKE',
+                    default => '=',
+                };
 
-                    case 'ne':
-                        $type = "<>";
-                        break;
-                    case 'lt':
-                        $type = '<';
-                        break;
-                    case 'gt':
-                        $type = '>';
-                        break;
-                    case 'lte':
-                        $type = '<=';
-                        break;
-                    case 'gte':
-                        $type = '>=';
-                        break;
-                    case 'like':
-                        $type = ' LIKE ';
-                        $like = true;
-                        break;
-                    case 'fulltext':
-                        $type = 'fulltext';
-                        break 2;
-
-                    default:
-                        $type = "=";
-
-                }
-
-                switch ($_field[$i]) {
-
-                    case 'second':
-                    case 'minute':
-                    case 'hour':
-                    case 'day':
-                    case 'week':
-                    case 'month':
-                    case 'year':
-                        $field = "DATEPART($_field[$i], \"$field\")";
-                        $pure = false;
-                        break;
-
-                    case 'dow':
-                        $field = "DATEPART(weekday, \"$field\")";
-                        $pure = false;
-                        break;
-
-                    case 'date':
-                        $field = "CAST(\"$field\" AS DATE)";
-                        $pure = false;
-                        break;
-
-                    case 'length':
-                        $field = "LEN(\"$field\")";
-                        $pure = false;
-                        break;
-
-                    case 'only_number':
-                    case 'clean':
-                        $field = "REPLACE(REPLACE(REPLACE(REPLACE(\"$field\", ' ', ''), '.', ''), '/', ''), '-', '')";
-                        $pure = false;
-                        break;
-
-                }
+                $field = match ($_field[$i]) {
+                    'second', 'minute', 'hour', 'day', 'week', 'month', 'year',
+                    'weekday' => "DATEPART($_field[$i], {$txt_id}[$field])",
+                    'dow' => "DATEPART(weekday, {$txt_id}[$field])",
+                    'date' => "CAST({$txt_id}[$field] AS DATE)",
+                    'length' => "LEN({$txt_id}[$field])",
+                    'only_number', 'clean' => "REPLACE(REPLACE(REPLACE(REPLACE({$txt_id}[$field], ' ', ''), '.', ''), '/', ''), '-', '')",
+                    default => $field,
+                };
 
             }
 
         }
 
-        if ($pure)
-            $field = "[$field]";
-
-        if ($type == 'fulltext') {
-
-            $words = str_replace(',', ' ', $filter['value']);
-            $arr_words = explode(' ', $words);
-
-            $arr_words2 = [];
-
-            foreach ($arr_words as $word) {
-
-                if (trim($word) == '') continue;
-
-                $arr_words2[] = $word;
-
-            }
-
-            if (count($arr_words2) == 1) {
-
-                $ft_search = $arr_words2[0];
-
-                return "FREETEXT($field,'$ft_search')";
-                //return "CONTAINS($field,'\"$ft_search*\"')";
-
-            } else {
-
-                $ft_search = str_replace(' ', '', str_replace(', ,', ',', Util::retiraEspeciais(implode(',', $arr_words2))));
-
-                return "CONTAINS($field,'NEAR($ft_search)')";
-
-            }
-
+        if ($field == $field_obj->column_name) {
+            $field = "{$txt_id}[$field]";
         }
 
-        if (is_null($filter['value']))
-            return " {$field} IS{$not} NULL";
+        if (is_null($filter->value)) {
+            return "$field IS {$not}NULL";
+        }
 
-        if (is_string($filter['value']) || is_numeric($filter['value']) || is_bool($filter['value'])) {
+        if (is_string($filter->value)
+            || is_numeric($filter->value)
+            || is_bool($filter->value)) {
 
-            $name = $_field[0];
-            $escaped_value = $filter['value'];
+            $escaped_value = $filter->value;
 
-            if ($like) {
+            if ($type == 'LIKE') {
                 $escaped_value = str_replace(['_', '%'], '', $escaped_value);
             }
 
-            if (in_array($model->getFields()[$name]['type'], ['integer', 'float'])
+            if (in_array($field_obj->getType(), ['integer', 'float', 'decimal'])
                 && $escaped_value
                 && !is_numeric($escaped_value)
                 && !is_bool($escaped_value)) {
-                Application::error("O valor <b>{$filter['value']}</b> não é numérico!");
+                throw new CustomException("O valor <b>$filter->value</b> não é numérico!");
             }
 
-            return " {$not} {$field}{$type}" . $this->escape($filter['value']);
+            if ($type == 'LIKE') {
+                return "$field {$not}LIKE {$this->escape($filter->value)}";
+            }
+
+            return "$not$field $type " . $this->escape($filter->value);
 
         }
 
-        if (is_array($filter['value']))
-            if (count($filter['value']) > 0) {
+        if (is_array($filter->value)) {
 
-                if (in_array(null, $filter['value']))
-                    return "({$field}{$not} IN " . $this->escape($filter['value']) . " OR {$field} IS {$not} NULL)";
+            if (count($filter->value) > 0) {
 
-                return "{$field}{$not} IN " . $this->escape($filter['value']);
+                if (in_array(null, $filter->value)) {
+                    return "($field{$not}IN " . $this->escape($filter->value) . " OR $field IS {$not}NULL)";
+                }
 
-            } else
+                return "$field{$not}IN " . $this->escape($filter->value);
+
+            }
+
+            else {
                 return '1=0';
-
-        if (is_object($filter['value']))
-            if (get_class($filter['value']) == 'Fluxion\Query') {
-
-                if ($database != $filter['value']->_sql['database'])
-                    return "{$field}{$not} IN " . $this->escape($filter['value']->toArray($config, $auth));
-
-                if ($filter['value']->_sql['class'] == MnModel::class) {
-                    return " {$field}{$not} IN (" . self::select($filter['value']->_sql, $config, $auth, $filter['value']->_sql['mn_model']) . ")";
-                }
-
-                if ($filter['value']->_sql['class'] == MnChoicesModel::class) {
-                    return " {$field}{$not} IN (" . self::select($filter['value']->_sql, $config, $auth, $filter['value']->_sql['mn_model']) . ")";
-                }
-
-                return " {$field}{$not} IN (" . self::select($filter['value']->_sql, $config, $auth, new $filter['value']->_sql['class']($config, $auth)) . ")";
             }
 
-        return false;
+        }
 
-    }
+        if (is_object($filter->value)) {
 
-    public function update($arg, Config $config, Auth $auth, Model $model): string
-    {
+            if (get_class($filter->value) == Query2::class) {
+                return "$field{$not}IN (" . self::sql_select($filter->value, true) . ")";
+            }
 
-        $changes = '';
-
-        $where = '';
-        foreach ($arg['where'] as $k)
-            $where .= (($where == '') ? " WHERE " : " AND ") . $this->filter($k, $arg['database'], $config, $auth, $model);
-
-        foreach ($arg['fields'] as $key=>$value)
-            if (!isset($value['many_to_many']) && !isset($value['i_many_to_many']) && !isset($value['many_choices']) && $key != $arg['field_id'])
-
-                if ($value['changed'])
-                    if (isset($value['value']))
-                        $changes .= (($changes != '') ? ", " : "") . "[{$model->dbField($key)}]=" . $this->escape($value['value']);
-                    else if ($key != '_insert')
-                        $changes .= (($changes != '') ? ", " : "") . "[{$model->dbField($key)}]=" . $this->escape(null);
-
-        list($database_name, $schema_name, $table_name) = $this->names($arg);
-
-        if ($changes != '')
-            return "UPDATE [$database_name].[$schema_name].[$table_name] SET $changes {$where};";
+        }
 
         return false;
 
     }
 
-    private function names(array $arg): array
+    /**
+     * @throws CustomException
+     */
+    public function sql_select(Query2 $query, bool $inline = false): string
     {
 
-        $database_name = '';
-        $schema_name = 'dbo';
+        $id = $this->getTableId();
+        $model = $query->getModel();
+        $table = $model->getTable();
 
-        if (preg_match('/database=(?P<database>[A-Za-z0-9_]+)/si', $this->_host, $data)) {
+        $fields = [];
 
-            $database_name = $data['database'];
+        if ($query->isAllFields()) {
+            foreach ($model->getFields() as $field) {
+                if (!$field->fake) {
+                    $fields[] = "$id.[$field->column_name]";
+                }
+            }
+        }
+
+        foreach ($query->getFields() as $query_field) {
+
+            $field = $model->getField($query_field->field);
+
+            if (is_null($query_field->aggregator)) {
+                $fields[] = "$id.[$field->column_name]";
+            }
+
+            elseif ($query_field->aggregator == 'COUNT') {
+
+                if (is_null($field)) {
+                    $fields[] = "COUNT(*) AS $query_field->name";
+                }
+
+                else {
+                    $fields[] = "COUNT($id.[$field->column_name]) AS $query_field->name";
+                }
+
+            }
+
+            else {
+                $fields[] = "$query_field->aggregator($id.[$field->column_name]) AS $query_field->name";
+            }
 
         }
 
-        if (preg_match('/^(?P<database>[A-Za-z0-9_]+)\.(?P<schema>[A-Za-z0-9_]+)\.(?P<table>[A-Za-z0-9_]+)$/si', $arg['table'], $data)) {
+        $where = [];
 
-            $database_name = $data['database'];
-            $schema_name = $data['schema'];
-            $table_name = $data['table'];
+        foreach ($query->getWhere() as $w) {
+            $where[] = $this->filter($w, $query, $id);
+        }
 
-        } elseif (preg_match('/^(?P<schema>[A-Za-z0-9_]+)\.(?P<table>[A-Za-z0-9_]+)$/si', $arg['table'], $data)) {
+        $order_by = [];
 
-            $schema_name = $data['schema'];
-            $table_name = $data['table'];
+        foreach ($query->getOrderBy() as $o) {
+            $field = $model->getField($o->field);
+            $order_by[] = "$id.[$field->column_name] $o->order";
+        }
 
-        } else {
+        $group_by = [];
 
-            $table_name = $arg['table'];
+        foreach ($query->getGroupBy() as $g) {
+            $field = $model->getField($g->field);
+            $group_by[] = "$id.[$field->column_name]";
+        }
+
+        $top = "\t";
+        $limit_offset = null;
+
+        if (!is_null($l = $query->getLimit())) {
+
+            if ($l->offset == 0) {
+                $top = " TOP $l->limit ";
+            }
+
+            if ($l->offset > 0) {
+
+                $limit_offset = "OFFSET $l->offset ROWS FETCH NEXT $l->limit ROWS ONLY";
+
+                if (count($order_by) == 0) {
+                    foreach ($model->getPrimaryKeys() as $pk) {
+                        $order_by[] = "$id.[$pk->column_name] ASC";
+                        break;
+                    }
+                }
+
+                if (count($order_by) == 0) {
+                    foreach ($model->getFields() as $f) {
+                        $order_by[] = "$id.[$f->column_name] ASC";
+                        break;
+                    }
+                }
+
+            }
 
         }
 
-        return [$database_name, $schema_name, $table_name];
+        $sql = "SELECT$top" . implode(",\n\t", $fields);
+
+        $sql .= "\nFROM $table->database.$table->schema.$table->table AS $id WITH (nolock)";
+
+        if (count($where) > 0) {
+            $sql .= "\nWHERE\t" . implode(" AND\n\t", $where);
+        }
+
+        if (count($order_by) > 0) {
+            $sql .= "\nORDER BY " . implode(",\n\t", $order_by);
+        }
+
+        if (count($group_by) > 0) {
+            $sql .= "\nGROUP BY " . implode(",\n\t", $group_by);
+        }
+
+        if (!is_null($limit_offset)) {
+            $sql .= "\n$limit_offset";
+        }
+
+        if ($inline) {
+            $sql = str_replace(["\n\t", "\n", "\t"], " ", $sql);
+        }
+
+        return $sql;
+
+    }
+
+    /**
+     * @throws CustomException
+     */
+    public function sql_insert(Model2 $model, array $data = []): string
+    {
+
+        $fields = $model->getFields();
+        $primary_keys = $model->getPrimaryKeys();
+        $table = $model->getTable();
+
+        $fields_sql = [];
+
+        $inserts_sql = [];
+        $outputs_sql = [];
+
+        # Campos
+
+        foreach ($fields as $f) {
+
+            if ($f->fake) {
+                continue;
+            }
+
+            if (!$f->isChanged() && $model->isSaved()) {
+                continue;
+            }
+
+            $fields_sql[] = "[$f->column_name]";
+
+        }
+
+        # Inclusão de um único registro
+
+        if (count($data) == 0) {
+
+            # Valores a serem devolvidos
+
+            foreach ($primary_keys as $p) {
+                $outputs_sql[] = "INSERTED.[$p->column_name]";
+            }
+
+            $values_sql = [];
+
+            foreach ($fields as $key => $f) {
+
+                if ($f->fake) {
+                    continue;
+                }
+
+                if (!$f->isChanged() && $model->isSaved()) {
+                    continue;
+                }
+
+                $value = $f->getValue(true);
+
+                if (!is_null($f->default)) {
+                    $outputs_sql[] = "INSERTED.[$f->column_name]";
+                }
+
+                if ($f->required && is_null($value) && is_null($f->default)) {
+                    throw new CustomException("Campo '$key' não pode ser nulo");
+                }
+
+                if ($f->required && is_null($value) && !is_null($f->default)) {
+                    $values_sql[] = $this->default_value;
+                }
+
+                else {
+                    $values_sql[] = $this->escape($value);
+                }
+
+            }
+
+            $inserts_sql[] = "(" . implode(", ", $values_sql) . ")";
+
+        }
+
+        # Inclusão de vários registros
+
+        else {
+
+            foreach ($data as $d) {
+
+                $values_sql = [];
+
+                foreach ($fields as $key => $f) {
+
+                    if ($f->fake) {
+                        continue;
+                    }
+
+                    if (!$f->isChanged() && $model->isSaved()) {
+                        continue;
+                    }
+
+                    $value = $d[$key] ?? null;
+
+                    if ($f->required && is_null($value) && is_null($f->default)) {
+                        throw new CustomException("Campo '$key' não pode ser nulo");
+                    }
+
+                    if ($f->required && is_null($value) && !is_null($f->default)) {
+                        $values_sql[] = $this->default_value;
+                    }
+
+                    else {
+                        $values_sql[] = $this->escape($value);
+                    }
+
+                }
+
+                $inserts_sql[] = "(" . implode(", ", $values_sql) . ")";
+
+            }
+
+        }
+
+        if (count($fields_sql) == 0) {
+            throw new CustomException("Nenhum campo alterado para incluir");
+        }
+
+        if (count($inserts_sql) == 0) {
+            throw new CustomException("Nenhum registro para incluir");
+        }
+
+        $sql = "INSERT INTO $table->database.$table->schema.$table->table";
+
+        $sql .= " (\n\t" . implode(",\n\t", $fields_sql) . "\n)";
+
+        if (count($outputs_sql) > 0) {
+            $sql .= "\nOUTPUT\t" . implode(",\n\t", $outputs_sql);
+        }
+
+        $sql .= "\nVALUES\t" . implode(",\n\t", $inserts_sql);
+
+        return "$sql;";
+
+    }
+
+    /**
+     * @throws CustomException
+     */
+    public function sql_update(Model2 $model, Query2 $query): ?string
+    {
+
+        $table = $model->getTable();
+
+        $where = [];
+
+        foreach ($query->getWhere() as $w) {
+            $where[] = $this->filter($w, $query, null);
+        }
+
+        $update = [];
+
+        foreach ($model->getFields() as $f) {
+
+            if ($f->fake) {
+                continue;
+            }
+
+            $f->update();
+
+            if ($f->isChanged()) {
+                $update[] = "[$f->column_name] = " . $this->escape($f->getValue());
+            }
+
+        }
+
+        if (count($update) == 0) {
+            return null;
+        }
+
+        $sql = "UPDATE $table->database.$table->schema.$table->table";
+
+        $sql .= "\nSET\t" . implode(",\n\t", $update);
+
+        if (count($where) > 0) {
+            $sql .= "\nWHERE\t" . implode(" AND\n\t", $where);
+        }
+
+        return "$sql;";
 
     }
 

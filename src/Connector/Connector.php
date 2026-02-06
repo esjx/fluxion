@@ -1,57 +1,167 @@
 <?php
 namespace Fluxion\Connector;
 
-use Exception;
+use Generator;
 use PDO;
 use PDOException;
 use PDOStatement;
-use Fluxion\Application;
-use Fluxion\Auth\Auth;
-use Fluxion\Config;
-use Fluxion\Model;
-use Fluxion\Model2;
+use Psr\Http\Message\StreamInterface;
+use Fluxion\{Color, CustomException, CustomMessage, Model2, SqlFormatter, State};
+use Fluxion\Query\{Query2, QueryWhere};
 
 abstract class Connector
 {
 
     protected ?PDO $_pdo;
 
+    private static int $table_id = 0;
+
+    protected ?StreamInterface $log_stream = null;
+
     protected bool $_connected = false;
+
+    protected ?array $_structure = null;
+    protected ?string $_database = null;
 
     protected string $true_value = 'TRUE';
     protected string $false_value = 'FALSE';
     protected string $null_value = 'NULL';
+    protected string $default_value = 'DEFAULT';
 
     protected string $utf_prefix = '';
+
+    public function setLogStream(StreamInterface $stream): void
+    {
+        $this->log_stream = $stream;
+    }
+
+    public function getLogStream(): ?StreamInterface
+    {
+        return $this->log_stream;
+    }
+
+    protected bool $extra_break = false;
+
+    public function comment(string $text, string $color = Color::GRAY, bool $break_before = false, bool $break_after = false): void
+    {
+
+        if (is_null($this->log_stream)) return;
+
+        if ($break_before || $this->extra_break) {
+            $this->log_stream->write("\n");
+        }
+
+        $this->extra_break = $break_after;
+
+        $text = preg_replace('/(\'[\w\s,.-_()→]*\')/m', '<b><i>${1}</i></b>', $text);
+        $text = preg_replace('/(\"[\w\s,.-_()→]*\")/m', '<b>${1}</b>', $text);
+
+        $this->log_stream->write("<span style='color: $color;'>-- $text </span>\n");
+
+    }
+
+    public function rowCountLog(int $count): void
+    {
+
+        if ($count == 0) {
+            $this->comment("Nenhum registro alterado");
+        }
+
+        elseif ($count == 1) {
+            $this->comment("<b>1</b> registro alterado");
+        }
+
+        else {
+            $this->comment(CustomMessage::create("{{count:number:0:b}} registros alterados", ['count' => $count]));
+        }
+
+    }
+
+    protected function logSql($sql): void
+    {
+
+        $this->extra_break = false;
+
+        if (!is_null($this->log_stream)) {
+            $this->log_stream->write(SqlFormatter::highlight($sql, false));
+        }
+
+    }
+
+    protected function execute($sql, bool $break_after = false): int
+    {
+
+        $this->logSql($sql);
+
+        $this->extra_break = $break_after;
+
+        $stmt = $this->getPDO()->prepare($sql);
+
+        try {
+            $stmt->execute();
+        }
+
+        catch (PDOException $e) {
+
+            $erro = $e->getMessage();
+            $exp = explode('[SQL Server]', $erro);
+
+            if (isset($exp[1])) {
+                $erro = $exp[1];
+            }
+
+            $this->comment("<b>ERRO</b>: $erro", Color::RED);
+
+        }
+
+        return $stmt->rowCount();
+
+    }
 
     public function escape($value): string
     {
 
-        if (is_string($value))
+        if (is_string($value)) {
+
+            if (preg_match('/^[\s\w\-.:]*$/i', $value)) {
+                return "'" . str_replace("'", "''", $value) . "'";
+            }
+
             return "$this->utf_prefix'" . str_replace("'", "''", $value) . "'";
-
-        if (is_array($value)) {
-
-            $ret = '';
-            foreach ($value as $k)
-                $ret .= (($ret != '') ? ", " : "") . $this->escape($k);
-
-            return "($ret)";
 
         }
 
-        if ($value === true)
+        if (is_array($value)) {
+
+            $ret = [];
+            foreach ($value as $k) {
+                $ret[] = $this->escape($k);
+            }
+
+            return "(" . implode(", ", $ret) . ")";
+
+        }
+
+        if ($value === true) {
             return $this->true_value;
+        }
 
-        if ($value === false)
+        if ($value === false) {
             return $this->false_value;
+        }
 
-        if (is_null($value))
+        if (is_null($value)) {
             return $this->null_value;
+        }
 
         return $value;
 
     }
+
+    protected array $pdo_options = [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_PERSISTENT => true,
+    ];
 
     /** @throws PDOException */
     public function getPDO(): PDO
@@ -59,18 +169,25 @@ abstract class Connector
 
         if (!$this->_connected) {
 
-            $options = [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_PERSISTENT => true,
-            ];
-
-            $this->_pdo = new PDO($_ENV['DB_HOST'], $_ENV['DB_USER'], $_ENV['DB_PASS'], $options);
+            $this->_pdo = new PDO($_ENV['DB_HOST'], $_ENV['DB_USER'], $_ENV['DB_PASS'], $this->pdo_options);
 
             $this->_connected = true;
 
         }
 
         return $this->_pdo;
+
+    }
+
+    /** @throws PDOException */
+    public function fetch(string $sql): Generator
+    {
+
+        $stmt = $this->getPDO()->query($sql);
+
+        while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            yield $result;
+        }
 
     }
 
@@ -83,395 +200,358 @@ abstract class Connector
 
     }
 
-    // OLD
+    public function getTableId(): string
+    {
+        return "T" . $this::$table_id++;
+    }
 
-    const DB_DATE_FORMAT = 'Y-m-d';
-    const DB_DATETIME_FORMAT = 'Y-m-d H:i:s';
-
-    public function filter($filter, $database, Config $config, Auth $auth, Model $model): string
+    /** @throws CustomException */
+    public function sync(string $class_name): void
     {
 
-        $not = ($filter['not']) ? ' NOT ' : '';
+        /** @var Model2 $model */
+        $model = new $class_name;
 
-        if (is_object($filter['field']))
-            if (get_class($filter['field']) == 'Fluxion\Sql') {
+        $model->changeState(State::STATE_SYNC);
 
-                $where = '';
-                foreach ($filter['field']->_filters as $k)
-                    $where .= (($where == '') ? "" : " {$filter['field']->_type} ") . $this->filter($k, $database, $config, $auth, $model);
+        $this->comment("<b>$class_name</b>", Color::ORANGE, break_after: true);
 
-                return "$not($where)";
+        # Criar a tabela principal
+
+        $this->executeSync($model);
+
+        # Criar as tabelas MN
+
+        $many_to_many = $model->getManyToMany();
+
+        foreach ($many_to_many as $key => $mn) {
+
+            if ($mn->inverted) {
+                continue;
+            }
+
+            $this->comment("<b>Tabela MN para o campo '$key'</b>", break_after: true);
+
+            # Criar a tabela de relacionamento
+
+            $this->executeSync($mn->getMnModel());
+
+        }
+
+    }
+
+    protected function executeSync(Model2 $model): void
+    {
+
+    }
+
+    public function filter(QueryWhere $filter, Query2 $query, ?string $id): string
+    {
+        return '';
+    }
+
+    /**
+     * @throws CustomException
+     */
+    public function select(Query2 $query): ?Generator
+    {
+
+        $this::$table_id = 1;
+
+        $model = $query->getModel();
+
+        $class_name = $model->getComment();
+
+        $model->setSaved(true);
+
+        $fields = $model->getFields();
+
+        $sql = $this->sql_select($query) . ";\n";
+
+        $this->comment("Executando consulta em '$class_name'", Color::ORANGE);
+
+        $this->logSql("$sql");
+
+        foreach ($this->fetch($sql) as $result) {
+
+            if (isset($result['total'])) {
+                $model->getField('total')->setValue($result['total'], true);
+            }
+
+            foreach ($fields as $field) {
+
+                if ($field->fake || $field->column_name == 'total') {
+                    continue;
+                }
+
+                if (isset($result[$field->column_name])) {
+                    $field->setValue($result[$field->column_name], true);
+                }
+
+                else {
+                    $field->setValue(null, true);
+                }
 
             }
 
-        $_field = explode('__', $filter['field']);
+            yield $model;
 
-        $field = $model->dbField($_field[0]);
+        }
 
-        $type = '=';
-        $pure = true;
+    }
 
-        for ($i = 1; $i <= count($_field); $i++) {
+    public function sql_select(Query2 $query, bool $inline = false): string
+    {
+        return '';
+    }
 
-            if (isset($_field[$i])) {
+    public function sql_insert(Model2 $model, array $data = []): string
+    {
+        return '';
+    }
 
-                switch($_field[$i]) {
+    /**
+     * @throws CustomException
+     */
+    public function execute_insert(Model2 $model, array $data = []): void
+    {
 
-                    case 'ne': $type = "<>"; break;
-                    case 'lt': $type = '<'; break;
-                    case 'gt': $type = '>'; break;
-                    case 'lte': $type = '<='; break;
-                    case 'gte': $type = '>='; break;
-                    case 'like': $type = ' ILIKE '; break;
+        $class_name = $model->getComment();
 
-                    default: $type = "=";
+        $sql = $this->sql_insert($model, $data);
 
+        $this->comment("Inserindo registro(s) em '$class_name'", Color::GREEN, true);
+
+        $this->logSql($sql);
+
+        $stmt = $this->getPDO()->query($sql);
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        foreach ($model->getFields() as $field) {
+            if ($field->isPrimaryKey() || $field->hasDefaultValue()) {
+                $field->setValue($result[$field->column_name]);
+            }
+        }
+
+        $this->rowCountLog($stmt->rowCount());
+
+    }
+
+    public function sql_update(Model2 $model, Query2 $query): ?string
+    {
+        return '';
+    }
+
+    /**
+     * @throws CustomException
+     */
+    public function execute_update(Model2 $model): void
+    {
+
+        $query = $model::query();
+        $class_name = get_class($model);
+
+        $primary_keys = $model->getPrimaryKeys();
+
+        if (count($primary_keys) == 0) {
+            throw new CustomException("Model '$class_name' não possui chave primária definida");
+        }
+
+        foreach ($primary_keys as $key => $pk) {
+            $query = $query->filter($key, $pk->getSavedValue());
+        }
+
+        $sql = $this->sql_update($model, $query);
+
+        $this->comment("Atualizando registro(s) em '$class_name'", Color::ORANGE);
+
+        if (!is_null($sql)) {
+
+            $count = $this->execute($sql);
+
+            $this->rowCountLog($count);
+
+        }
+
+        else {
+
+            $this->comment("Nenhum campo atualizável");
+
+        }
+
+    }
+
+    /**
+     * @throws CustomException
+     */
+    public function save(Model2 $model): bool
+    {
+
+        $class_name = get_class($model);
+
+        # Inserir dados na tabela principal
+
+        if (!$model->isSaved()) {
+
+            $primary_keys = $model->getPrimaryKeys();
+
+            if (count($primary_keys) == 0) {
+                throw new CustomException("Model '$class_name' já salvo e não possui chave primária definida");
+            }
+
+            $this->execute_insert($model);
+
+        }
+
+        # Atualizar dados na tabela principal
+
+        else {
+
+            $this->execute_update($model);
+
+        }
+
+        # Atualizar dados nas tabelas MN
+
+        foreach ($model->getManyToMany() as $mn) {
+
+            $field_id = $model->getFieldId();
+
+            if ($mn->isChanged()) {
+
+                $mn_model = $mn->getMnModel();
+                $id = $field_id->getValue();
+                $left = $mn_model->getLeft();
+                $right = $mn_model->getRight();
+
+                # Apagando registros antigos
+
+                $query = new Query2($mn_model);
+
+                $query->filter($left, $id)->delete();
+
+                # Inserindo registros novos
+
+                $data = [];
+
+                foreach ($mn->getValue() as $item) {
+                    $data[] = [$left => $id, $right => $item];
                 }
 
-                switch($_field[$i]) {
+                $this->comment("Inserindo registro(s) em '{$mn_model->getComment()}'", Color::GREEN, true);
+                $sql = $this->sql_insert($mn_model, $data);
 
-                    case 'second':
-                        $field = "EXTRACT(SECOND FROM \"$field\")";
-                        $pure = false;
-                        break;
+                $count = $this->execute($sql);
 
-                    case 'minute':
-                        $field = "EXTRACT(MINUTE FROM \"$field\")";
-                        $pure = false;
-                        break;
-
-                    case 'hour':
-                        $field = "EXTRACT(HOUR FROM \"$field\")";
-                        $pure = false;
-                        break;
-
-                    case 'day':
-                        $field = "EXTRACT(DAY FROM \"$field\")";
-                        $pure = false;
-                        break;
-
-                    case 'dow':
-                        $field = "EXTRACT(DOW FROM \"$field\")";
-                        $pure = false;
-                        break;
-
-                    case 'week':
-                        $field = "EXTRACT(WEEK FROM \"$field\")";
-                        $pure = false;
-                        break;
-
-                    case 'month':
-                        $field = "EXTRACT(MONTH FROM \"$field\")";
-                        $pure = false;
-                        break;
-
-                    case 'year':
-                        $field = "EXTRACT(YEAR FROM \"$field\")";
-                        $pure = false;
-                        break;
-
-                    case 'length':
-                        $field = "CHAR_LENGTH(\"$field\")";
-                        $pure = false;
-                        break;
-
-                    case 'only_number':
-                        $field = "REPLACE(REPLACE(REPLACE(REPLACE(\"$field\", ' ', ''), '.', ''), '/', ''), '-', '')";
-                        $pure = false;
-                        break;
-
-                }
+                $this->rowCountLog($count);
 
             }
 
         }
 
-        if ($pure)
-            $field = "\"$field\"";
-
-        if (is_null($filter['value']))
-            return "($field IS $not NULL)";
-
-        if (is_string($filter['value']) || is_numeric($filter['value']) || is_bool($filter['value']))
-            return "$not($field $type" . $this->escape($filter['value']) . ")";
-
-        if (is_array($filter['value']))
-            if (count($filter['value']) > 0) {
-
-                if (in_array(null, $filter['value']))
-                    return "($field $not IN " . $this->escape($filter['value']) . " OR $field IS $not NULL)";
-
-                return "($field $not IN " . $this->escape($filter['value']) . ")";
-
-            } else
-                return '(NULL)';
-
-        if (is_object($filter['value']))
-            if (get_class($filter['value']) == 'Fluxion\Query') {
-
-                if ($database != $filter['value']->_sql['database'])
-                    return "($field $not IN " . $this->escape($filter['value']->toArray($config, $auth)) . ")";
-
-                return " ($field $not IN (" . Connector::select($filter['value']->_sql, $config, $auth, $model) . "))";
-            }
-
-        return false;
+        return true;
 
     }
 
-    public function select($arg, Config $config, Auth $auth, Model $model): string
+    /**
+     * @throws CustomException
+     */
+    public function delete(Query2 $query): bool
     {
 
-        $where = '';
-        foreach ($arg['where'] as $k)
-            $where .= (($where == '') ? " WHERE " : " AND ") . $this->filter($k, $arg['database'], $config, $auth, $model);
+        $model = $query->getModel();
 
-        $orderBy = '';
-        foreach ($arg['orderBy'] as $k)
-            $orderBy .= (($orderBy == '') ? " ORDER BY" : ",") . " {$model->dbField($k['field'])} {$k['order']}";
+        $class_name = $model->getComment();
 
-        $groupBy = '';
-        foreach ($arg['groupBy'] as $k)
-            $groupBy .= (($groupBy == '') ? " GROUP BY" : ",") . " {$model->dbField($k['field'])}";
+        $sql = $this->sql_delete($query);
 
-        $limit = (isset($arg['limit']['limit'])) ?
-            " LIMIT {$arg['limit']['limit']} OFFSET {$arg['limit']['offset']}" :
-            '';
+        $this->comment("Apagando registro(s) em '$class_name'", Color::RED, true);
 
-        return "SELECT {$arg['fields']} FROM {$arg['table']} $where $groupBy $orderBy $limit";
+        $count = $this->execute($sql);
+
+        $this->rowCountLog($count);
+
+        return true;
 
     }
 
-    public function drop($arg): string
+    /**
+     * @throws CustomException
+     */
+    public function sql_delete(Query2 $query): string
     {
 
-        return "DROP TABLE IF EXISTS {$arg['table']} CASCADE;";
+        $model = $query->getModel();
 
-    }
+        $table = $model->getTable();
 
-    public function create($arg, Model|Model2 $model): string
-    {
+        $where = [];
 
-        $fields = '';
-        $constraints = '';
-        $primary_key = '';
-        $indexes = '';
-
-        $arg['table_2'] = str_replace('.', '_', $arg['table']);
-
-        $schema_name = '';
-        //$table_name = '';
-
-        if (preg_match('/^(?P<schema>[a-z0-9_]+).(?P<table>[a-z0-9-_.=]+)$/si', $arg['table'], $data)) {
-            $schema_name = $data['schema'];
-            //$table_name = $data['table'];
-		}
-
-        if ($arg['field_id'] == 'id')
-            if ($arg['field_id_ai'])
-                $fields .= "\"{$arg['field_id']}\" serial NOT NULL";
-            else
-                $fields .= "\"{$arg['field_id']}\" bigint NOT NULL";
-
-        foreach ($arg['fields'] as $key=>$value) {
-
-            if (isset($value['primary_key']))
-                if ($value['primary_key']) {
-
-                    if ($primary_key != '')
-                        $primary_key .= ", ";
-
-                    $primary_key .=  "\"{$model->dbField($key)}\"";
-                }
-
-            if (!isset($value['many_to_many']) && !isset($value['i_many_to_many']) && !isset($value['many_choices']) && $key != 'id') {
-
-                if (!isset($value['required'])) $value['required'] = false;
-                if (!isset($value['maxlength'])) $value['maxlength'] = 255;
-
-                if ($fields != '') $fields .= ' , ';
-
-                switch($value['type']) {
-
-                    case 'upload':
-                    case 'image': $type = "text"; break;
-                    case 'string':
-                    case 'password':
-                    case 'link': $type = "character varying({$value['maxlength']})"; break;
-                    case 'integer': $type = 'bigint'; break;
-                    case 'boolean': $type = 'boolean'; break;
-                    case 'date': $type = 'date'; break;
-                    case 'datetime': $type = 'timestamp'; break;
-                    case 'text': $type = 'text'; break;
-                    case 'float': $type = 'NUMERIC(18,2)'; break;
-
-                    default: $type = $value['type'];
-
-                }
-
-                $fields .= "\"{$model->dbField($key)}\" $type";
-
-                if ($value['required']) $fields .= ' NOT NULL';
-
-                if (isset($value['foreign_key']))
-                    if (!isset($value['foreign_key_fake']) || !$value['foreign_key_fake']) {
-
-                        $foreignkey_model = new $value['foreign_key'];
-                        $foreignkey_table = $foreignkey_model->_table;
-                        $foreignkey_field_id = $foreignkey_model->_field_id;
-                        $foreignkey_type = ($value['required']) ? 'CASCADE' : 'SET NULL';
-
-                        $constraints .= " , CONSTRAINT {$arg['table_2']}_fk_$key FOREIGN KEY (\"$key\") "
-                            . "REFERENCES $foreignkey_table ($foreignkey_field_id) MATCH SIMPLE "
-                            . "ON UPDATE $foreignkey_type ON DELETE $foreignkey_type";
-
-                    }
-
-            }
-
+        foreach ($query->getWhere() as $w) {
+            $where[] = $this->filter($w, $query, null);
         }
 
-        if ($primary_key != '')
-            $constraints .= " , CONSTRAINT {$arg['table_2']}_pkey PRIMARY KEY ($primary_key)";
-
-        $ts = date('Y-m-d H:i:s');
-
-        foreach ($arg['indexes'] as $index) {
-
-            $indexName = "{$arg['table_2']}_index";
-            $btree = '';
-
-            foreach ($index as $fld) {
-
-                $indexName .= "_$fld";
-
-                if ($btree != '')
-                    $btree .= ", ";
-
-                $btree .=  "\"{$model->dbField($fld)}\"";
-
-            }
-
-            if ($schema_name != '')
-                $indexes .= "DO $$ "
-                    . "BEGIN "
-                    . "IF NOT EXISTS ( "
-					. "SELECT 1 "
-					. "FROM   pg_class c "
-					. "JOIN   pg_namespace n ON n.oid = c.relnamespace "
-					. "WHERE  c.relname = '$indexName' "
-					. "AND    n.nspname = '$schema_name' "
-					. ") THEN "
-                    . "CREATE INDEX $indexName ON {$arg['table']} USING BTREE($btree); "
-                    . "END IF; "
-                    . "END$$;";
-            else
-                $indexes .= "DO $$ "
-                    . "BEGIN "
-                    . "IF NOT EXISTS ( "
-					. "SELECT 1 "
-					. "FROM   pg_class c "
-					. "JOIN   pg_namespace n ON n.oid = c.relnamespace "
-					. "WHERE  c.relname = '$indexName' "
-					. "AND    n.nspname = 'public' "
-					. ") THEN "
-                    . "CREATE INDEX $indexName ON {$arg['table']} USING BTREE($btree); "
-                    . "END IF; "
-                    . "END$$;";
-
+        if (count($where) == 0) {
+            throw new CustomException("Nenhum filtro para exclusão");
         }
 
-        $schema = '';
+        $sql = "DELETE FROM $table->database.$table->schema.$table->table"
+            . "\nWHERE\t" . implode(" AND\n\t", $where);
 
-        if ($schema_name != '')
-            $schema = "DO $$ "
-                    . "BEGIN "
-                    . "IF NOT EXISTS ( "
-					. "SELECT 1 "
-					. "FROM   pg_namespace n "
-					. "WHERE  n.nspname = '$schema_name' "
-					. ") THEN "
-                    . "CREATE SCHEMA $schema_name; "
-                    . "END IF; "
-                    . "END$$;";
-
-        $create = "CREATE TABLE IF NOT EXISTS {$arg['table']} ($fields $constraints) WITH (OIDS=FALSE);";
-
-        $comment = "COMMENT ON TABLE {$arg['table']} IS '{$arg['model']} ($ts)';";
-
-        return $schema . $create . $comment . $indexes;
+        return "$sql;";
 
     }
 
-    public function insert($arg, Model $model, $force_fields = false): string
+    public function truncate(Query2 $query): bool
     {
 
-        $fields = '';
-        $regs = '';
+        $model = $query->getModel();
 
-        foreach ($arg['fields'] as $i) {
+        $class_name = $model->getComment();
 
-            $fields = '';
-            $values = '';
+        $sql = $this->sql_truncate($query);
 
-            foreach ($i as $key => $value)
-                if (!isset($value['many_to_many']) && !isset($value['i_many_to_many']) && !isset($value['many_choices']) && (isset($value['value']) || $force_fields)) {
+        $this->comment("Truncando dados em '$class_name'", Color::RED, true);
 
-                    $fields .= (($fields != '') ? ", " : "") . "\"{$model->dbField($key)}\"";
-                    $values .= (($values != '') ? ", " : "") . $this->escape((isset($value['value'])) ? $value['value'] : null);
+        $this->execute($sql);
 
-                }
-
-            $regs .= (($regs != '') ? ", " : "") . "($values)";
-
-        }
-
-        $extra = ($arg['field_id'] != '') ? "RETURNING (\"{$arg['field_id']}\")" : "";
-
-        return "INSERT INTO {$arg['table']} ($fields) VALUES $regs $extra;";
+        return true;
 
     }
 
-    public function update($arg, Config $config, Auth $auth, Model $model): string
+    public function sql_truncate(Query2 $query): string
     {
 
-        $changes = '';
+        $table = $query->getModel()->getTable();
 
-        $where = '';
-        foreach ($arg['where'] as $k)
-            $where .= (($where == '') ? " WHERE " : " AND ") . $this->filter($k, $arg['database'], $config, $auth, $model);
-
-        foreach ($arg['fields'] as $key=>$value)
-            if (!isset($value['many_to_many']) && !isset($value['i_many_to_many']) && !isset($value['many_choices']) && $key != $arg['field_id'])
-
-                if ($value['changed'])
-                    if (isset($value['value']))
-                        $changes .= (($changes != '') ? ", " : "") . "{$model->dbField($key)}=" . $this->escape($value['value']);
-                    else if ($key != '_insert')
-                        $changes .= (($changes != '') ? ", " : "") . "{$model->dbField($key)}=" . $this->escape(null);
-
-        if ($changes != '')
-            return "UPDATE {$arg['table']} SET $changes $where;";
-
-        return false;
+        return "TRUNCATE TABLE $table->database.$table->schema.$table->table;";
 
     }
 
-    public function delete($arg, Config $config, Auth $auth, Model $model): string
+    public function drop(Query2 $query): bool
     {
 
-        $where = '';
-        foreach ($arg['where'] as $k)
-            $where .= (($where == '') ? " WHERE " : " AND ") . $this->filter($k, $arg['database'], $config, $auth, $model);
+        $model = $query->getModel();
 
-        return "DELETE FROM {$arg['table']} $where;";
+        $class_name = $model->getComment();
+
+        $sql = $this->sql_drop($query);
+
+        $this->comment("Apagando tabela '$class_name'", Color::RED, true);
+
+        $this->execute($sql);
+
+        return true;
 
     }
 
-    public function error(Exception $e): never
+    public function sql_drop(Query2 $query): string
     {
 
-        Application::error($e->getMessage(), 500);
+        $table = $query->getModel()->getTable();
+
+        return "DROP TABLE $table->database.$table->schema.$table->table;";
 
     }
 
