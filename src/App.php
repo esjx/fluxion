@@ -1,10 +1,12 @@
 <?php
 namespace Fluxion;
 
+use stdClass;
+use ReflectionMethod;
+use ReflectionException;
 use GuzzleHttp\Psr7\{Response, ServerRequest};
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use Psr\Http\Message\{RequestInterface, ResponseInterface};
-use stdClass;
 
 class App
 {
@@ -23,6 +25,9 @@ class App
 
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public static function routeUrl(): void
     {
 
@@ -32,11 +37,6 @@ class App
             self::error404();
         }
 
-    }
-
-    public static function inputStream()
-    {
-        return json_decode(file_get_contents('php://input')) ?? new stdClass();
     }
 
     public static function setCache(ResponseInterface $response, $seconds = 60): ResponseInterface
@@ -54,64 +54,81 @@ class App
 
     /**
      * @param Route[] $routes
+     * @throws ReflectionException
      */
     public static function dispatch(RequestInterface $request, array $routes, array $args = []): bool
     {
 
-        //$query_params = [];
-        //parse_str($request->getUri()->getQuery(), $query_params);
-
-        $response = new Response();
-
-        $parameters = new stdClass();
+        $query_params = [];
+        parse_str($request->getUri()->getQuery(), $query_params);
 
         foreach ($routes as $route) {
 
             if (in_array($request->getMethod(), $route->methods)
-                && preg_match($route->getRegExp(), $request->getUri()->getPath(), $_args)
-                /*&& (!isset($key['model']) || $this->modelFromId($key['model'], $_args))*/) {
+                && preg_match($route->getRegExp(), $request->getUri()->getPath(), $_args)) {
 
-                $args = array_merge($args, $_args, $route->args);
+                if ($route->getClass() && $route->getMethod()) {
 
-                if ($method = $route->getMethod()) {
+                    $reflection = new ReflectionMethod($route->getClass(), $route->getMethod());
+
+                    $parameters = $reflection->getParameters();
+
+                    $invoke_parameters = [];
+
+                    foreach ($parameters as $param) {
+
+                        if ($param->hasType()) {
+
+                            $type = (string) $param->getType();
+
+                            if ($type == RequestInterface::class) {
+                                $invoke_parameters[] = $request;
+                            }
+
+                            elseif ($type == ResponseInterface::class) {
+                                $invoke_parameters[] = new Response();
+                            }
+
+                            elseif ($type == Route::class) {
+                                $invoke_parameters[] = $route;
+                            }
+
+                            /*elseif ($type == Auth::class) {
+                                $invoke_parameters[] = $auth;
+                            }*/
+
+                            /*elseif ($type == Model::class) {
+                                $invoke_parameters[] = $model;
+                            }*/
+
+                            elseif ($type == stdClass::class) {
+
+                                $p = new stdClass();
+
+                                foreach (array_merge($args, $_args, $route->args, $query_params) as $k=>$v) {
+                                    if (!is_numeric($k)) {
+                                        $p->$k = $v;
+                                    }
+                                }
+
+                                $invoke_parameters[] = $p;
+                            }
+
+                        }
+
+                    }
 
                     $control_name = $route->getClass();
 
-                    $control = new $control_name();
-
-                    foreach ($args as $k=>$v) {
-                        if (!is_numeric($k)) {
-                            $parameters->$k = $v;
-                        }
-                    }
-
-                    $out = $control->$method($request, $response, $parameters, $route);
+                    $out = $reflection->invokeArgs(new $control_name(), $invoke_parameters);
 
                     if ($out instanceof ResponseInterface) {
-                        $response = $out;
+                        (new SapiEmitter())->emit($out);
                     }
-
-                    $emitter = new SapiEmitter();
-                    $emitter->emit($response);
 
                     return true;
 
                 }
-
-                /*elseif (isset($key['include'])) {
-
-                    $control = new $key['control']();
-                    $include = $key['include'];
-
-                    $new_uri = preg_replace($route, '', $uri);
-
-                    if ($new_uri == '')
-                        $new_uri = '/';
-
-                    if ($this->dispatch($new_uri, $control->$include(), $args))
-                        return true;
-
-                }*/
 
             }
 
