@@ -1,8 +1,8 @@
 <?php
 namespace Fluxion\Connector;
 
-use Fluxion\{Color, CustomException, Database, Model};
-use Fluxion\Query\{Query, QueryWhere};
+use Fluxion\{Color, Connector, Database, Exception, Model, Query};
+use Fluxion\Query\{QueryWhere};
 use PDO;
 use Random\RandomException;
 
@@ -282,8 +282,8 @@ class SQLServer extends Connector
 
     }
 
-    /** @throws CustomException */
-    protected function getDatabaseType(Database\Field\Field $value): string
+    /** @throws Exception */
+    protected function getDatabaseType(Database\Field $value): string
     {
 
         return match ($value->getType()) {
@@ -296,13 +296,13 @@ class SQLServer extends Connector
             'float' => 'float',
             'decimal', 'numeric' => "numeric",
             'geography' => 'geography',
-            default => throw new CustomException("Tipo {$value->getType()} não implementado"),
+            default => throw new Exception("Tipo {$value->getType()} não implementado"),
         };
 
     }
 
-    /** @throws CustomException */
-    protected function getColumnCommand(Database\Field\Field $value): string
+    /** @throws Exception */
+    protected function getColumnCommand(Database\Field $value): string
     {
 
         # Definição do tipo
@@ -343,7 +343,7 @@ class SQLServer extends Connector
 
     }
 
-    protected function getDefaultCommand(Database\Field\Field $value): ?string
+    protected function getDefaultCommand(Database\Field $value): ?string
     {
 
         # Valor padrão
@@ -365,7 +365,7 @@ class SQLServer extends Connector
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      * @throws RandomException
      */
     protected function executeSync(Model $model): void
@@ -851,7 +851,7 @@ class SQLServer extends Connector
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function filter(QueryWhere $filter, Query $query, ?string $id): string
     {
@@ -893,7 +893,7 @@ class SQLServer extends Connector
                 if ($_field[$i] == 'json') {
 
                     $json_name = $_field[$i + 1]
-                        ?? throw new CustomException("Utilizar padrão 'campo__json__variavel'");
+                        ?? throw new Exception("Utilizar padrão 'campo__json__variavel'");
 
                     $field = "JSON_VALUE({$txt_id}[$field], '$.$json_name')";
 
@@ -951,7 +951,7 @@ class SQLServer extends Connector
                 && $escaped_value
                 && !is_numeric($escaped_value)
                 && !is_bool($escaped_value)) {
-                throw new CustomException("O valor <b>$filter->value</b> não é numérico!");
+                throw new Exception("O valor <b>$filter->value</b> não é numérico!");
             }
 
             if ($type == 'LIKE') {
@@ -993,7 +993,7 @@ class SQLServer extends Connector
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function sql_select(Query $query, bool $inline = false): string
     {
@@ -1118,7 +1118,7 @@ class SQLServer extends Connector
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function sql_insert(Model $model, array $data = []): string
     {
@@ -1177,7 +1177,7 @@ class SQLServer extends Connector
                 }
 
                 if ($f->required && is_null($value) && is_null($f->default)) {
-                    throw new CustomException("Campo '$key' não pode ser nulo");
+                    throw new Exception("Campo '$key' não pode ser nulo");
                 }
 
                 if ($f->required && is_null($value) && !is_null($f->default)) {
@@ -1215,7 +1215,7 @@ class SQLServer extends Connector
                     $value = $d[$key] ?? null;
 
                     if ($f->required && is_null($value) && is_null($f->default)) {
-                        throw new CustomException("Campo '$key' não pode ser nulo");
+                        throw new Exception("Campo '$key' não pode ser nulo");
                     }
 
                     if ($f->required && is_null($value) && !is_null($f->default)) {
@@ -1235,11 +1235,11 @@ class SQLServer extends Connector
         }
 
         if (count($fields_sql) == 0) {
-            throw new CustomException("Nenhum campo alterado para incluir");
+            throw new Exception("Nenhum campo alterado para incluir");
         }
 
         if (count($inserts_sql) == 0) {
-            throw new CustomException("Nenhum registro para incluir");
+            throw new Exception("Nenhum registro para incluir");
         }
 
         $sql = "INSERT INTO $table->database.$table->schema.$table->table";
@@ -1257,7 +1257,7 @@ class SQLServer extends Connector
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function sql_update(Model $model, Query $query): ?string
     {

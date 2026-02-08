@@ -3,7 +3,7 @@ namespace Fluxion;
 
 use Fluxion\Mask as Mask;
 
-class CustomMessage
+class Message
 {
 
     public static function create($message = "", $data = []): string

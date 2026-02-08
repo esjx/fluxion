@@ -1,7 +1,7 @@
 <?php
-namespace Fluxion\Database\Field;
+namespace Fluxion\Database;
 
-use Fluxion\CustomException;
+use Fluxion\Exception;
 use Fluxion\Model;
 
 abstract class Field
@@ -146,7 +146,7 @@ abstract class Field
         return (string) $value;
     }
 
-    /** @throws CustomException */
+    /** @throws Exception */
     public function setValue(mixed $value, bool $database = false): void
     {
 
@@ -156,7 +156,7 @@ abstract class Field
                 $value = json_encode($value);
             }
 
-            throw new CustomException(message: "Valor '$value' inválido para o campo '$this->_name'", log: false);
+            throw new Exception(message: "Valor '$value' inválido para o campo '$this->_name'", log: false);
 
         }
 
@@ -180,14 +180,14 @@ abstract class Field
 
     }
 
-    /** @throws CustomException */
+    /** @throws Exception */
     public function initialize(): void
     {
 
         $class = get_class($this->_model);
 
         if ($this->_type_property != 'mixed' && !str_contains($this->_type_property, '?')) {
-            throw new CustomException(message: "Campo '$class:$this->_name' deve permitir nulos", log: false);
+            throw new Exception(message: "Campo '$class:$this->_name' deve permitir nulos", log: false);
         }
 
         if (is_null($this->max_length) && in_array($this->_type, [self::TYPE_STRING, self::TYPE_PASSWORD])) {

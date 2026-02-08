@@ -1,12 +1,13 @@
 <?php
 namespace Fluxion\Connector;
 
+use Fluxion\Auth;
+use Fluxion\Config;
+use Fluxion\Connector;
 use Fluxion\Model;
+use Fluxion\ModelOld;
 use PDO;
 use PDOStatement;
-use Fluxion\Auth\Auth;
-use Fluxion\Config;
-use Fluxion\ModelOld;
 
 class Sqlite extends Connector
 {

@@ -2,8 +2,7 @@
 namespace Fluxion;
 
 use stdClass;
-use Fluxion\Query\Query;
-use Psr\Http\Message\{RequestInterface, ResponseInterface, MessageInterface};
+use Psr\Http\Message\{MessageInterface, RequestInterface, ResponseInterface};
 
 class CrudController extends Controller
 {
@@ -12,7 +11,7 @@ class CrudController extends Controller
     protected string $home_method = 'home';
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function createRoutes(string $base_url, Model $model, Controller $controller): void
     {
@@ -51,10 +50,12 @@ class CrudController extends Controller
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function data(RequestInterface $request, ResponseInterface $response, stdClass $parameters, Route $route): MessageInterface
     {
+
+        $is = json_decode($request->getBody()->getContents());
 
         $model = $route->getModel();
 
@@ -106,6 +107,7 @@ class CrudController extends Controller
             'permissions' => $permissions,
             'filters' => [],//$model->filters($is->filters ?? new stdClass()),
             'data' => $data,
+            'request_data' => $is,
         ];
 
         return ResponseFactory::fromJson($json);

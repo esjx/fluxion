@@ -1,6 +1,8 @@
 <?php
 namespace Fluxion\Mask;
 
+use Fluxion\Mask;
+
 class OrdemServico extends Mask
 {
 

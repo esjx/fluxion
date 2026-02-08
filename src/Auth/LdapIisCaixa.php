@@ -3,14 +3,15 @@ namespace Fluxion\Auth;
 
 use DateTime;
 use Exception;
-use Fluxion\Csrf;
 use Fluxion\Application;
+use Fluxion\Auth;
 use Fluxion\Auth\Models\CostCenter;
 use Fluxion\Auth\Models\Occupation;
 use Fluxion\Auth\Models\Rule;
-use Fluxion\Auth\Models\UserOld;
 use Fluxion\Auth\Models\UserGroup;
+use Fluxion\Auth\Models\UserOld;
 use Fluxion\Config;
+use Fluxion\Csrf;
 use Fluxion\ImageManipulate;
 use Fluxion\Sql;
 use Fluxion\Util;

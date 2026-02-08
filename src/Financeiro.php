@@ -172,7 +172,7 @@ class Financeiro
 
                     else {
 
-                        throw new CustomException('Regra de amortização inválida!');
+                        throw new Exception('Regra de amortização inválida!');
 
                     }
 

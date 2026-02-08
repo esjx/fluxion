@@ -1,12 +1,9 @@
 <?php
 namespace Fluxion;
 
-use stdClass;
-use Exception;
 use DateTime;
-use Fluxion\Auth\Auth;
-use Fluxion\Mask\Mask;
-use Fluxion\Connector\Connector;
+use Exception;
+use stdClass;
 
 abstract class ModelOld {
 
@@ -1317,8 +1314,8 @@ abstract class ModelOld {
 
             }
 
-        } catch (CustomException $e) {
-            throw new CustomException($e->getMessage(), log: $e->getLog());
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(), log: $e->getLog());
         } catch (Exception $e) {
             throw new Exception($e->getMessage());
         }
@@ -1450,7 +1447,7 @@ abstract class ModelOld {
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function execute(string $sql): void
     {
@@ -1465,7 +1462,7 @@ abstract class ModelOld {
 
         } catch (Exception $e) {
 
-            throw new CustomException($e->getMessage());
+            throw new Exception($e->getMessage());
 
         }
 
@@ -1644,7 +1641,7 @@ abstract class ModelOld {
 
     }
 
-    /** @throws CustomException */
+    /** @throws Exception */
     public function onSave(): bool { return true; }
 
     public function onSaved(): void {}

@@ -1,14 +1,13 @@
 <?php
 namespace Fluxion;
 
-use PDO;
 use DateTime;
-use Generator;
 use FilesystemIterator;
+use Generator;
+use PDO;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ZipArchive;
-use Fluxion\Auth\Auth;
 
 class Upload
 {

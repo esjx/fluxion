@@ -2,7 +2,7 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
-use Fluxion\{CustomException, Model};
+use Fluxion\{Database\Field, Exception, Model};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class ForeignKeyField extends Field
@@ -27,7 +27,7 @@ class ForeignKeyField extends Field
         return $this->_field;
     }
 
-    /** @throws CustomException */
+    /** @throws Exception */
     public function __construct(public string  $class_name,
                                 public bool    $real = false,
                                 public bool    $show = false,
@@ -43,7 +43,7 @@ class ForeignKeyField extends Field
         $class = new $class_name;
 
         if (!$class instanceof Model) {
-            throw new CustomException(message: "Classe '$class_name' não é Model", log: false);
+            throw new Exception(message: "Classe '$class_name' não é Model", log: false);
         }
 
         $this->_reference_model = $class;
@@ -54,7 +54,7 @@ class ForeignKeyField extends Field
 
     }
 
-    /** @throws CustomException */
+    /** @throws Exception */
     public function initialize(): void
     {
 
@@ -86,7 +86,7 @@ class ForeignKeyField extends Field
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function validate(mixed &$value): bool
     {

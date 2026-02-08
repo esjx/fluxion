@@ -1,8 +1,8 @@
 <?php
 namespace Fluxion;
 
-use Exception;
 use DateTime;
+use Exception;
 
 class Service
 {
@@ -95,7 +95,7 @@ class Service
     public function getField($name, $value, $model, $id, $save, $extras = []): array
     {
 
-        /** @var Auth\Auth $auth */
+        /** @var \Fluxion\Auth $auth */
         $auth = $GLOBALS['AUTH'];
 
         $model_name = get_class($model);
@@ -469,7 +469,7 @@ class Service
     public function getInlines($model, $save = true): array
     {
 
-        /** @var Auth\Auth $auth */
+        /** @var \Fluxion\Auth $auth */
         $auth = $GLOBALS['AUTH'];
 
         $model_name = get_class($model);
@@ -623,7 +623,7 @@ class Service
     public function saveToModel(ModelOld &$model, $data): ?ModelOld
     {
 
-        /** @var Auth\Auth $auth */
+        /** @var \Fluxion\Auth $auth */
         $auth = $GLOBALS['AUTH'];
 
         $model->changeState(ModelOld::STATE_BEFORE_SAVE);

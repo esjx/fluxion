@@ -2,11 +2,9 @@
 namespace Fluxion;
 
 use Exception;
-use stdClass;
-use DateTime;
-use ZipArchive;
-use Fluxion\Auth\Auth;
 use PhpOffice\PhpSpreadsheet as Excel;
+use stdClass;
+use ZipArchive;
 
 class ControllerOld extends Service
 {

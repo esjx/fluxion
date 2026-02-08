@@ -1,16 +1,17 @@
 <?php
-namespace Fluxion\Auth;
+namespace Fluxion;
 
-use Fluxion\Auth\Models\PermissionProfile;
-use Fluxion\MnModel;
 use Exception;
-use Fluxion\Application;
-use Fluxion\Config;
-use Fluxion\Log\Models as Log;
+use Fluxion\Auth\Basic;
+use Fluxion\Auth\Development;
+use Fluxion\Auth\LdapIisCaixa;
+use Fluxion\Auth\Models;
 use Fluxion\Auth\Models\CostCenter;
-use Fluxion\Auth\Models\PermissionGroup;
-use Fluxion\Auth\Models\UserOld;
+use Fluxion\Auth\Models\PermissionProfile;
 use Fluxion\Auth\Models\UserGroup;
+use Fluxion\Auth\Models\UserOld;
+use Fluxion\Auth\Setup;
+use Fluxion\Log\Models as Log;
 
 class Auth
 {

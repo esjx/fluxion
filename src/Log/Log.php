@@ -2,8 +2,8 @@
 namespace Fluxion\Log;
 
 use Fluxion\Application;
+use Fluxion\Auth;
 use Fluxion\Config;
-use Fluxion\Auth\Auth;
 use Fluxion\Csrf;
 use InvalidArgumentException;
 

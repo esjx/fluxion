@@ -2,7 +2,8 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
-use Fluxion\CustomException;
+use Fluxion\Database\Field;
+use Fluxion\Exception;
 use Fluxion\MnModel;
 use Fluxion\Model;
 
@@ -31,7 +32,7 @@ class ManyToManyField extends Field
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function getMnModel(): MnModel
     {
@@ -47,7 +48,7 @@ class ManyToManyField extends Field
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function getValue($row = false): mixed
     {
@@ -74,7 +75,7 @@ class ManyToManyField extends Field
 
     }
 
-    /** @throws CustomException */
+    /** @throws Exception */
     public function __construct(public string  $class_name,
                                 public bool    $inverted = false,
                                 public bool    $real = false,
@@ -90,7 +91,7 @@ class ManyToManyField extends Field
         $class = new $class_name;
 
         if (!$class instanceof Model) {
-            throw new CustomException(message: "Classe '$class_name' não é Model", log: false);
+            throw new Exception(message: "Classe '$class_name' não é Model", log: false);
         }
 
         $this->_reference_model = $class;
@@ -123,7 +124,7 @@ class ManyToManyField extends Field
 
     }
 
-    /** @throws CustomException */
+    /** @throws Exception */
     public function initialize(): void
     {
 

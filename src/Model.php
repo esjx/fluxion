@@ -1,11 +1,11 @@
 <?php
 namespace Fluxion;
 
+use Fluxion\Database\{Detail, Field, Table};
+use Fluxion\Database\Field\{FloatField, ForeignKeyField, ManyToManyField};
+use Fluxion\Query\{QuerySql};
 use Generator;
 use ReflectionClass;
-use Fluxion\Query\{Query, QuerySql};
-use Fluxion\Database\{Detail, Table};
-use Fluxion\Database\Field\{Field, FloatField, ForeignKeyField, ManyToManyField};
 
 abstract class Model
 {
@@ -66,7 +66,7 @@ abstract class Model
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function getField($name): ?Field
     {
@@ -76,11 +76,11 @@ abstract class Model
         }
 
         return $this->_fields[$name]
-            ?? throw new CustomException("Campo '$name' não encontrado no modelo");
+            ?? throw new Exception("Campo '$name' não encontrado no modelo");
 
     }
 
-    /** @throws CustomException */
+    /** @throws Exception */
     public function getFieldId(): Field
     {
 
@@ -91,7 +91,7 @@ abstract class Model
         foreach ($this->getPrimaryKeys() as $key => $primary_key) {
 
             if (!is_null($field)) {
-                throw new CustomException(message: "Classe '$class_name' possui mais de uma chave primária", log: false);
+                throw new Exception(message: "Classe '$class_name' possui mais de uma chave primária", log: false);
             }
 
             $field = $this->_fields[$key];
@@ -99,7 +99,7 @@ abstract class Model
         }
 
         if (is_null($field)) {
-            throw new CustomException(message: "Classe '$class_name' não possui chave primária", log: false);
+            throw new Exception(message: "Classe '$class_name' não possui chave primária", log: false);
         }
 
         return $field;
@@ -156,7 +156,7 @@ abstract class Model
 
     # Construtor e métodos mágicos
 
-    /** @throws CustomException */
+    /** @throws Exception */
     public function __construct()
     {
 
@@ -232,7 +232,7 @@ abstract class Model
         return isset($this->_fields[$name]);
     }
 
-    /** @throws CustomException */
+    /** @throws Exception */
     public function __set($name, $value)
     {
 
@@ -305,7 +305,7 @@ abstract class Model
     public function onSaved(): void {}
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function save(): bool
     {
@@ -457,7 +457,7 @@ abstract class Model
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public static function limit($limit, $offset = 0): Query
     {
@@ -470,7 +470,7 @@ abstract class Model
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public static function select(): Generator
     {
@@ -483,7 +483,7 @@ abstract class Model
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public static function loadById(mixed $id): self
     {
@@ -496,7 +496,7 @@ abstract class Model
         $primary_keys = $obj->getPrimaryKeys();
 
         if (count($primary_keys) == 0) {
-            throw new CustomException("Model '$class' não possui chave primária definida");
+            throw new Exception("Model '$class' não possui chave primária definida");
         }
 
         if (!is_array($id) && count($primary_keys) == 1) {
@@ -508,7 +508,7 @@ abstract class Model
         foreach ($primary_keys as $key => $primary_key) {
 
             $value = $id[$key]
-                ?? throw new CustomException("Valor para o campo '$key' não informado");
+                ?? throw new Exception("Valor para o campo '$key' não informado");
 
             $query = $query->filter($key, $value);
 

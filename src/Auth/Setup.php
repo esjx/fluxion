@@ -1,6 +1,7 @@
 <?php
 namespace Fluxion\Auth;
 
+use Fluxion\Auth;
 use Fluxion\Auth\Models\CostCenter;
 use Fluxion\Auth\Models\UserOld;
 use Fluxion\Config;

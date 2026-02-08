@@ -2,10 +2,11 @@
 namespace Fluxion\Connector;
 
 use Fluxion\Application;
-use Fluxion\Auth\Auth;
+use Fluxion\Auth;
 use Fluxion\Config;
-use Fluxion\ModelOld;
+use Fluxion\Connector;
 use Fluxion\Model;
+use Fluxion\ModelOld;
 
 class PostgreSQL {
 

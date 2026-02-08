@@ -1,8 +1,8 @@
 <?php
-namespace Fluxion\Query;
+namespace Fluxion;
 
 use Generator;
-use Fluxion\{Config, Model, CustomException};
+use Fluxion\Query\{QueryField, QueryGroupBy, QueryLimit, QueryOrderBy, QuerySql, QueryWhere};
 
 class Query
 {
@@ -305,7 +305,7 @@ class Query
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function limit($limit, $offset = 0): self
     {
@@ -326,7 +326,7 @@ class Query
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function select(): Generator
     {
@@ -334,7 +334,7 @@ class Query
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function paginate(&$page, &$pages, $quant): self
     {
@@ -354,7 +354,7 @@ class Query
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function first(): ?Model
     {
@@ -368,7 +368,7 @@ class Query
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function firstOrNew(): Model
     {
@@ -376,7 +376,7 @@ class Query
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function sql(): string
     {
@@ -384,7 +384,7 @@ class Query
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function delete(): bool
     {
@@ -392,7 +392,7 @@ class Query
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function toArray(): array
     {
@@ -400,11 +400,11 @@ class Query
         $out = [];
 
         if (count($this->fields) == 0) {
-            throw new CustomException('Nenhum campo informado encontrado.');
+            throw new Exception('Nenhum campo informado encontrado.');
         }
 
         if (count($this->fields) > 1) {
-            throw new CustomException('Mais de um campo informado encontrado.');
+            throw new Exception('Mais de um campo informado encontrado.');
         }
 
         $field = $this->fields[0]->field;

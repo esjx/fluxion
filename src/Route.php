@@ -12,7 +12,7 @@ class Route
     private ?Model $model = null;
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function __construct(public string $route,
                                 public array|string  $methods = 'GET',
@@ -27,7 +27,7 @@ class Route
         foreach ($this->methods as $method) {
 
             if (!in_array($method, ['GET', 'POST', 'PUT', 'DELETE'])) {
-                throw new CustomException("Method $method not allowed");
+                throw new Exception("Method $method not allowed");
             }
 
         }

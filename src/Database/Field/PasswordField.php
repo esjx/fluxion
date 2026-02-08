@@ -2,7 +2,8 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
-use Fluxion\CustomException;
+use Fluxion\Database\Field;
+use Fluxion\Exception;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class PasswordField extends Field
@@ -17,12 +18,12 @@ class PasswordField extends Field
         parent::__construct();
     }
 
-    /** @throws CustomException */
+    /** @throws Exception */
     public function validadePassword($password): bool
     {
 
         if (!password_verify($password, $this->_value)) {
-            throw new CustomException(message: "Senha inválida!", log: false);
+            throw new Exception(message: "Senha inválida!", log: false);
         }
 
         if (password_needs_rehash($this->_value, PASSWORD_DEFAULT)) {

@@ -1,22 +1,24 @@
 <?php
 namespace Fluxion;
 
+use Fluxion\Exception\{FileNotExistException};
+
 class Environment
 {
 
     /**
-     * @throws CustomException
+     * @throws FileNotExistException
      */
-    public static function load(string $file): void
+    public static function load(string $filename): void
     {
 
         # Load environment variables
 
-        if (!file_exists($file)) {
-            throw new CustomException("File $file not found.");
+        if (!file_exists($filename)) {
+            throw new FileNotExistException($filename);
         }
 
-        $parsed = parse_ini_file($file, true);
+        $parsed = parse_ini_file($filename, true);
 
         $_ENV['ENVIRONMENT'] = $_ENV['ENVIRONMENT'] ?? $parsed['ENVIRONMENT'];
 

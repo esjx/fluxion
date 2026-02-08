@@ -3,7 +3,8 @@ namespace Fluxion\Database\Field;
 
 use Attribute;
 use DateTime;
-use Fluxion\CustomException;
+use Fluxion\Database\Field;
+use Fluxion\Exception;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class DateField extends Field
@@ -25,7 +26,7 @@ class DateField extends Field
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function validate(mixed &$value): bool
     {
@@ -53,7 +54,7 @@ class DateField extends Field
             }
 
             if ($date === false) {
-                throw new CustomException("Invalid date format: $value");
+                throw new Exception("Invalid date format: $value");
             }
 
             else {

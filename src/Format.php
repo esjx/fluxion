@@ -5,7 +5,7 @@ use DateTime;
 use Exception;
 use IntlDateFormatter;
 
-class Format
+trait Format
 {
 
     private static function numberBase(?float $value, int $decimals, int $mod, string $list): string
@@ -121,7 +121,7 @@ class Format
                 $r .= (($z > 1) ? " de " : "") . $plural[$t];
 
             if ($r)
-                $rt = $rt . ((($i > 0) && ($i <= $fim) && ($inteiro[0] > 0) && ($z < 1)) ? (($i < $fim) ? " e " : " e ") : " ") . $r;
+                $rt = $rt . ((($i > 0) && ($i <= $fim) && ($inteiro[0] > 0) && ($z < 1)) ? (($i < $fim) ? ", " : " e ") : " ") . $r;
 
         }
 

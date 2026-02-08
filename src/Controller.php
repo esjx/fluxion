@@ -1,11 +1,11 @@
 <?php
 namespace Fluxion;
 
+use GuzzleHttp\Psr7\{Response, Utils};
+use Psr\Http\Message\{MessageInterface};
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
-use Psr\Http\Message\{MessageInterface};
-use GuzzleHttp\Psr7\{Utils, Response};
 
 class Controller
 {
@@ -33,7 +33,7 @@ class Controller
 
     /**
      * @throws ReflectionException
-     * @throws CustomException
+     * @throws Exception
      */
     #[Route(route: '/setup', methods: ['GET'])]
     public static function setup(): MessageInterface
@@ -112,9 +112,9 @@ class Controller
 
         # Resumo do processo executado
 
-        $time = Format::number(microtime(true) - $start_time);
+        $time = Formatter::number(microtime(true) - $start_time);
 
-        $memory = Format::size(memory_get_usage());
+        $memory = Formatter::size(memory_get_usage());
 
         $stream->write("-- Finalizado em <b>$time segundos</b> utilizando <b>$memory</b>");
 

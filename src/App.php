@@ -1,10 +1,10 @@
 <?php
 namespace Fluxion;
 
-use stdClass;
-use Psr\Http\Message\{RequestInterface, ResponseInterface};
-use GuzzleHttp\Psr7\{ServerRequest, Response};
+use GuzzleHttp\Psr7\{Response, ServerRequest};
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
+use Psr\Http\Message\{RequestInterface, ResponseInterface};
+use stdClass;
 
 class App
 {
@@ -122,7 +122,7 @@ class App
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public static function registerApp(string $namespace, string $dir, string $controller): void
     {
@@ -132,14 +132,14 @@ class App
         $control_name = $namespace . '\\' . $controller;
 
         if (!class_exists($control_name)) {
-            throw new CustomException("Classe $controller não encontrada!");
+            throw new Exception("Classe $controller não encontrada!");
         }
 
         /** @var ControllerOld $control */
         $control = new $control_name();
 
         if (!$control instanceof Controller) {
-            throw new CustomException("Classe $controller não é um Controller!");
+            throw new Exception("Classe $controller não é um Controller!");
         }
 
         self::$routes = array_merge(self::$routes, $control->getRoutes());

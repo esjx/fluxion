@@ -8,6 +8,20 @@ use GuzzleHttp\Psr7\{Utils, Response};
 class ResponseFactory
 {
 
+    public static function fromView(View $view, int $code = 200): ?MessageInterface
+    {
+
+        $response = new Response();
+
+        $stream = Utils::streamFor();
+
+        $stream->write($view->load());
+
+        return $response->withStatus($code)
+            ->withBody($stream);
+
+    }
+
     public static function fromText(string $text, int $code = 200): ?MessageInterface
     {
 

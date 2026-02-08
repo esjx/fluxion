@@ -1,16 +1,18 @@
 <?php
-namespace Fluxion\Mask;
+namespace Fluxion;
+
+use Fluxion\Exception\MaskException;
 
 abstract class Mask
 {
 
-    public $mask;
-    public $placeholder;
-    public $pattern;
-    public $pattern_validator;
-    public $pattern_message;
-    public $label;
-    public $max_length;
+    public string $mask;
+    public string $placeholder;
+    public string $pattern;
+    public string $pattern_validator;
+    public string $pattern_message;
+    public string $label;
+    public int $max_length;
 
     public static function mask(?string $value): string
     {
@@ -77,11 +79,14 @@ abstract class Mask
         $obj = new $mask();
 
         if (!preg_match($obj->pattern, $value, $data)) {
-            throw new MaskException('{{label:b}}: Valor informado ({{value:b}}) não atende ao padrão ({{message:b}})!', [
-                'label' => $obj->label,
-                'value' => $value,
-                'message' => $obj->pattern_message ?? htmlspecialchars($obj->pattern),
-            ], false);
+
+            throw new MaskException(
+                label: $obj->label,
+                value: $value,
+                message: $obj->pattern_message ?? htmlspecialchars($obj->pattern),
+                log: false
+            );
+
         }
 
         return $data;

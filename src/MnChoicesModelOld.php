@@ -1,8 +1,6 @@
 <?php
 namespace Fluxion;
 
-use Fluxion\Auth\Auth;
-
 class MnChoicesModelOld extends ModelOld
 {
 

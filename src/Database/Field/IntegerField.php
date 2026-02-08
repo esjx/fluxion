@@ -2,6 +2,7 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
+use Fluxion\Database\Field;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class IntegerField extends Field

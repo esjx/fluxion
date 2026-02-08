@@ -68,10 +68,10 @@ define('MAIS_DEZ_DIAS', $mais_dez_dias->format('Y-m-d'));
 class Config
 {
 
-    private static ?Connector\Connector $connector = null;
+    private static ?\Fluxion\Connector $connector = null;
 
-    /** @throws CustomException */
-    public static function getConnector(): Connector\Connector
+    /** @throws Exception */
+    public static function getConnector(): \Fluxion\Connector
     {
 
         if (is_null(self::$connector)) {
@@ -81,7 +81,7 @@ class Config
             }
 
             else {
-                throw new CustomException('Dados de conexão não encontrados.');
+                throw new Exception('Dados de conexão não encontrados.');
             }
 
         }

@@ -1,13 +1,12 @@
 <?php
-namespace Fluxion\Connector;
+namespace Fluxion;
 
+use Fluxion\Query\{QueryWhere};
+use Generator;
 use PDO;
 use PDOException;
 use PDOStatement;
-use Generator;
 use Psr\Http\Message\StreamInterface;
-use Fluxion\{Color, CustomException, CustomMessage, Model, SqlFormatter, State};
-use Fluxion\Query\{Query, QueryWhere};
 
 abstract class Connector
 {
@@ -42,7 +41,7 @@ abstract class Connector
 
     protected bool $extra_break = false;
 
-    public function comment(string $text, string $color = Color::GRAY, bool $break_before = false, bool $break_after = false): void
+    public function comment(string $text, Color $color = Color::GRAY, bool $break_before = false, bool $break_after = false): void
     {
 
         if (is_null($this->log_stream)) return;
@@ -56,7 +55,7 @@ abstract class Connector
         $text = preg_replace('/(\'[\w\s,.-_()→]*\')/m', '<b><i>${1}</i></b>', $text);
         $text = preg_replace('/(\"[\w\s,.-_()→]*\")/m', '<b>${1}</b>', $text);
 
-        $this->log_stream->write("<span style='color: $color;'>-- $text </span>\n");
+        $this->log_stream->write("<span style='color: {$color->code()};'>-- $text </span>\n");
 
     }
 
@@ -72,7 +71,7 @@ abstract class Connector
         }
 
         else {
-            $this->comment(CustomMessage::create("{{count:number:0:b}} registros alterados", ['count' => $count]));
+            $this->comment(Message::create("{{count:number:0:b}} registros alterados", ['count' => $count]));
         }
 
     }
@@ -205,7 +204,7 @@ abstract class Connector
         return "T" . $this::$table_id++;
     }
 
-    /** @throws CustomException */
+    /** @throws Exception */
     public function sync(string $class_name): void
     {
 
@@ -251,7 +250,7 @@ abstract class Connector
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function select(Query $query): ?Generator
     {
@@ -311,7 +310,7 @@ abstract class Connector
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function execute_insert(Model $model, array $data = []): void
     {
@@ -344,7 +343,7 @@ abstract class Connector
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function execute_update(Model $model): void
     {
@@ -355,7 +354,7 @@ abstract class Connector
         $primary_keys = $model->getPrimaryKeys();
 
         if (count($primary_keys) == 0) {
-            throw new CustomException("Model '$class_name' não possui chave primária definida");
+            throw new Exception("Model '$class_name' não possui chave primária definida");
         }
 
         foreach ($primary_keys as $key => $pk) {
@@ -383,7 +382,7 @@ abstract class Connector
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function save(Model $model): bool
     {
@@ -397,7 +396,7 @@ abstract class Connector
             $primary_keys = $model->getPrimaryKeys();
 
             if (count($primary_keys) == 0) {
-                throw new CustomException("Model '$class_name' já salvo e não possui chave primária definida");
+                throw new Exception("Model '$class_name' já salvo e não possui chave primária definida");
             }
 
             $this->execute_insert($model);
@@ -455,7 +454,7 @@ abstract class Connector
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function delete(Query $query): bool
     {
@@ -477,7 +476,7 @@ abstract class Connector
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function sql_delete(Query $query): string
     {
@@ -493,7 +492,7 @@ abstract class Connector
         }
 
         if (count($where) == 0) {
-            throw new CustomException("Nenhum filtro para exclusão");
+            throw new Exception("Nenhum filtro para exclusão");
         }
 
         $sql = "DELETE FROM $table->database.$table->schema.$table->table"

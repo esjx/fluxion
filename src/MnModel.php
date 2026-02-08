@@ -1,8 +1,6 @@
 <?php
 namespace Fluxion;
 
-use Fluxion\Query\Query;
-
 class MnModel extends Model
 {
 
@@ -22,7 +20,7 @@ class MnModel extends Model
         return $this->right;
     }
 
-    /** @throws CustomException */
+    /** @throws Exception */
     public function __construct(protected ?Model  $model = null,
                                 protected ?string $field = null,
                                 protected bool    $inverted = false)
@@ -63,7 +61,7 @@ class MnModel extends Model
                 }
 
                 if (!isset($field_name)) {
-                    throw new CustomException("Referência original não encontrada.", log: false);
+                    throw new Exception("Referência original não encontrada.", log: false);
                 }
 
                 $this->left = 'b';
@@ -97,7 +95,7 @@ class MnModel extends Model
     }
 
     /**
-     * @throws CustomException
+     * @throws Exception
      */
     public function load($id): array
     {
