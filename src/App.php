@@ -59,9 +59,6 @@ class App
     public static function dispatch(RequestInterface $request, array $routes, array $args = []): bool
     {
 
-        $query_params = [];
-        parse_str($request->getUri()->getQuery(), $query_params);
-
         foreach ($routes as $route) {
 
             if (in_array($request->getMethod(), $route->methods)
@@ -104,6 +101,9 @@ class App
                             elseif ($type == stdClass::class) {
 
                                 $p = new stdClass();
+
+                                $query_params = [];
+                                parse_str($request->getUri()->getQuery(), $query_params);
 
                                 foreach (array_merge($args, $_args, $route->args, $query_params) as $k=>$v) {
                                     if (!is_numeric($k)) {

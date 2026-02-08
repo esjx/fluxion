@@ -1,8 +1,7 @@
 <?php
 namespace Fluxion;
 
-use stdClass;
-use Psr\Http\Message\{MessageInterface, RequestInterface, ResponseInterface};
+use Psr\Http\Message\{MessageInterface, RequestInterface};
 
 class CrudController extends Controller
 {
@@ -52,7 +51,7 @@ class CrudController extends Controller
     /**
      * @throws Exception
      */
-    public function data(RequestInterface $request, ResponseInterface $response, stdClass $parameters, Route $route): MessageInterface
+    public function data(RequestInterface $request, Route $route): MessageInterface
     {
 
         $is = json_decode($request->getBody()->getContents());
