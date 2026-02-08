@@ -71,12 +71,12 @@ class CrudController extends Controller
 
     }
 
-    public function hasPermission(Model $model, Permission $permission): bool
+    public function hasPermission(Model $model, Permission $permission, RequestInterface $request): bool
     {
         return true;
     }
 
-    public function permissionFilter(Query $query): Query
+    public function permissionFilter(Query $query, RequestInterface $request): Query
     {
         return $query;
     }
@@ -93,7 +93,7 @@ class CrudController extends Controller
 
         $permissions = [];
 
-        $permissions['download'] = true;
+        $permissions['download'] = $this->hasPermission($model, Permission::DOWNLOAD, $request);
         $permissions['insert'] = true;
         $permissions['delete'] = true;
         $permissions['update'] = true;
@@ -103,8 +103,10 @@ class CrudController extends Controller
 
         $data = [];
 
+        $query = $this->permissionFilter($model->query(), $request);
+
         /** @var Model $k */
-        foreach ($model->select() as $k) {
+        foreach ($query->select() as $k) {
 
             $data[] = [
                 'id' => $k->id(),
