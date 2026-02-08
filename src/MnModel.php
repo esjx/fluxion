@@ -1,6 +1,8 @@
 <?php
 namespace Fluxion;
 
+use Fluxion\Query\QuerySql;
+
 class MnModel extends Model
 {
 
@@ -103,6 +105,15 @@ class MnModel extends Model
         $query = new Query($this);
 
         return $query->filter($this->left, $id)->only($this->right)->toArray();
+
+    }
+
+    public function _filter(string|QuerySql $field, $value = null): Query
+    {
+
+        $query = new Query($this);
+
+        return $query->filter($field, $value);
 
     }
 

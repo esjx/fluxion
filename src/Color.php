@@ -1,6 +1,8 @@
 <?php
 namespace Fluxion;
 
+use Random\RandomException;
+
 enum Color: string
 {
 
@@ -97,6 +99,18 @@ enum Color: string
             self::BLUE_GREY => 'Cinza Azulado',
             self::BLACK => 'Preto',
         };
+
+    }
+
+    /**
+     * @throws RandomException
+     */
+    public static function random(): string
+    {
+
+        $colors = self::getColors();
+
+        return $colors[random_int(0, count($colors) - 1)];
 
     }
 
