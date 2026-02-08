@@ -31,9 +31,7 @@ class App
     public static function routeUrl(): void
     {
 
-        $request = ServerRequest::fromGlobals();
-
-        if (!self::dispatch($request, self::$routes)) {
+        if (!self::dispatch(ServerRequest::fromGlobals(), self::$routes)) {
             self::error404();
         }
 
