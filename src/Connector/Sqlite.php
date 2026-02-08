@@ -1,7 +1,7 @@
 <?php
 namespace Fluxion\Connector;
 
-use Fluxion\Auth;
+use Fluxion\AuthOld;
 use Fluxion\Config;
 use Fluxion\Connector;
 use Fluxion\Model;
@@ -23,7 +23,7 @@ class Sqlite extends Connector
 
     }
 
-    public function select($arg, Config $config, Auth $auth, ModelOld $model): string
+    public function select($arg, Config $config, AuthOld $auth, ModelOld $model): string
     {
 
         $arg['table_2'] = str_replace('.', '_', $arg['table']);
@@ -176,7 +176,7 @@ class Sqlite extends Connector
 
     }
 
-    public function update($arg, Config $config, Auth $auth, ModelOld $model): string
+    public function update($arg, Config $config, AuthOld $auth, ModelOld $model): string
     {
 
         $arg['table_2'] = str_replace('.', '_', $arg['table']);
@@ -196,7 +196,7 @@ class Sqlite extends Connector
 
     }
 
-    public function delete($arg, Config $config, Auth $auth, ModelOld $model): string
+    public function delete($arg, Config $config, AuthOld $auth, ModelOld $model): string
     {
 
         $arg['table_2'] = str_replace('.', '_', $arg['table']);

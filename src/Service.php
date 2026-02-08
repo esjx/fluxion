@@ -95,7 +95,7 @@ class Service
     public function getField($name, $value, $model, $id, $save, $extras = []): array
     {
 
-        /** @var \Fluxion\Auth $auth */
+        /** @var \Fluxion\AuthOld $auth */
         $auth = $GLOBALS['AUTH'];
 
         $model_name = get_class($model);
@@ -469,7 +469,7 @@ class Service
     public function getInlines($model, $save = true): array
     {
 
-        /** @var \Fluxion\Auth $auth */
+        /** @var \Fluxion\AuthOld $auth */
         $auth = $GLOBALS['AUTH'];
 
         $model_name = get_class($model);
@@ -623,7 +623,7 @@ class Service
     public function saveToModel(ModelOld &$model, $data): ?ModelOld
     {
 
-        /** @var \Fluxion\Auth $auth */
+        /** @var \Fluxion\AuthOld $auth */
         $auth = $GLOBALS['AUTH'];
 
         $model->changeState(ModelOld::STATE_BEFORE_SAVE);

@@ -2,7 +2,7 @@
 namespace Fluxion\Log;
 
 use Fluxion\Application;
-use Fluxion\Auth;
+use Fluxion\AuthOld;
 use Fluxion\Config;
 use Fluxion\Csrf;
 use InvalidArgumentException;
@@ -20,7 +20,7 @@ class Log
         $GLOBALS['LOG'] = $this;
     }
 
-    public function getUserAgent(Config $config, Auth $auth) {
+    public function getUserAgent(Config $config, AuthOld $auth) {
 
         if (isset($_SESSION['HTTP_USER_AGENT___CACHE_ID']))
             return $_SESSION['HTTP_USER_AGENT___CACHE_ID'];
@@ -64,7 +64,7 @@ class Log
 
     }
 
-    public function log(Config $config, Auth $auth) {
+    public function log(Config $config, AuthOld $auth) {
 
         if ($this->script_start == null) {
 

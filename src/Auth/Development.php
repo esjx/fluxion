@@ -1,34 +1,40 @@
 <?php
 namespace Fluxion\Auth;
 
-use Fluxion\Auth\Models\CostCenter;
-use Fluxion\Auth\Models\UserOld;
-use Fluxion\Config;
+use Fluxion\{Auth, Exception};
+use Fluxion\Exception\{AuthException};
+use Psr\Http\Message\{RequestInterface};
 
-class Development extends LdapIisCaixa
+class Development extends Auth
 {
 
-    public function authenticate(Config $config): bool
+    private string $_env_login = 'SETUP_LOGIN';
+
+    /**
+     * @throws AuthException
+     * @throws Exception
+     */
+    public function __construct(RequestInterface $request)
     {
 
-        if ($this->_authenticated)
-            return true;
+        parent::__construct($request);
 
-        $this->_config = $config;
+        if (empty($_ENV[$this->_env_login])) {
+            throw new AuthException("Variável '$this->_env_login' não encontrada!");
+        }
 
-        $user = UserOld::loadById($_ENV['MASTER_USER'], $config, $this);
+        $login = $_ENV[$this->_env_login];
+        $model = $_ENV[$this->_env_model];
 
-        $cs = CostCenter::loadById($user->cost_center, $config, $this);
+        /** @var UserModel $user */
+        $user = $model::loadById($login);
+
+        if (is_null($user->login)) {
+            throw new AuthException("Usuário '$login' não encontrado!");
+        }
 
         $this->_user = $user;
-        $this->_cost_center = $cs;
-
-        return $this->_authenticated = true;
-
-    }
-
-    public function loadLDAP(string $login)
-    {
+        $this->_authenticated = true;
 
     }
 

@@ -25,7 +25,7 @@ class Application
 
     public $ajax = false;
 
-    public function __construct(AutoLoader $autoloader, Config $config, Auth $auth, Log $log = null)
+    public function __construct(AutoLoader $autoloader, Config $config, AuthOld $auth, Log $log = null)
     {
 
         //session_start();
@@ -46,7 +46,7 @@ class Application
         return $this->_config;
     }
 
-    public function getAuth(): Auth
+    public function getAuth(): AuthOld
     {
         return $this->_auth;
     }

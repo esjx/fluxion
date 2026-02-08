@@ -192,7 +192,7 @@ abstract class ModelOld {
         $this->_changed = $changed;
     }
 
-    public function getAuth(): ?Auth
+    public function getAuth(): ?AuthOld
     {
         return $this->_auth;
     }
@@ -218,7 +218,7 @@ abstract class ModelOld {
 
     }
 
-    public function __construct(Config $config = null, Auth $auth = null)
+    public function __construct(Config $config = null, AuthOld $auth = null)
     {
 
         if (is_null($config)) {
@@ -692,10 +692,10 @@ abstract class ModelOld {
     /**
      * @param $name
      * @param Config $config
-     * @param Auth $auth
+     * @param AuthOld $auth
      * @return ModelOld
      */
-    public static function createFromName($name, Config $config, Auth $auth)
+    public static function createFromName($name, Config $config, AuthOld $auth)
     {
         return new $name($config, $auth);
     }
@@ -851,7 +851,7 @@ abstract class ModelOld {
         /** @var Config $config */
         $config = $GLOBALS['CONFIG'];
 
-        /** @var Auth $auth */
+        /** @var AuthOld $auth */
         $auth = $GLOBALS['AUTH'];
 
         $class = get_called_class();
@@ -863,7 +863,7 @@ abstract class ModelOld {
 
     }
 
-    public static function loadById($id, Config $config = null, Auth $auth = null, $cache = null): self
+    public static function loadById($id, Config $config = null, AuthOld $auth = null, $cache = null): self
     {
 
         if (is_null($config)) {
@@ -1201,10 +1201,10 @@ abstract class ModelOld {
 
     /**
      * @param Config $config
-     * @param Auth $auth
+     * @param AuthOld $auth
      * @return array|bool
      */
-    public static function select(Config $config, Auth $auth) {
+    public static function select(Config $config, AuthOld $auth) {
 
         $class = get_called_class();
         $obj = new $class;
@@ -1220,7 +1220,7 @@ abstract class ModelOld {
 
     }
 
-    public static function xselect(Config $config, Auth $auth) {
+    public static function xselect(Config $config, AuthOld $auth) {
 
         $class = get_called_class();
         $obj = new $class;
@@ -1236,7 +1236,7 @@ abstract class ModelOld {
 
     }
 
-    public static function first(Config $config, Auth $auth): self
+    public static function first(Config $config, AuthOld $auth): self
     {
 
         $class = get_called_class();
@@ -1336,12 +1336,12 @@ abstract class ModelOld {
 
     /**
      * @param Config $config
-     * @param Auth $
+     * @param AuthOld $
      * @param $auth
      * @param int $state
      * @return array
      */
-    public function toArray(Config $config, Auth $auth, $state = ModelOld::STATE_VIEW) {
+    public function toArray(Config $config, AuthOld $auth, $state = ModelOld::STATE_VIEW) {
 
         $this->changeState($state);
 

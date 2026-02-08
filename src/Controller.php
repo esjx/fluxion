@@ -1,11 +1,11 @@
 <?php
 namespace Fluxion;
 
-use GuzzleHttp\Psr7\{Response, Utils};
-use Psr\Http\Message\{MessageInterface};
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
+use GuzzleHttp\Psr7\{Response, Utils};
+use Psr\Http\Message\{MessageInterface};
 
 class Controller
 {
@@ -13,7 +13,7 @@ class Controller
     /** @var Route[] */
     private array $routes = [];
 
-    private string $base_route = '';
+    private string $base_route;
 
     public function getBaseRoute(): string
     {
@@ -35,7 +35,7 @@ class Controller
      * @throws ReflectionException
      * @throws Exception
      */
-    #[Route(route: '/setup', methods: ['GET'])]
+    #[Route(route: '/setup', methods: 'GET')]
     public static function setup(): MessageInterface
     {
 

@@ -21,7 +21,7 @@ class Extra
 
     protected $_versao = '';
 
-    public function __construct(Config $config = null, Auth $auth = null)
+    public function __construct(Config $config = null, AuthOld $auth = null)
     {
 
         if (is_null($config)) {

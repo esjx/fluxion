@@ -2,7 +2,7 @@
 namespace Fluxion\Connector;
 
 use Fluxion\Application;
-use Fluxion\Auth;
+use Fluxion\AuthOld;
 use Fluxion\Config;
 use Fluxion\Connector;
 use Fluxion\Model;
@@ -84,7 +84,7 @@ class PostgreSQL {
     const DB_DATE_FORMAT = 'Y-m-d';
     const DB_DATETIME_FORMAT = 'Y-m-d H:i:s';
 
-    public function filter($filter, $database, Config $config, Auth $auth, ModelOld $model): string
+    public function filter($filter, $database, Config $config, AuthOld $auth, ModelOld $model): string
     {
 
         $not = ($filter['not']) ? ' NOT ' : '';
@@ -215,7 +215,7 @@ class PostgreSQL {
 
     }
 
-    public function select($arg, Config $config, Auth $auth, ModelOld $model): string
+    public function select($arg, Config $config, AuthOld $auth, ModelOld $model): string
     {
 
         $where = '';
@@ -428,7 +428,7 @@ class PostgreSQL {
 
     }
 
-    public function update($arg, Config $config, Auth $auth, ModelOld $model): string
+    public function update($arg, Config $config, AuthOld $auth, ModelOld $model): string
     {
 
         $changes = '';
@@ -453,7 +453,7 @@ class PostgreSQL {
 
     }
 
-    public function delete($arg, Config $config, Auth $auth, ModelOld $model): string
+    public function delete($arg, Config $config, AuthOld $auth, ModelOld $model): string
     {
 
         $where = '';

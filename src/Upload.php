@@ -16,12 +16,12 @@ class Upload
         '.jpg', '.jpeg', '.png',
     ];
 
-    public static function createFileName(string $prefix, Auth $auth): string
+    public static function createFileName(string $prefix, AuthOld $auth): string
     {
         return $prefix . '-' . $auth->getUser()->login . '-' . microtime(true);
     }
 
-    public static function save($fileId, $dir, Auth $auth, $forceZip = true, $fileName = '', $types = [])
+    public static function save($fileId, $dir, AuthOld $auth, $forceZip = true, $fileName = '', $types = [])
     {
 
         $max_size = 1024 * 1024 * 50; // 50MB

@@ -1,14 +1,17 @@
 <?php
-namespace Fluxion\Auth\Models;
+namespace Fluxion\Auth;
 
-use Fluxion\{Model, Connector};
-use Fluxion\Database\Field\{StringField, BooleanField};
+use Fluxion\{Connector, Model};
+use Fluxion\Database\Field\{BooleanField, PasswordField, StringField};
 
-abstract class User extends Model
+class UserModel extends Model
 {
 
     #[StringField(required: true)]
     public ?string $login;
+
+    #[PasswordField]
+    public ?string $password;
 
     #[StringField]
     public ?string $mail;

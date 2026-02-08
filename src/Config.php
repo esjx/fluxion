@@ -2,6 +2,7 @@
 namespace Fluxion;
 
 use DateTime;
+use Psr\Http\Message\{RequestInterface};
 
 $ontem = new DateTime('-1 day');
 $amanha = new DateTime('+1 day');
@@ -68,10 +69,10 @@ define('MAIS_DEZ_DIAS', $mais_dez_dias->format('Y-m-d'));
 class Config
 {
 
-    private static ?\Fluxion\Connector $connector = null;
+    private static ?Connector $connector = null;
 
     /** @throws Exception */
-    public static function getConnector(): \Fluxion\Connector
+    public static function getConnector(): Connector
     {
 
         if (is_null(self::$connector)) {
@@ -87,6 +88,36 @@ class Config
         }
 
         return self::$connector;
+
+    }
+
+    private static ?Auth $auth = null;
+
+    /** @throws Exception */
+    public static function getAuth(RequestInterface $request): Auth
+    {
+
+        if (is_null(self::$auth)) {
+
+            if (isset($_ENV['AUTH_CLASS'])) {
+
+                $class = $_ENV['AUTH_CLASS'];
+
+                if (!class_exists($class)) {
+                    throw new Exception("Classe '$class' não encontrada!");
+                }
+
+                self::$auth = new $class($request);
+
+            }
+
+            else {
+                throw new Exception('Dados de conexão não encontrados.');
+            }
+
+        }
+
+        return self::$auth;
 
     }
 

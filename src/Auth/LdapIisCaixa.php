@@ -4,7 +4,7 @@ namespace Fluxion\Auth;
 use DateTime;
 use Exception;
 use Fluxion\Application;
-use Fluxion\Auth;
+use Fluxion\AuthOld;
 use Fluxion\Auth\Models\CostCenter;
 use Fluxion\Auth\Models\Occupation;
 use Fluxion\Auth\Models\Rule;
@@ -16,7 +16,7 @@ use Fluxion\ImageManipulate;
 use Fluxion\Sql;
 use Fluxion\Util;
 
-class LdapIisCaixa extends Auth
+class LdapIisCaixa extends AuthOld
 {
 
     public $_user_image_dir = 'user/';

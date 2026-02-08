@@ -27,7 +27,7 @@ class MnChoicesModelOld extends ModelOld
 
     protected $_field = null;
 
-    public function __construct($model, $field, Config $config = null, Auth $auth = null)
+    public function __construct($model, $field, Config $config = null, AuthOld $auth = null)
     {
 
         if (is_null($config)) {

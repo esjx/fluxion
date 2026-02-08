@@ -16,7 +16,11 @@ class AutoIncrementField extends Field
                                 public ?bool $protected = false,
                                 public ?bool $readonly = true)
     {
+
+        $this->primary_key = true;
+
         parent::__construct();
+
     }
 
 }

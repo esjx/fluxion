@@ -50,7 +50,7 @@ class ControllerOld extends Service
         '#607D8B',
     ];
 
-    public function __construct(Config $config = null, Auth $auth = null, Application $application = null)
+    public function __construct(Config $config = null, AuthOld $auth = null, Application $application = null)
     {
 
         $this->_config = $config ?? $GLOBALS['CONFIG'] ?? null;

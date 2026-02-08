@@ -52,6 +52,13 @@ abstract class Model
     /** @var array<string, Field> */
     protected array $_fields = [];
 
+    public function id(): ?string
+    {
+        return implode(';', array_map(function ($field) {
+            return $field->getValue();
+        }, $this->getPrimaryKeys()));
+    }
+
     public function getFieldsValues(): array
     {
         return array_map(function ($field) {

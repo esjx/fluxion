@@ -6,8 +6,10 @@ use Psr\Http\Message\{MessageInterface, RequestInterface};
 class CrudController extends Controller
 {
 
-    protected string $home_controller = self::class;
-    protected string $home_method = 'home';
+    public function home(): MessageInterface
+    {
+        return ResponseFactory::fromText('HOME');
+    }
 
     /**
      * @throws Exception
@@ -20,13 +22,44 @@ class CrudController extends Controller
         $base_url = $controller->getBaseRoute() . $base_url;
 
         $list = [
-            ['url' => '', 'method' => 'GET', 'class' => $this->home_controller, 'action' => $this->home_method],
+            ['url' => '', 'method' => 'GET', 'class' => $class, 'action' => 'home'],
             ['url' => '/data', 'method' => 'POST', 'class' => $class, 'action' => 'data'],
         ];
 
+        $primary_keys = $model->getPrimaryKeys();
+
+        $keys = [];
+
+        foreach ($model->getPrimaryKeys() as $key => $pk) {
+
+            if ($pk->getType() == 'integer') {
+                $keys[] = '{' . "$key:int}";
+            }
+
+            else {
+                $keys[] = '{' . "$key:string}";
+            }
+
+        }
+
+        if (count($keys) > 0) {
+
+            $list[] = [
+                'url' => "/" . implode(';', $keys),
+                'method' => 'GET',
+                'class' => $class,
+                'action' => 'home',
+            ];
+
+        }
+
         foreach ($list as $item) {
 
-            $route = new Route(route: $base_url . $item['url'], methods: $item['method']);
+            $route = new Route(
+                route: $base_url . $item['url'],
+                methods: $item['method'],
+                args: ['model' => $model]
+            );
 
             $route->setClass($item['class']);
             $route->setMethod($item['action']);
@@ -74,7 +107,7 @@ class CrudController extends Controller
         foreach ($model->select() as $k) {
 
             $data[] = [
-                'id' => 1,//$this->id(),
+                'id' => $k->id(),
                 'title' => $k->nome ?? 'NOME',//$this->title(),
                 'subtitle' => $k->id ?? 'ID',//$this->subtitle(),
                 'extras' => [],//$this->extras(),

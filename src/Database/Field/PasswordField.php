@@ -28,6 +28,7 @@ class PasswordField extends Field
 
         if (password_needs_rehash($this->_value, PASSWORD_DEFAULT)) {
             $this->_value = password_hash($password, PASSWORD_DEFAULT);
+            $this->_model->save();
         }
 
         return true;

@@ -52,15 +52,20 @@ class App
 
     /**
      * @param Route[] $routes
+     * @throws Exception
      * @throws ReflectionException
      */
     public static function dispatch(RequestInterface $request, array $routes, array $args = []): bool
     {
 
+        $path = $request->getUri()->getPath();
+
+        $path = '/'. trim($path, '/');
+
         foreach ($routes as $route) {
 
             if (in_array($request->getMethod(), $route->methods)
-                && preg_match($route->getRegExp(), $request->getUri()->getPath(), $_args)) {
+                && preg_match($route->getRegExp(), $path, $_args)) {
 
                 if ($route->getClass() && $route->getMethod()) {
 
@@ -88,13 +93,9 @@ class App
                                 $invoke_parameters[] = $route;
                             }
 
-                            /*elseif ($type == Auth::class) {
-                                $invoke_parameters[] = $auth;
-                            }*/
-
-                            /*elseif ($type == Model::class) {
-                                $invoke_parameters[] = $model;
-                            }*/
+                            elseif ($type == Auth::class) {
+                                $invoke_parameters[] = Config::getAuth($request);
+                            }
 
                             elseif ($type == stdClass::class) {
 
@@ -122,6 +123,10 @@ class App
 
                     if ($out instanceof ResponseInterface) {
                         (new SapiEmitter())->emit($out);
+                    }
+
+                    elseif ($out === false) {
+                        return false;
                     }
 
                     return true;
