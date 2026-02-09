@@ -1,7 +1,7 @@
 <?php
 namespace Fluxion\Connector;
 
-use Fluxion\{Color, Connector, Database, Exception, Model, Query};
+use Fluxion\{Color, Connector, Database, Exception, Model, Query, Time};
 use Fluxion\Query\{QueryWhere};
 use PDO;
 use Random\RandomException;
@@ -760,7 +760,7 @@ class SQLServer extends Connector
             $comment = $model->getComment();
 
             $this->comment("Adicionando descrição na tabela '$table->schema.$table->table'", Color::GREEN, true);
-            $sql = "EXEC sys.sp_addextendedproperty 'MS_Description', '$comment (" . AGORA . ")', 'SCHEMA', '$table->schema', 'TABLE', '$table->table';";
+            $sql = "EXEC sys.sp_addextendedproperty 'MS_Description', '$comment (" . Time::NOW->value() . ")', 'SCHEMA', '$table->schema', 'TABLE', '$table->table';";
 
             $this->execute($sql, true);
 

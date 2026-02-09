@@ -99,11 +99,47 @@ class Controller
 
         }
 
+        # Tratando a classe de permissões
+
+        $perm_model = Config::getPermissionModel();
+
+        if (!is_null($perm_model)) {
+
+            $perm_model_class = get_class($perm_model);
+
+            if (array_key_exists($perm_model_class, $list)) {
+
+                unset($list[$perm_model_class]);
+
+                $connector->sync($perm_model_class);
+
+            }
+
+        }
+
         # Ordenando e executando as sincronizações
 
         asort($list);
         foreach ($list as $class => $index) {
+
             $connector->sync($class);
+
+            if (!is_null($perm_model) && get_class($perm_model) != $class) {
+
+                $field_id = $perm_model->getFieldId()->getName();
+
+                $perm_model = $perm_model::loadById($class);
+
+                if (is_null($perm_model->$field_id)) {
+
+                    $perm_model->$field_id = $class;
+
+                    $perm_model->save();
+
+                }
+
+            }
+
         }
 
         # Executando scripts SQL
