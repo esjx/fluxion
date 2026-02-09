@@ -1,175 +1,20 @@
 <?php
 namespace Fluxion;
 
-use Fluxion\Database\{Detail, Field, Table};
-use Fluxion\Database\Field\{FloatField, ForeignKeyField, ManyToManyField};
-use Fluxion\Query\{QuerySql};
-use Generator;
 use ReflectionClass;
+use Fluxion\Database\{Crud, Detail, Field, Table};
+use Fluxion\Database\Field\{FloatField};
 
 abstract class Model
 {
 
-    # Campo padrão para soma e contagem
+    use ModelFields;
+    use ModelQuery;
+    use ModelCrud;
+    use ModelSave;
 
     #[FloatField(protected: true, fake: true)]
     public ?float $total = null;
-
-    # Dados iniciais para o banco de dados
-
-    protected array $_data = [];
-
-    public function getData(): array
-    {
-        return $this->_data;
-    }
-
-    # Dados para identificação da tabela e índices
-
-    protected ?Table $_table = null;
-
-    public function getTable(): ?Table
-    {
-        return $this->_table;
-    }
-
-    /** @return array<string, Connector\TableIndex> */
-    public function getIndexes(): array
-    {
-        return [];
-    }
-
-    # Comentário para a tabela nos logs
-
-    protected ?string $comment = null;
-
-    public function getComment(): ?string {
-        return $this->comment ?? get_class($this);
-    }
-
-    # Uso e manipulação dos campos
-
-    /** @var array<string, Field> */
-    protected array $_fields = [];
-
-    public function id(): ?string
-    {
-        return implode(';', array_map(function ($field) {
-            return $field->getValue();
-        }, $this->getPrimaryKeys()));
-    }
-
-    public function getFieldsValues(): array
-    {
-        return array_map(function ($field) {
-            return $field->getValue();
-        }, $this->_fields);
-    }
-
-    /** @return array<string, Field> */
-    public function getFields(): array
-    {
-        return $this->_fields;
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function getField($name): ?Field
-    {
-
-        if ($name == '*') {
-            return null;
-        }
-
-        return $this->_fields[$name]
-            ?? throw new Exception("Campo '$name' não encontrado no modelo");
-
-    }
-
-    /** @throws Exception */
-    public function getFieldId(): Field
-    {
-
-        $field = null;
-
-        $class_name = get_class($this);
-
-        foreach ($this->getPrimaryKeys() as $key => $primary_key) {
-
-            if (!is_null($field)) {
-                throw new Exception(message: "Classe '$class_name' possui mais de uma chave primária", log: false);
-            }
-
-            $field = $this->_fields[$key];
-
-        }
-
-        if (is_null($field)) {
-            throw new Exception(message: "Classe '$class_name' não possui chave primária", log: false);
-        }
-
-        return $field;
-
-    }
-
-    /** @return array<string, Field> */
-    public function getIdentity(): array
-    {
-        return array_filter($this->_fields, function ($field) {
-            return $field->isIdentity();
-        });
-    }
-
-    /** @return array<string, Field> */
-    public function getPrimaryKeys(): array
-    {
-        return array_filter($this->_fields, function ($field) {
-            return $field->isPrimaryKey();
-        });
-    }
-
-    /** @return array<string, ForeignKeyField> */
-    public function getForeignKeys(): array
-    {
-        return array_filter($this->_fields, function ($field) {
-            return $field->isForeignKey();
-        });
-    }
-
-    /** @return array<string, ManyToManyField> */
-    public function getManyToMany(): array
-    {
-        return array_filter($this->_fields, function ($field) {
-            return $field->isManyToMany();
-        });
-    }
-
-    public function isChanged(): bool
-    {
-
-        foreach ($this->_fields as $field) {
-            if ($field->isChanged()) {
-                return true;
-            }
-        }
-
-        return false;
-
-    }
-
-    # Detalhes dos campos
-
-    /** @var array<string, Detail> */
-    protected array $_details = [];
-
-    /** @return array<string, Detail> */
-    public function getDetails(): array
-    {
-        return $this->_details;
-    }
-
-    # Construtor e métodos mágicos
 
     /** @throws Exception */
     public function __construct()
@@ -188,6 +33,12 @@ abstract class Model
             if ($instance instanceof Table) {
 
                 $this->_table = $instance;
+
+            }
+
+            elseif ($instance instanceof Crud) {
+
+                $this->_crud = $instance;
 
             }
 
@@ -294,208 +145,7 @@ abstract class Model
 
     }
 
-    # Atualização do "estado" do objeto
-
     public function changeState(State $state): void {}
-
-    # Rotinas de salvamento
-
-    protected bool $saved = false;
-
-    public function isSaved(): bool
-    {
-        return $this->saved;
-    }
-
-    public function setSaved(bool $saved): void
-    {
-        $this->saved = $saved;
-    }
-
-    public function onSave(): bool
-    {
-        return true;
-    }
-
-    public function onSaved(): void {}
-
-    /**
-     * @throws Exception
-     */
-    public function save(): bool
-    {
-
-        $this->changeState(State::STATE_SAVE);
-
-        if ($this->onSave() && Config::getConnector()->save($this)) {
-
-            $this->saved = true;
-
-            $this->onSaved();
-
-        }
-
-        return false;
-
-    }
-
-    # Métodos de consulta
-
-    public static function query(): Query
-    {
-
-        $class = get_called_class();
-        $obj = new $class();
-
-        return new Query($obj);
-
-    }
-
-    public static function only($field): Query
-    {
-
-        $class = get_called_class();
-        $obj = new $class();
-
-        return (new Query($obj))->only($field);
-
-    }
-
-    public static function count($field = '*', $name = 'total'): Query
-    {
-
-        $class = get_called_class();
-        $obj = new $class();
-
-        return (new Query($obj))->count($field, $name);
-
-    }
-
-    public static function sum($field, $name = 'total'): Query
-    {
-
-        $class = get_called_class();
-        $obj = new $class();
-
-        return (new Query($obj))->sum($field, $name);
-
-    }
-
-    public static function avg($field, $name = 'total'): Query
-    {
-
-        $class = get_called_class();
-        $obj = new $class();
-
-        return (new Query($obj))->avg($field, $name);
-
-    }
-
-    public static function min($field, $name = 'total'): Query
-    {
-
-        $class = get_called_class();
-        $obj = new $class();
-
-        return (new Query($obj))->min($field, $name);
-
-    }
-
-    public static function max($field, $name = 'total'): Query
-    {
-
-        $class = get_called_class();
-        $obj = new $class();
-
-        return (new Query($obj))->sum($field, $name);
-
-    }
-
-    public static function filter(string|QuerySql $field, $value = null): Query
-    {
-
-        $class = get_called_class();
-        $obj = new $class();
-
-        return (new Query($obj))->filter($field, $value);
-
-    }
-
-    public static function filterIf(string|QuerySql $field, $value = null, $if = true): Query
-    {
-
-        $class = get_called_class();
-        $obj = new $class();
-
-        return (new Query($obj))->filterIf($field, $value, $if);
-
-    }
-
-    public static function exclude(string|QuerySql $field, $value = null): Query
-    {
-
-        $class = get_called_class();
-        $obj = new $class();
-
-        return (new Query($obj))->exclude($field, $value);
-
-    }
-
-    public static function excludeIf(string|QuerySql $field, $value = null, $if = true): Query
-    {
-
-        $class = get_called_class();
-        $obj = new $class();
-
-        return (new Query($obj))->excludeIf($field, $value, $if);
-
-    }
-
-    public static function orderBy($field, $order = 'ASC'): Query
-    {
-
-        $class = get_called_class();
-        $obj = new $class();
-
-        return (new Query($obj))->orderBy($field, $order);
-
-    }
-
-    public static function groupBy($field, $only = true): Query
-    {
-
-        $class = get_called_class();
-        $obj = new $class();
-
-        return (new Query($obj))->groupBy($field, $only);
-
-    }
-
-    /**
-     * @throws Exception
-     */
-    public static function limit($limit, $offset = 0): Query
-    {
-
-        $class = get_called_class();
-        $obj = new $class();
-
-        return (new Query($obj))->limit($limit, $offset);
-
-    }
-
-    /**
-     * @throws Exception
-     */
-    public static function select(): Generator
-    {
-
-        $class = get_called_class();
-        $obj = new $class();
-
-        return (new Query($obj))->select();
-
-    }
 
     /**
      * @throws Exception

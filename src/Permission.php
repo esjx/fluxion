@@ -1,5 +1,4 @@
 <?php
-
 namespace Fluxion;
 
 enum Permission

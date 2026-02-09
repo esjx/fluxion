@@ -211,7 +211,7 @@ abstract class Connector
         /** @var Model $model */
         $model = new $class_name;
 
-        $model->changeState(State::STATE_SYNC);
+        $model->changeState(State::SYNC);
 
         $this->comment("<b>$class_name</b>", Color::ORANGE, break_after: true);
 

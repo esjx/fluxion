@@ -15,7 +15,8 @@ class TableIndex
     /** @var array<string> */
     public array $includes = [];
 
-    public function __construct(array $columns = [], bool $unique = false, array $includes = []) {
+    public function __construct(array $columns = [], bool $unique = false, array $includes = [])
+    {
 
         $this->columns = $columns;
         $this->unique = $unique;

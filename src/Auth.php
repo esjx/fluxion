@@ -36,4 +36,9 @@ abstract class Auth
         return $this->_authenticated;
     }
 
+    public function hasPermission(Model $model, Permission $permission): bool
+    {
+        return true;
+    }
+
 }

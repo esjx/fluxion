@@ -3,6 +3,7 @@ namespace Fluxion\Database;
 
 use Attribute;
 use Fluxion\Exception;
+use Fluxion\Icon;
 use Fluxion\Mask;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -29,6 +30,7 @@ class Detail
                                 public ?string $mask_class = null,
                                 public bool    $searchable = false,
                                 public bool    $filterable = false,
+                                public ?Icon    $filter_icon = null,
                                 public ?string $typeahead = null,
                                 public ?int    $max_length = null,
                                 public ?int    $size = 12

@@ -3,6 +3,7 @@ namespace Fluxion\Database;
 
 use Fluxion\Exception;
 use Fluxion\Model;
+use Fluxion\Query\QueryWhere;
 
 abstract class Field
 {
@@ -218,6 +219,11 @@ abstract class Field
     public function getTypeTarget(): string
     {
         return $this->_type_target;
+    }
+
+    public function getSearch(string $value): ?QueryWhere
+    {
+        return null;
     }
 
 }

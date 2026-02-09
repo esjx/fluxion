@@ -222,7 +222,7 @@ class Query
 
     }
 
-    public function orderBy($field, $order = null): self
+    public function orderBy(array|string $field, string $order = null): self
     {
 
         if (is_string($field)) {
@@ -232,8 +232,6 @@ class Query
         foreach ($field as $item) {
 
             $item = trim($item);
-
-            $order2 = null;
 
             if (str_starts_with($item, '+')) {
                 $order2 = 'ASC';
@@ -255,7 +253,11 @@ class Query
                 $item = substr($item, 0, -5);
             }
 
-            $this->order_by[] = new QueryOrderBy($item, $order2 ?? $order);
+            else {
+                $order2 = $order ?? 'ASC';
+            }
+
+            $this->order_by[] = new QueryOrderBy($item, $order2);
 
         }
 
@@ -336,20 +338,20 @@ class Query
     /**
      * @throws Exception
      */
-    public function paginate(&$page, &$pages, $quant): self
+    public function paginate(int &$page, int &$pages, int $itens): self
     {
 
         $query_total = clone $this;
 
         $total = $query_total->clearOrderBy()->count()->firstOrNew()->total;
 
-        $pages = ceil($total / $quant);
+        $pages = ceil($total / $itens);
 
         $page = min($page, $pages);
 
-        $offset = ($page - 1) * $quant;
+        $offset = ($page - 1) * $itens;
 
-        return $this->limit($quant, $offset);
+        return $this->limit($itens, max(0, $offset));
 
     }
 

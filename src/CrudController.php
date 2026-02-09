@@ -2,6 +2,7 @@
 namespace Fluxion;
 
 use Psr\Http\Message\{MessageInterface, RequestInterface};
+use stdClass;
 
 class CrudController extends Controller
 {
@@ -25,8 +26,6 @@ class CrudController extends Controller
             ['url' => '', 'method' => 'GET', 'class' => $class, 'action' => 'home'],
             ['url' => '/data', 'method' => 'POST', 'class' => $class, 'action' => 'data'],
         ];
-
-        $primary_keys = $model->getPrimaryKeys();
 
         $keys = [];
 
@@ -87,61 +86,121 @@ class CrudController extends Controller
     public function data(RequestInterface $request, Route $route): MessageInterface
     {
 
+        # Dados básicos
+
+        $auth = Config::getAuth($request);
+        $model = $route->getModel();
+        $model->changeState(State::VIEW);
+
+        $crud_details = $model->getCrud();
+        $class_name = $model->getComment();
+        $has_search = false;
+
+        # Dados da requisição
+
         $is = json_decode($request->getBody()->getContents());
 
-        $model = $route->getModel();
+        $page = $is->page ?? 1;
+        $pages = $page;
+        $order = $is->order ?? 0;
+        $tab = $is->tab ?? null;
+        $filters = $is->filters ?? new stdClass();
+        $search = trim($is->search ?? '');
+
+        # Permissões do usuário
 
         $permissions = [];
 
         $permissions['download'] = $this->hasPermission($model, Permission::DOWNLOAD, $request);
-        $permissions['insert'] = true;
-        $permissions['delete'] = true;
-        $permissions['update'] = true;
-        $permissions['view'] = true;
-        $permissions['under'] = true;
-        $permissions['special'] = true;
+        $permissions['insert'] = $this->hasPermission($model, Permission::INSERT, $request);
+        $permissions['delete'] = $this->hasPermission($model, Permission::DELETE, $request);
+        $permissions['view'] = $this->hasPermission($model, Permission::LIST, $request);
+        $permissions['update'] = $this->hasPermission($model, Permission::VIEW, $request);
+        $permissions['under'] = $this->hasPermission($model, Permission::LIST_UNDER, $request);
+        $permissions['special'] = $this->hasPermission($model, Permission::LIST_ALL, $request);
+
+        # Filtros e campos de busca
+
+        foreach ($model->getDetails() as $detail) {
+
+            if ($detail->searchable) {
+                $has_search = true;
+                break;
+            }
+
+        }
+
+        # Executa a busca
 
         $data = [];
 
         $query = $this->permissionFilter($model->query(), $request);
+
+        $tabs = [];
+
+        // Executa busca
+        if (!empty($search)) {
+
+            $query = $model->search($query, $search);
+
+        }
+
+        // Executa filtros
+        else {
+
+            $query = $model->filterItens($query, $filters);
+
+            $query = $model->tab($query, $order);
+
+        }
+
+        $tabs = $model->getTabs(clone $query);
+        $filters = $model->getFilters(clone $query, $filters);
+
+        $query = $model->order($query, $order);
+
+        $query = $query->paginate(
+            page: $page,
+            pages: $pages,
+            itens: $crud_details->itens_per_page
+        );
 
         /** @var Model $k */
         foreach ($query->select() as $k) {
 
             $data[] = [
                 'id' => $k->id(),
-                'title' => $k->nome ?? 'NOME',//$this->title(),
-                'subtitle' => $k->id ?? 'ID',//$this->subtitle(),
-                'extras' => [],//$this->extras(),
-                'tags' => [],//$this->tags(),
-                'actions' => [],//$this->actions(),
-                'update' => null,//$this->updateInfo(),
+                'title' => $k->title(),
+                'subtitle' => $k->subtitle(),
+                'extras' => $k->extras(),
+                'tags' => $k->getTags(),
+                'actions' => $k->getActions($auth),
+                'update' => $k->updateInfo(),
             ];
 
         }
 
         $json = [
-            'refresh' => 50000,//$model->getRefreshTime(),
-            'title' => 'Título',//$model->pageTitle(),
-            'html_title' => 'HTML Título',//$html_title,
-            'subtitle' => 'Subtítulo',//$model->pageSubtitle(),
-            'description' => 'Descrição',//$model->pageDescription(),
-            'not_found_message' => 'Nenhum registro encontrado',//$model->notFoundMessage(),
-            'has_search' => true,//$model->hasSearch(),
-            'search_placeholder' => 'Buscar...',//$model->getSearchPlaceholder(),
-            'update_title' => 'Criado em',//$model->updateTitle(),
-            'update_format' => 'dd/MM/y HH:mm',//$model->updateFormat(),
-            'order' => 0,//$order,
-            'orders' => [],//$model->orders(),
-            'tab' => null,//$tab,
-            'tabs' => [],//$tabs,
-            'page' => 1,//$page,
-            'pages' => 5,//$pages,
-            'itens_per_page' => 20,//$model->getIpp(),
+            'refresh' => $crud_details->refresh_time,
+            'title' => $crud_details->title ?? $class_name,
+            'html_title' => $crud_details->title ?? $class_name,
+            'subtitle' => $crud_details->subtitle,
+            'description' => $crud_details->description,
+            'not_found_message' => $crud_details->not_found_message,
+            'has_search' => $has_search,
+            'search_placeholder' => $crud_details->search_placeholder,
+            'update_title' => $crud_details->update_title,
+            'update_format' => $crud_details->update_format,
+            'order' => $order,
+            'orders' => $model->getOrders(),
+            'tab' => $tab,
+            'tabs' => $tabs,
+            'page' => $page,
+            'pages' => $pages,
+            'itens_per_page' => $crud_details->itens_per_page,
             'permissions' => $permissions,
-            'filters' => [],//$model->filters($is->filters ?? new stdClass()),
+            'filters' => $filters,
             'data' => $data,
-            'request_data' => $is,
         ];
 
         return ResponseFactory::fromJson($json);
