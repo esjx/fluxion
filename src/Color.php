@@ -105,7 +105,7 @@ enum Color: string
     /**
      * @throws RandomException
      */
-    public static function random(): string
+    public static function random(): self
     {
 
         $colors = self::getColors();

@@ -65,6 +65,11 @@ abstract class Field
         return $this->primary_key;
     }
 
+    public function isIdentity(): bool
+    {
+        return false;
+    }
+
     public function getName(): string
     {
         return $this->_name;

@@ -114,6 +114,14 @@ abstract class Model
     }
 
     /** @return array<string, Field> */
+    public function getIdentity(): array
+    {
+        return array_filter($this->_fields, function ($field) {
+            return $field->isIdentity();
+        });
+    }
+
+    /** @return array<string, Field> */
     public function getPrimaryKeys(): array
     {
         return array_filter($this->_fields, function ($field) {

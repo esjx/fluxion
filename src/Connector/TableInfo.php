@@ -6,6 +6,8 @@ class TableInfo
 
     public bool $exists = false;
 
+    public bool $has_identity = false;
+
     /** @var array<string, TableColumn> */
     public array $columns = [];
 

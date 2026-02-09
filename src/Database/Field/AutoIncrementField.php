@@ -23,4 +23,9 @@ class AutoIncrementField extends Field
 
     }
 
+    public function isIdentity(): bool
+    {
+        return true;
+    }
+
 }

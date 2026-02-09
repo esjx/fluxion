@@ -153,6 +153,10 @@ class SQLServer extends Connector
             $column->precision = $result['precision'];
             $column->scale = $result['scale'];
 
+            if ($column->identity) {
+                $info->has_identity = true;
+            }
+
             if (!is_null($result['default_value'])) {
 
                 if (str_starts_with($result['default_value'], '((')) {
@@ -417,6 +421,8 @@ class SQLServer extends Connector
                     continue;
                 }
 
+                $default_value = $this->getDefaultCommand($value);
+
                 # Campo ainda não existe
 
                 if (!isset($info->columns[$key])) {
@@ -424,12 +430,19 @@ class SQLServer extends Connector
                     $this->comment("Incluindo campo '$key'", Color::GREEN, true);
 
                     $sql = "ALTER TABLE $table->schema.$table->table\n"
-                        . "\tADD [$value->column_name] {$this->getColumnCommand($value)};";
+                        . "\tADD [$value->column_name] {$this->getColumnCommand($value)}";
+
+                    if (!is_null($default_value)) {
+                        $sql .= " default $default_value";
+                    }
+
+                    $sql .= ";";
 
                     $info->columns[$key] = new TableColumn();
                     $info->columns[$key]->type = $this->getDatabaseType($value);
                     $info->columns[$key]->required = $value->required;
                     $info->columns[$key]->extra = false;
+                    $info->columns[$key]->default_value = $default_value;
 
                     $this->execute($sql, true);
 
@@ -462,8 +475,6 @@ class SQLServer extends Connector
                 }
 
                 # Valor padrão do campo
-
-                $default_value = $this->getDefaultCommand($value);
 
                 if (isset($info->columns[$key])
                     && !is_null($info->columns[$key]->default_value)
@@ -559,7 +570,7 @@ class SQLServer extends Connector
 
             if (count($foreign_keys) > 0) {
 
-                /** @var \Fluxion\Database\Field\ForeignKeyField $foreign_key */
+                /** @var Database\Field\ForeignKeyField $foreign_key */
                 foreach ($foreign_keys as $key => $foreign_key) {
 
                     $uid = bin2hex(random_bytes(10));
@@ -699,7 +710,7 @@ class SQLServer extends Connector
 
             if (count($foreign_keys) > 0) {
 
-                /** @var \Fluxion\Database\Field\ForeignKeyField $foreign_key */
+                /** @var Database\Field\ForeignKeyField $foreign_key */
                 foreach ($foreign_keys as $key => $foreign_key) {
 
                     if (!$foreign_key->real) {
@@ -760,6 +771,7 @@ class SQLServer extends Connector
             if (count($data) > 0) {
 
                 $this->comment("Incluindo dados iniciais na tabela '$table->schema.$table->table'", Color::GREEN, true);
+
                 $sql = $this->sql_insert($model, $data);
 
                 $count = $this->execute($sql);
@@ -1242,6 +1254,20 @@ class SQLServer extends Connector
             throw new Exception("Nenhum registro para incluir");
         }
 
+        $identity_insert = false;
+
+        foreach ($model->getIdentity() as $key => $i) {
+
+            if (!is_null($i->getValue())) {
+                $identity_insert = true;
+            }
+
+            if (count($data) > 0 && !is_null($data[0][$key] ?? null)) {
+                $identity_insert = true;
+            }
+
+        }
+
         $sql = "INSERT INTO $table->database.$table->schema.$table->table";
 
         $sql .= " (\n\t" . implode(",\n\t", $fields_sql) . "\n)";
@@ -1250,9 +1276,17 @@ class SQLServer extends Connector
             $sql .= "\nOUTPUT\t" . implode(",\n\t", $outputs_sql);
         }
 
-        $sql .= "\nVALUES\t" . implode(",\n\t", $inserts_sql);
+        $sql .= "\nVALUES\t" . implode(",\n\t", $inserts_sql) . ';';
 
-        return "$sql;";
+        if ($identity_insert) {
+
+            $sql = "SET IDENTITY_INSERT $table->database.$table->schema.$table->table ON;\n"
+                . $sql
+                . "\nSET IDENTITY_INSERT $table->database.$table->schema.$table->table OFF;";
+
+        }
+
+        return $sql;
 
     }
 
