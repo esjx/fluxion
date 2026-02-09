@@ -4,6 +4,8 @@ namespace Fluxion;
 enum Icon: string
 {
 
+    case HOME = 'home';
+    case KEY = 'key';
     case COLLECTION_ITEM = 'collection-item';
     case COLLECTION_ITEM_1 = 'collection-item-1';
     case COLLECTION_ITEM_2 = 'collection-item-2';

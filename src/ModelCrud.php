@@ -58,7 +58,7 @@ trait ModelCrud
         return null;
     }
 
-    /** @return array<string, Connector\TableOrder> */
+    /** @return Connector\TableOrder[] */
     public function getOrders(): array
     {
 
@@ -283,14 +283,14 @@ trait ModelCrud
 
     }
 
-    /** @return array<string, Connector\TableTag> */
+    /** @return Connector\TableTag[] */
     public function getTags(): array
     {
         return [];
     }
 
     /**
-     * @return array<string, Connector\TableAction>
+     * @return Connector\TableAction[]
      */
     public function getActions(Auth $auth): array
     {

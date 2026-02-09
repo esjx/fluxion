@@ -8,6 +8,16 @@ use IntlDateFormatter;
 trait Format
 {
 
+    public static function fixed(?float $value, int $size = 4): string
+    {
+        return sprintf("%0{$size}d", $value);
+    }
+
+    public static function money(?float $value, int $decimals = 2): string
+    {
+        return 'R$ ' . self::number($value, $decimals);
+    }
+
     private static function numberBase(?float $value, int $decimals, int $mod, string $list): string
     {
 

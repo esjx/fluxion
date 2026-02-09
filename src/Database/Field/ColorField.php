@@ -22,6 +22,7 @@ class ColorField extends Field
     {
 
         $this->choices = Color::getColors();
+        $this->choices_colors = Color::getColors();
 
         parent::__construct();
 

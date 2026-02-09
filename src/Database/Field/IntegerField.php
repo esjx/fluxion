@@ -16,8 +16,6 @@ class IntegerField extends Field
                                 public ?bool           $primary_key = false,
                                 public ?bool           $protected = false,
                                 public ?bool           $readonly = false,
-                                public ?array          $choices = null,
-                                public ?array          $choices_colors = null,
                                 public null|int|string $min_value = null,
                                 public null|int|string $max_value = null,
                                 public mixed           $default = null,

@@ -163,4 +163,46 @@ trait ModelQuery
 
     }
 
+    /**
+     * @throws Exception
+     */
+    public static function loadById(mixed $id): self
+    {
+
+        $class = get_called_class();
+
+        #TODO: Cache de itens já carregados do banco de dados
+
+        /** @var self $obj */
+        $obj = new $class();
+
+        if (is_null($id)) {
+            return $obj;
+        }
+
+        $primary_keys = $obj->getPrimaryKeys();
+
+        if (count($primary_keys) == 0) {
+            throw new Exception("Model '$class' não possui chave primária definida");
+        }
+
+        if (!is_array($id) && count($primary_keys) == 1) {
+            $id = [$obj->getFieldId()->getName() => $id];
+        }
+
+        $query = $obj->query();
+
+        foreach ($primary_keys as $key => $primary_key) {
+
+            $value = $id[$key]
+                ?? throw new Exception("Valor para o campo '$key' não informado");
+
+            $query = $query->filter($key, $value);
+
+        }
+
+        return $query->firstOrNew();
+
+    }
+
 }

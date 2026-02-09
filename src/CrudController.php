@@ -1,8 +1,8 @@
 <?php
 namespace Fluxion;
 
-use Psr\Http\Message\{MessageInterface, RequestInterface};
 use stdClass;
+use Psr\Http\Message\{MessageInterface, RequestInterface};
 
 class CrudController extends Controller
 {
@@ -70,12 +70,7 @@ class CrudController extends Controller
 
     }
 
-    public function hasPermission(Model $model, Permission $permission, RequestInterface $request): bool
-    {
-        return true;
-    }
-
-    public function permissionFilter(Query $query, RequestInterface $request): Query
+    public function permissionFilter(Query $query, Auth $auth): Query
     {
         return $query;
     }
@@ -111,13 +106,13 @@ class CrudController extends Controller
 
         $permissions = [];
 
-        $permissions['download'] = $this->hasPermission($model, Permission::DOWNLOAD, $request);
-        $permissions['insert'] = $this->hasPermission($model, Permission::INSERT, $request);
-        $permissions['delete'] = $this->hasPermission($model, Permission::DELETE, $request);
-        $permissions['view'] = $this->hasPermission($model, Permission::LIST, $request);
-        $permissions['update'] = $this->hasPermission($model, Permission::VIEW, $request);
-        $permissions['under'] = $this->hasPermission($model, Permission::LIST_UNDER, $request);
-        $permissions['special'] = $this->hasPermission($model, Permission::LIST_ALL, $request);
+        $permissions['download'] = $auth->hasPermission($model, Permission::DOWNLOAD);
+        $permissions['insert'] = $auth->hasPermission($model, Permission::INSERT);
+        $permissions['delete'] = $auth->hasPermission($model, Permission::DELETE);
+        $permissions['view'] = $auth->hasPermission($model, Permission::LIST);
+        $permissions['update'] = $auth->hasPermission($model, Permission::VIEW);
+        $permissions['under'] = $auth->hasPermission($model, Permission::LIST_UNDER);
+        $permissions['special'] = $auth->hasPermission($model, Permission::LIST_ALL);
 
         # Filtros e campos de busca
 
@@ -134,9 +129,7 @@ class CrudController extends Controller
 
         $data = [];
 
-        $query = $this->permissionFilter($model->query(), $request);
-
-        $tabs = [];
+        $query = $this->permissionFilter($model->query(), $auth);
 
         // Executa busca
         if (!empty($search)) {
@@ -149,12 +142,12 @@ class CrudController extends Controller
         else {
 
             $query = $model->filterItens($query, $filters);
-
             $query = $model->tab($query, $order);
 
         }
 
         $tabs = $model->getTabs(clone $query);
+
         $filters = $model->getFilters(clone $query, $filters);
 
         $query = $model->order($query, $order);
