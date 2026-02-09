@@ -31,7 +31,7 @@ trait ModelCrud
     {
 
         if (is_null($this->_crud)) {
-            $this->_crud = new Crud();
+            $this->_crud = new Crud(get_class($this));
         }
 
         return $this->_crud;

@@ -10,7 +10,7 @@ class Crud
 
     public ?string $subtitle;
 
-    public function __construct(public ?string $title = null,
+    public function __construct(public string $title,
                                 null|string|BackedEnum $subtitle = null,
                                 public string $description = 'Utilize os filtros ou a opção de busca para algum item específico',
                                 public string $not_found_message = 'Nenhum registro encontrado',

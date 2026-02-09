@@ -1,13 +1,14 @@
 <?php
 namespace Fluxion;
 
+use Fluxion\Menu\MenuGroup;
 use stdClass;
 use Psr\Http\Message\{MessageInterface, RequestInterface};
 
 class CrudController extends Controller
 {
 
-    public function home(): MessageInterface
+    public function home(RequestInterface $request): MessageInterface
     {
         return ResponseFactory::fromText('HOME');
     }
@@ -15,12 +16,19 @@ class CrudController extends Controller
     /**
      * @throws Exception
      */
-    public function createRoutes(string $base_url, Model $model, Controller $controller): void
+    public function createRoutes(string $base_url, Model $model, Controller $controller, ?MenuGroup $menu = null, ?Auth $auth = null): void
     {
 
         $class = get_called_class();
 
         $base_url = $controller->getBaseRoute() . $base_url;
+        $crud_details = $model->getCrud();
+
+        $menu?->addSub(new Menu\MenuItem(
+            title: $crud_details->title,
+            route: $base_url,
+            visible: $auth?->hasPermission($model, Permission::LIST) ?? false)
+        );
 
         $list = [
             ['url' => '', 'method' => 'GET', 'class' => $class, 'action' => 'home'],

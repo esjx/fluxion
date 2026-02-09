@@ -77,7 +77,7 @@ class Config
     public static function setPermissionModel(string $class): void
     {
 
-        if (class_exists(!$class)) {
+        if (!class_exists($class)) {
             throw new Exception("Classe '$class' não existe!");
         }
 

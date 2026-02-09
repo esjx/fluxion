@@ -27,6 +27,7 @@ class App
 
     /**
      * @throws ReflectionException
+     * @throws Exception
      */
     public static function routeUrl(): void
     {
@@ -119,7 +120,7 @@ class App
 
                     $control_name = $route->getClass();
 
-                    $out = $reflection->invokeArgs(new $control_name(), $invoke_parameters);
+                    $out = $reflection->invokeArgs(new $control_name($request), $invoke_parameters);
 
                     if ($out instanceof ResponseInterface) {
                         (new SapiEmitter())->emit($out);
@@ -156,7 +157,7 @@ class App
         }
 
         /** @var ControllerOld $control */
-        $control = new $control_name();
+        $control = new $control_name(ServerRequest::fromGlobals());
 
         if (!$control instanceof Controller) {
             throw new Exception("Classe $controller não é um Controller!");

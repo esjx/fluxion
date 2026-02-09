@@ -5,7 +5,7 @@ use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
 use GuzzleHttp\Psr7\{Response, Utils};
-use Psr\Http\Message\{MessageInterface};
+use Psr\Http\Message\{MessageInterface, RequestInterface};
 
 class Controller
 {
@@ -50,7 +50,7 @@ class Controller
 
         $class_name = get_called_class();
 
-        $stream->write("<b>/* $class_name */</b>\n\n");
+        $stream->write("<b>/* $class_name */</b>\n");
 
         # Buscando todos os arquivos de Models
 
@@ -165,7 +165,7 @@ class Controller
     /**
      * @throws ReflectionException
      */
-    public function __construct()
+    public function __construct(RequestInterface $request)
     {
 
         $class_name = get_called_class();

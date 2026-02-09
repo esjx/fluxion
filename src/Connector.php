@@ -213,7 +213,7 @@ abstract class Connector
 
         $model->changeState(State::SYNC);
 
-        $this->comment("<b>$class_name</b>", Color::ORANGE, break_after: true);
+        $this->comment("<b>$class_name</b>", Color::ORANGE, break_before: true, break_after: true);
 
         # Criar a tabela principal
 
@@ -267,7 +267,7 @@ abstract class Connector
 
         $sql = $this->sql_select($query) . ";\n";
 
-        $this->comment("Executando consulta em '$class_name'", Color::ORANGE);
+        $this->comment("Executando consulta em '$class_name'", Color::PINK);
 
         $this->logSql("$sql");
 
