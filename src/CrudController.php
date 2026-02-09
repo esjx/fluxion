@@ -1,8 +1,8 @@
 <?php
 namespace Fluxion;
 
-use Fluxion\Menu\MenuGroup;
 use stdClass;
+use Fluxion\Menu\{MenuGroup};
 use Psr\Http\Message\{MessageInterface, RequestInterface};
 
 class CrudController extends Controller
