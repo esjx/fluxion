@@ -4,7 +4,9 @@ namespace Fluxion\Database\Field;
 use Attribute;
 use DateTime;
 use Fluxion\Database\Field;
+use Fluxion\Database\FormField;
 use Fluxion\Exception;
+use Fluxion\Time;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class DateField extends Field
@@ -64,6 +66,18 @@ class DateField extends Field
         }
 
         return true;
+
+    }
+
+    public function getFormField(): FormField
+    {
+
+        $form_field = parent::getFormField();
+
+        $form_field->minDate = Time::convert($this->min_value, 'Y/m/d');
+        $form_field->maxDate = Time::convert($this->max_value, 'Y/m/d');
+
+        return $form_field;
 
     }
 

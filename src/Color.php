@@ -108,7 +108,7 @@ enum Color: string
     public static function random(): self
     {
 
-        $colors = self::getColors();
+        $colors = array_values(self::cases());
 
         return $colors[random_int(0, count($colors) - 1)];
 

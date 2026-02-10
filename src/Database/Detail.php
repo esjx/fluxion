@@ -11,9 +11,9 @@ class Detail
 {
 
     protected string $_name;
-    protected ?string $mask = null;
-    protected ?string $placeholder = null;
-    protected ?string $pattern = null;
+    public ?string $mask = null;
+    public string $placeholder = '';
+    public ?string $pattern = null;
 
     function setName(string $name): void
     {
@@ -30,11 +30,11 @@ class Detail
                                 public ?string $mask_class = null,
                                 public bool    $searchable = false,
                                 public bool    $filterable = false,
-                                public ?Icon    $filter_icon = null,
+                                public ?Icon   $filter_icon = null,
                                 public ?string $typeahead = null,
+                                public ?string $help = null,
                                 public ?int    $max_length = null,
-                                public ?int    $size = 12
-    )
+                                public ?int    $size = 12)
     {
 
     }
@@ -62,7 +62,7 @@ class Detail
             }
 
             $this->mask = $mask->mask;
-            $this->placeholder = $mask->placeholder;
+            $this->placeholder = $mask->placeholder ?? '';
             $this->pattern = $mask->pattern_validator;
             $this->label = $this->label ?? $mask->label;
             $this->max_length = $this->max_length ?? $mask->max_length;

@@ -3,6 +3,7 @@ namespace Fluxion\Database\Field;
 
 use Attribute;
 use Fluxion\Database\Field;
+use Fluxion\Database\FormField;
 use Fluxion\Exception;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -43,6 +44,17 @@ class PasswordField extends Field
         }
 
         return password_hash($value, PASSWORD_DEFAULT);
+
+    }
+
+    public function getFormField(): FormField
+    {
+
+        $form_field = parent::getFormField();
+
+        $form_field->value = null;
+
+        return $form_field;
 
     }
 

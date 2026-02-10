@@ -2,6 +2,7 @@
 namespace Fluxion;
 
 use stdClass;
+use Fluxion\Exception\{PermissionDeniedException};
 use Fluxion\Menu\{MenuGroup};
 use Psr\Http\Message\{MessageInterface, RequestInterface};
 
@@ -29,13 +30,14 @@ class CrudController extends Controller
         $crud_details = $model->getCrud();
 
         $menu?->addSub(new Menu\MenuItem(
-            title: $crud_details->title,
+            title: $crud_details->plural_title,
             route: $base_url,
             visible: $auth?->hasPermission($model, Permission::LIST) ?? false)
         );
 
         $list = [
             ['url' => '', 'method' => 'GET', 'class' => $class, 'action' => 'home'],
+            ['url' => '/add', 'method' => 'GET', 'class' => $class, 'action' => 'home'],
             ['url' => '/data', 'method' => 'POST', 'class' => $class, 'action' => 'data'],
             ['url' => '/fields', 'method' => 'POST', 'class' => $class, 'action' => 'fields'],
         ];
@@ -186,10 +188,12 @@ class CrudController extends Controller
 
         }
 
+        # Retorna dados
+
         $json = [
             'refresh' => $crud_details->refresh_time,
-            'title' => $crud_details->title ?? $class_name,
-            'html_title' => $crud_details->title ?? $class_name,
+            'title' => $crud_details->plural_title ?? $class_name,
+            'html_title' => $crud_details->plural_title ?? $class_name,
             'subtitle' => $crud_details->subtitle,
             'description' => $crud_details->description,
             'not_found_message' => $crud_details->not_found_message,
@@ -218,7 +222,93 @@ class CrudController extends Controller
      */
     public function fields(RequestInterface $request, Route $route): MessageInterface
     {
-        throw new Exception('Not implemented');
+
+        # Dados básicos
+
+        $auth = Config::getAuth($request);
+        $model = $route->getModel();
+
+        # Dados da requisição
+
+        $is = json_decode($request->getBody()->getContents());
+
+        # Permissões do usuário
+
+        if ($is->__id == 'add') {
+
+            $save = $auth->hasPermission($model, Permission::INSERT);
+
+            if (!$save) {
+                throw new PermissionDeniedException('Usuário sem acesso à inclusão!');
+            }
+
+        }
+
+        else {
+
+            if (!$auth->hasPermission($model, Permission::VIEW)) {
+                throw new PermissionDeniedException('Usuário sem acesso à visualização!');
+            }
+
+            $save = $auth->hasPermission($model, Permission::UPDATE);
+
+            $ids = explode(';', $is->__id);
+
+            $args = array_map(function () use (&$ids) {
+                return array_shift($ids);
+            }, $model->getPrimaryKeys());
+
+            $model = $model::loadById($args);
+
+        }
+
+        $model->changeState(State::VIEW);
+
+        $crud_details = $model->getCrud();
+        $table = $model->getTable();
+
+        # Campos
+
+        $fields = [];
+
+        foreach ($model->getFields() as $f) {
+
+            if ($f->protected) {
+                continue;
+            }
+
+            $form_field = $f->getFormField();
+
+            if (in_array($form_field->type, ['choices', 'colors'])) {
+                $form_field->choices = $form_field->getChoices();
+            }
+
+            $fields[] = $form_field;
+
+        }
+
+        # Inlines
+
+        $inlines = [];
+
+        #TODO
+
+        # Retorna dados
+
+        $json = [
+            'size' => $crud_details->form_size,
+            'header' => null,//$model->getFormHeader(null),
+            'footer' => null,//$model->getFormFooter(null),
+            'title' => $crud_details->title,
+            'fields' => $fields,
+            'inlines' => $inlines,
+            'html_title' => $crud_details->title,
+            'save' => (!$table->view && $save),
+            '$is' => $is,
+        ];
+
+        return ResponseFactory::fromJson($json);
+
     }
 
 }

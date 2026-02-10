@@ -34,6 +34,8 @@ abstract class Field
     public bool $inverted = false;
     public ?bool $required = false;
     public ?bool $protected = false;
+    public ?bool $enabled = true;
+    public ?bool $multiple = false;
     protected bool $_changed = false;
     protected bool $_loaded = false;
     public ?bool $readonly = false;
@@ -224,6 +226,37 @@ abstract class Field
     public function getSearch(string $value): ?QueryWhere
     {
         return null;
+    }
+
+    public function getFormField(): FormField
+    {
+
+        $detail = $this->_model->getDetail($this->getName());
+
+        $enabled = $this->enabled;
+
+        if (($this->readonly || $this->primary_key) && $this->_model->isSaved() && !is_null($this->_saved_value)) {
+            $enabled = false;
+        }
+
+        return new FormField(
+            visible: true,
+            name: $this->_name,
+            enabled: $enabled,
+            label: $detail->label,
+            type: $this->_type,
+            size: $detail->size,
+            min: $this->min_value,
+            max: $this->max_value,
+            required: $this->required,
+            placeholder: $detail->placeholder,
+            mask: $detail->mask,
+            maxlength: $this->max_length,
+            readonly: $this->readonly,
+            help: $detail->help,
+            value: $this->getValue(),
+        );
+
     }
 
 }

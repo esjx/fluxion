@@ -20,9 +20,9 @@ trait ModelCrud
         return $this->_details;
     }
 
-    public function getDetail(string $key): ?Detail
+    public function getDetail(string $key): Detail
     {
-        return $this->_details[$key] ?? null;
+        return $this->_details[$key] ?? new Detail(label: $key);
     }
 
     protected ?Crud $_crud = null;

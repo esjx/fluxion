@@ -32,4 +32,23 @@ enum Time: string
 
     }
 
+    public static function convert(?string $value, string $format): ?string
+    {
+
+        if (is_null($value)) {
+            return null;
+        }
+
+        try {
+
+            $date = new DateTime($value);
+
+            return $date->format($format);
+
+        } catch (_Exception) {
+            return null;
+        }
+
+    }
+
 }

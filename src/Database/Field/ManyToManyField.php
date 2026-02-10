@@ -3,6 +3,7 @@ namespace Fluxion\Database\Field;
 
 use Attribute;
 use Fluxion\Database\Field;
+use Fluxion\Database\FormField;
 use Fluxion\Exception;
 use Fluxion\MnModel;
 use Fluxion\Model;
@@ -11,11 +12,14 @@ use Fluxion\Model;
 class ManyToManyField extends Field
 {
 
+    use Typeahead;
+
     protected MnModel $_mn_model;
 
     private ?Field $_field = null;
 
     public ?bool $fake = true;
+    public ?bool $multiple = true;
 
     protected string $_type_target = 'array';
 

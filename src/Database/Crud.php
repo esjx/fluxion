@@ -11,6 +11,7 @@ class Crud
     public ?string $subtitle;
 
     public function __construct(public string $title,
+                                public ?string $plural_title = null,
                                 null|string|BackedEnum $subtitle = null,
                                 public string $description = 'Utilize os filtros ou a opção de busca para algum item específico',
                                 public string $not_found_message = 'Nenhum registro encontrado',
@@ -18,6 +19,7 @@ class Crud
                                 public string $update_title = 'Criado em',
                                 public string $update_format = 'dd/MM/y HH:mm',
                                 public ?string $field_tab = null,
+                                public string $form_size = 'modal-md',
                                 public int $itens_per_page = 20,
                                 public int $refresh_time = 60000)
     {
@@ -28,6 +30,10 @@ class Crud
 
         else {
             $this->subtitle = $subtitle;
+        }
+
+        if (empty($this->plural_title)) {
+            $this->plural_title = $this->title . 's';
         }
 
     }

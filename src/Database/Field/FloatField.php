@@ -3,6 +3,7 @@ namespace Fluxion\Database\Field;
 
 use Attribute;
 use Fluxion\Database\Field;
+use Fluxion\Database\FormField;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class FloatField extends Field
@@ -46,6 +47,17 @@ class FloatField extends Field
         }
 
         return floatval($value);
+
+    }
+
+    public function getFormField(): FormField
+    {
+
+        $form_field = parent::getFormField();
+
+        $form_field->type = 'float';
+
+        return $form_field;
 
     }
 
