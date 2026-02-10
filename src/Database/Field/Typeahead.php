@@ -23,9 +23,13 @@ trait Typeahead
         $field_id = $this->_reference_model->getFieldId();
         $field_id_name = $field_id->getName();
 
-        #TODO: Ordenar
+        # Ordenar
 
-        #TODO: Filtrar
+        $query = $this->_reference_model->order($query);
+
+        # Filtrar
+
+        #TODO
 
         if (!empty($this->_value)) {
 

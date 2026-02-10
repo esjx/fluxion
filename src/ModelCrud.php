@@ -73,20 +73,20 @@ trait ModelCrud
     {
 
         $orders = [];
-        $id = 0;
+        $id = 100;
 
         foreach ($this->_fields as $key => $field) {
 
             if ($field instanceof Field\AutoIncrementField) {
 
-                $orders[] = new Connector\TableOrder($id++, 'Mais novos', "-$key");
-                $orders[] = new Connector\TableOrder($id++, 'Mais antigos', "$key");
+                $orders[] = new Connector\TableOrder(++$id, 'Mais novos', "-$key");
+                $orders[] = new Connector\TableOrder(++$id, 'Mais antigos', "$key");
 
             }
 
             if ($field instanceof Field\AutoDateTimeField) {
 
-                $orders[] = new Connector\TableOrder($id++, 'Atualizados recentemente', "-$key");
+                $orders[] = new Connector\TableOrder(++$id, 'Atualizados recentemente', "-$key");
 
             }
 
@@ -96,8 +96,15 @@ trait ModelCrud
 
     }
 
-    public function order(Query $query, int $id): Query
+    public function order(Query $query, ?int &$id = null): Query
     {
+
+        if (is_null($id)) {
+            foreach ($this->getOrders() as $order) {
+                $id = $order->id;
+                break;
+            }
+        }
 
         foreach ($this->getOrders() as $order) {
             if ($order->id == $id) {
@@ -390,12 +397,12 @@ trait ModelCrud
 
     public function changeState(State $state): void {}
 
-    public function getFormHeader(mixed $arg): ?string
+    public function getFormHeader(?Action $action = null): ?string
     {
         return null;
     }
 
-    public function getFormFooter(mixed $arg): ?string
+    public function getFormFooter(?Action $action = null): ?string
     {
         return null;
     }

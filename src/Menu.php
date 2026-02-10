@@ -31,7 +31,29 @@ class Menu
     public static function get(): array
     {
 
-        #TODO: Ajustar visibilidade
+        foreach (self::$_items as $_item) {
+
+            if ($_item->route == '/') {
+
+                $_item->visible = true;
+                continue;
+
+            }
+
+            $_item->visible = false;
+
+            foreach ($_item->sub as $_sub) {
+
+                if ($_sub->visible) {
+
+                    $_item->visible = true;
+                    break;
+
+                }
+
+            }
+
+        }
 
         return self::$_items;
 

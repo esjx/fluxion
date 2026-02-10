@@ -6,6 +6,7 @@ use ReflectionException;
 use ReflectionMethod;
 use GuzzleHttp\Psr7\{Response, Utils};
 use Psr\Http\Message\{MessageInterface, RequestInterface};
+use Micheh\Cache\CacheUtil;
 
 class Controller
 {
@@ -34,6 +35,7 @@ class Controller
     /**
      * @throws ReflectionException
      * @throws Exception
+     * @noinspection PhpUnused
      */
     #[Route(route: '/setup', methods: 'GET')]
     public static function setup(): MessageInterface
@@ -158,12 +160,17 @@ class Controller
 
         $response = new Response();
 
+        $util = new CacheUtil();
+
+        $response = $util->withCachePrevention($response);
+
         return $response->withBody($stream);
 
     }
 
     /**
      * @throws ReflectionException
+     * @noinspection PhpUnusedParameterInspection
      */
     public function __construct(RequestInterface $request)
     {

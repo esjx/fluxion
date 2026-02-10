@@ -17,6 +17,7 @@ class App
     /** @var Route[] */
     protected static array $routes = [];
 
+    /** @noinspection PhpUnused */
     public static function routeUrl(): void
     {
 
@@ -170,6 +171,7 @@ class App
 
     /**
      * @throws Exception
+     * @noinspection PhpUnused
      */
     public static function registerApp(string $namespace, string $dir, string $controller): void
     {

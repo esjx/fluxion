@@ -195,7 +195,7 @@ trait ModelQuery
         foreach ($primary_keys as $key => $primary_key) {
 
             $value = $id[$key]
-                ?? throw new Exception("Valor para o campo '$key' não informado");
+                ?? throw new Exception("Valor para o campo '$class:$key' não informado");
 
             $query = $query->filter($key, $value);
 

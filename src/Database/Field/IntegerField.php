@@ -28,7 +28,7 @@ class IntegerField extends Field
     public function validate(mixed &$value): bool
     {
 
-        if (!parent::validate($value)) {
+        if ($this->required && is_null($value)) {
             return false;
         }
 

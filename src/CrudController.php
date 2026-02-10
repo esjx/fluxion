@@ -9,6 +9,10 @@ use Psr\Http\Message\{MessageInterface, RequestInterface};
 class CrudController extends Controller
 {
 
+    /**
+     * @noinspection PhpUnused
+     * @noinspection PhpUnusedParameterInspection
+     */
     public function home(RequestInterface $request): MessageInterface
     {
         return ResponseFactory::fromText('HOME');
@@ -16,6 +20,7 @@ class CrudController extends Controller
 
     /**
      * @throws Exception
+     * @noinspection PhpUnused
      */
     public function createRoutes(string $base_url,
                                  Model $model,
@@ -85,6 +90,7 @@ class CrudController extends Controller
 
     }
 
+    /** @noinspection PhpUnusedParameterInspection */
     public function permissionFilter(Query $query, Auth $auth): Query
     {
         return $query;
@@ -112,12 +118,16 @@ class CrudController extends Controller
 
         $page = $is->page ?? 1;
         $pages = $page;
-        $order = $is->order ?? 0;
+        $order = $is->order ?? null;
         $tab = $is->tab ?? null;
         $filters = $is->filters ?? new stdClass();
         $search = trim($is->search ?? '');
 
         # Permissões do usuário
+
+        if (!$auth->hasPermission($model, Permission::LIST)) {
+            throw new PermissionDeniedException('Usuário sem acesso à visualização!');
+        }
 
         $permissions = [];
 
@@ -267,6 +277,8 @@ class CrudController extends Controller
         $crud_details = $model->getCrud();
         $table = $model->getTable();
 
+        $save = (!$table->view && $save);
+
         # Campos
 
         $fields = [];
@@ -283,6 +295,10 @@ class CrudController extends Controller
                 $form_field->choices = $form_field->getChoices();
             }
 
+            if (!$save) {
+                $form_field->enabled = false;
+            }
+
             $fields[] = $form_field;
 
         }
@@ -297,13 +313,13 @@ class CrudController extends Controller
 
         $json = [
             'size' => $crud_details->form_size,
-            'header' => $model->getFormHeader(null),
-            'footer' => $model->getFormFooter(null),
+            'header' => $model->getFormHeader(),
+            'footer' => $model->getFormFooter(),
             'title' => $crud_details->title,
             'fields' => $fields,
             'inlines' => $inlines,
             'html_title' => $crud_details->title,
-            'save' => (!$table->view && $save),
+            'save' => $save,
             '$is' => $is,
         ];
 

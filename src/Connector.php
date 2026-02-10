@@ -63,15 +63,22 @@ abstract class Connector
     {
 
         if ($count == 0) {
-            $this->comment("Nenhum registro alterado");
+            $this->comment(text: "Nenhum registro alterado", break_after: true);
+        }
+
+        elseif ($count == -1) {
+            $this->comment(text: "Identificação de registros alterados não possível", break_after: true);
         }
 
         elseif ($count == 1) {
-            $this->comment("<b>1</b> registro alterado");
+            $this->comment(text: "<b>1</b> registro alterado", break_after: true);
         }
 
         else {
-            $this->comment(Message::create("{{count:number:0:b}} registros alterados", ['count' => $count]));
+            $this->comment(
+                text: Message::create("{{count:number:0:b}} registros alterados", ['count' => $count]),
+                break_after: true
+            );
         }
 
     }
@@ -267,7 +274,7 @@ abstract class Connector
 
         $sql = $this->sql_select($query) . ";\n";
 
-        $this->comment("Executando consulta em '$class_name'", Color::PINK);
+        $this->comment("Executando consulta em '$class_name'", Color::PINK, break_before: true);
 
         $this->logSql("$sql");
 
@@ -375,7 +382,7 @@ abstract class Connector
 
         else {
 
-            $this->comment("Nenhum campo atualizável");
+            $this->comment("Nenhum campo alterado...");
 
         }
 
