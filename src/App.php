@@ -4,9 +4,12 @@ namespace Fluxion;
 use stdClass;
 use ReflectionMethod;
 use ReflectionException;
+use Exception as _Exception;
+use Fluxion\Exception\PageNotFoundException;
 use GuzzleHttp\Psr7\{Response, ServerRequest};
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use Psr\Http\Message\{RequestInterface, ResponseInterface};
+use Micheh\Cache\CacheUtil;
 
 class App
 {
@@ -14,40 +17,63 @@ class App
     /** @var Route[] */
     protected static array $routes = [];
 
-    public static function error404(): never
-    {
-
-        http_response_code(404);
-
-        echo '<h1>404</h1>' . $_SERVER['REQUEST_URI'];
-
-        exit;
-
-    }
-
-    /**
-     * @throws ReflectionException
-     * @throws Exception
-     */
     public static function routeUrl(): void
     {
 
-        if (!self::dispatch(ServerRequest::fromGlobals(), self::$routes)) {
-            self::error404();
+        $request = ServerRequest::fromGlobals();
+
+        try {
+
+            if (!self::dispatch($request, self::$routes)) {
+                throw new PageNotFoundException($request->getUri()->getPath());
+            }
+
         }
 
-    }
+        catch (_Exception $e) {
 
-    public static function setCache(ResponseInterface $response, $seconds = 60): ResponseInterface
-    {
+            $server = $request->getServerParams();
 
-        $ts = gmdate("D, d M Y H:i:s", time() + $seconds) . " GMT";
-        $ls = gmdate("D, d M Y H:i:s", time()) . " GMT";
+            $is_json = strcasecmp($server['HTTP_X_REQUESTED_WITH'] ?? '', 'XMLHttpRequest') == 0;
+            $is_text = strcasecmp($server['HTTP_ACCEPT'] ?? '', 'text/strings') == 0;
 
-        return $response->withHeader('Expires', $ts)
-            ->withHeader('Last-Modified', $ls)
-            ->withHeader('Pragma', 'cache')
-            ->withHeader('Cache-Control', "max-age=$seconds");
+            $code = 500;
+
+            if ($e instanceof PageNotFoundException) {
+                $code = 404;
+            }
+
+            $message = $e->getMessage();
+
+            if ($code == 500) {
+
+                $message .= '<br><br><pre>'
+                    . str_replace(dirname(__DIR__, 4), '...', $e->getTraceAsString())
+                    . '</pre>';
+
+            }
+
+            /** @var ResponseInterface $response */
+
+            if ($is_json && !$is_text) {
+                $response = ResponseFactory::fromJson([
+                    'status' => $code,
+                    'message' => $message,
+                    'trace' => $e->getTraceAsString()
+                ], $code);
+            }
+
+            else {
+                $response = ResponseFactory::fromText($message, $code);
+            }
+
+            $util = new CacheUtil();
+
+            //$response = $util->withCachePrevention($response);
+
+            (new SapiEmitter())->emit($response);
+
+        }
 
     }
 

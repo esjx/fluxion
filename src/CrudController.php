@@ -16,7 +16,11 @@ class CrudController extends Controller
     /**
      * @throws Exception
      */
-    public function createRoutes(string $base_url, Model $model, Controller $controller, ?MenuGroup $menu = null, ?Auth $auth = null): void
+    public function createRoutes(string $base_url,
+                                 Model $model,
+                                 Controller $controller,
+                                 ?MenuGroup $menu = null,
+                                 ?Auth $auth = null): void
     {
 
         $class = get_called_class();
@@ -33,6 +37,7 @@ class CrudController extends Controller
         $list = [
             ['url' => '', 'method' => 'GET', 'class' => $class, 'action' => 'home'],
             ['url' => '/data', 'method' => 'POST', 'class' => $class, 'action' => 'data'],
+            ['url' => '/fields', 'method' => 'POST', 'class' => $class, 'action' => 'fields'],
         ];
 
         $keys = [];
@@ -40,11 +45,11 @@ class CrudController extends Controller
         foreach ($model->getPrimaryKeys() as $key => $pk) {
 
             if ($pk->getType() == 'integer') {
-                $keys[] = '{' . "$key:int}";
+                $keys[] = "{{$key}:int}";
             }
 
             else {
-                $keys[] = '{' . "$key:string}";
+                $keys[] = "{{$key}:string}";
             }
 
         }

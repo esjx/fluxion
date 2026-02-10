@@ -30,13 +30,14 @@
     "require": {
         "php": "^8.2",
         "ext-curl": "*",
+        "ext-fileinfo": "*",
+        "ext-intl": "*",
         "ext-mbstring": "*",
         "ext-pdo": "*",
         "ext-zip": "*",
-        "ext-fileinfo": "*",
-        "ext-intl": "*",
         "guzzlehttp/guzzle": "^7.10",
-        "laminas/laminas-httphandlerrunner": "^2.13"
+        "laminas/laminas-httphandlerrunner": "^2.13",
+        "micheh/psr7-cache": "^0.5.0"
     },
     "suggest": {
         "dompdf/dompdf": "Option for rendering PDF with PDF Writer"
