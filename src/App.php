@@ -69,7 +69,7 @@ class App
 
             $util = new CacheUtil();
 
-            //$response = $util->withCachePrevention($response);
+            $response = $util->withCachePrevention($response);
 
             (new SapiEmitter())->emit($response);
 

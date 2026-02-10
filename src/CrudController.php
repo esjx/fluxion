@@ -213,4 +213,12 @@ class CrudController extends Controller
 
     }
 
+    /**
+     * @throws Exception
+     */
+    public function fields(RequestInterface $request, Route $route): MessageInterface
+    {
+        throw new Exception('Not implemented');
+    }
+
 }
