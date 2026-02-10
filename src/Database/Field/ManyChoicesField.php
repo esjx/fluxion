@@ -85,7 +85,8 @@ class ManyChoicesField extends Field
                                 public ?bool   $required = false,
                                 public ?bool   $protected = false,
                                 public ?bool   $readonly = false,
-                                public ?string $column_name = null)
+                                public ?string $column_name = null,
+                                public ?bool $enabled = true)
     {
 
         $class = new $class_name;

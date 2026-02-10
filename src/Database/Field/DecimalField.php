@@ -16,7 +16,8 @@ class DecimalField extends FloatField
                                 public null|int|string $min_value = null,
                                 public null|int|string $max_value = null,
                                 public mixed           $default = null,
-                                public bool            $default_literal = false)
+                                public bool            $default_literal = false,
+                                public ?bool $enabled = true)
     {
         parent::__construct();
     }

@@ -12,9 +12,10 @@ class PasswordField extends Field
 
     protected string $_type = self::TYPE_PASSWORD;
 
-    public function __construct(public ?bool   $required = false,
-                                public ?bool   $protected = false,
-                                public ?bool   $readonly = false,)
+    public function __construct(public ?bool $required = false,
+                                public ?bool $protected = false,
+                                public ?bool $readonly = false,
+                                public ?bool $enabled = true)
     {
         parent::__construct();
     }

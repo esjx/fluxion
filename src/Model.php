@@ -121,9 +121,15 @@ abstract class Model
 
     public function __toString(): string
     {
-        return get_class($this);
-    }
 
-    public function changeState(State $state): void {}
+        $crud_detail = $this->getCrud();
+
+        if ($id = $this->id()) {
+            return mb_strtoupper($crud_detail->title) . " #$id";
+        }
+
+        return mb_strtoupper($crud_detail->title) ;
+
+    }
 
 }

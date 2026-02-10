@@ -31,7 +31,11 @@ trait ModelCrud
     {
 
         if (is_null($this->_crud)) {
-            $this->_crud = new Crud(get_class($this));
+
+            $name = substr(strrchr(get_class($this), "\\"), 1);
+
+            $this->_crud = new Crud($name);
+
         }
 
         return $this->_crud;
@@ -43,9 +47,15 @@ trait ModelCrud
         return (string) $this;
     }
 
-    public function subtitle(): string
+    public function subtitle(): ?string
     {
-        return json_encode($this->id());
+
+        if ($id = $this->id()) {
+            return "#$id";
+        }
+
+        return null;
+
     }
 
     public function extras(): array
@@ -376,6 +386,18 @@ trait ModelCrud
 
         return $query;
 
+    }
+
+    public function changeState(State $state): void {}
+
+    public function getFormHeader(mixed $arg): ?string
+    {
+        return null;
+    }
+
+    public function getFormFooter(mixed $arg): ?string
+    {
+        return null;
     }
 
 }

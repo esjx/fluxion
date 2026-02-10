@@ -15,7 +15,8 @@ class BooleanField extends Field
                                 public ?bool   $protected = false,
                                 public ?bool   $readonly = false,
                                 public mixed   $default = null,
-                                public bool    $default_literal = false)
+                                public bool    $default_literal = false,
+                                public ?bool $enabled = true)
     {
         parent::__construct();
     }

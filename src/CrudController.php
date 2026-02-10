@@ -297,8 +297,8 @@ class CrudController extends Controller
 
         $json = [
             'size' => $crud_details->form_size,
-            'header' => null,//$model->getFormHeader(null),#TODO
-            'footer' => null,//$model->getFormFooter(null),#TODO
+            'header' => $model->getFormHeader(null),
+            'footer' => $model->getFormFooter(null),
             'title' => $crud_details->title,
             'fields' => $fields,
             'inlines' => $inlines,

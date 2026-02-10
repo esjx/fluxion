@@ -11,6 +11,7 @@ class AutoIncrementField extends Field
     protected string $_type = self::TYPE_INTEGER;
 
     public ?bool $identity = true;
+    public ?bool $enabled = false;
 
     public function __construct(public ?bool $required = false,
                                 public ?bool $protected = false,

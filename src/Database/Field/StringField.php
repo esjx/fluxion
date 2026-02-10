@@ -17,7 +17,8 @@ class StringField extends Field
                                 public ?int    $max_length = null,
                                 public mixed   $default = null,
                                 public bool    $default_literal = false,
-                                public ?string $column_name = null)
+                                public ?string $column_name = null,
+                                public ?bool $enabled = true)
     {
         parent::__construct();
     }

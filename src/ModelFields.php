@@ -9,11 +9,9 @@ trait ModelFields
 
     # Dados iniciais para o banco de dados
 
-    protected array $_data = [];
-
     public function getData(): array
     {
-        return $this->_data;
+        return [];
     }
 
     # Dados para identificação da tabela e índices

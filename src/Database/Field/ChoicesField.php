@@ -20,7 +20,8 @@ class ChoicesField extends Field
                                 public ?array  $choices_colors = null,
                                 public mixed   $default = null,
                                 public bool    $default_literal = false,
-                                public ?string $column_name = null)
+                                public ?string $column_name = null,
+                                public ?bool $enabled = true)
     {
         parent::__construct();
     }
