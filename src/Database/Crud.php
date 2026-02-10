@@ -16,7 +16,7 @@ class Crud
                                 public string $description = 'Utilize os filtros ou a opção de busca para algum item específico',
                                 public string $not_found_message = 'Nenhum registro encontrado',
                                 public string $search_placeholder = 'Buscar...',
-                                public string $update_title = 'Criado em',
+                                public string $update_title = 'Atualizado em',
                                 public string $update_format = 'dd/MM/y HH:mm',
                                 public ?string $field_tab = null,
                                 public string $form_size = 'modal-md',

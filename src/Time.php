@@ -39,15 +39,23 @@ enum Time: string
             return null;
         }
 
-        try {
+        $formats = ['Y-m-d H:i:s.v', 'Y-m-d H:i:s', 'Y-m-d'];
 
-            $date = new DateTime($value);
+        foreach ($formats as $format_in) {
 
-            return $date->format($format);
+            $date = DateTime::createFromFormat($format_in, $value);
 
-        } catch (_Exception) {
+            if ($date !== false) {
+                break;
+            }
+
+        }
+
+        if ($date === false) {
             return null;
         }
+
+        return $date->format($format);
 
     }
 

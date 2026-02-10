@@ -65,7 +65,15 @@ trait ModelCrud
 
     public function updateInfo(): ?string
     {
+
+        foreach ($this->getFields() as $field) {
+            if ($field instanceof Field\AutoDateTimeField) {
+                return Time::convert($field->getValue(), 'Y/m/d H:i:s');
+            }
+        }
+
         return null;
+
     }
 
     /** @return Connector\TableOrder[] */

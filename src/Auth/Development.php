@@ -23,17 +23,7 @@ class Development extends Auth
             throw new AuthException("Variável '$this->_env_login' não encontrada!");
         }
 
-        $login = $_ENV[$this->_env_login];
-        $model = $_ENV[$this->_env_model];
-
-        /** @var UserModel $user */
-        $user = $model::loadById($login);
-
-        if (is_null($user->login)) {
-            throw new AuthException("Usuário '$login' não encontrado!");
-        }
-
-        $this->_user = $user;
+        $this->_user = new UserModel();
         $this->_authenticated = true;
 
     }
