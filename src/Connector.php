@@ -502,12 +502,16 @@ abstract class Connector
                     $data[] = [$left => $id, $right => $item];
                 }
 
-                $this->comment("Inserindo registro(s) em '{$mn_model->getComment()}'", Color::GREEN, true);
-                $sql = $this->sql_insert($mn_model, $data);
+                if (count($data) > 0) {
 
-                $count = $this->execute($sql);
+                    $this->comment("Inserindo registro(s) em '{$mn_model->getComment()}'", Color::GREEN, true);
+                    $sql = $this->sql_insert($mn_model, $data);
 
-                $this->rowCountLog($count);
+                    $count = $this->execute($sql);
+
+                    $this->rowCountLog($count);
+
+                }
 
             }
 
