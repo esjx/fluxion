@@ -35,6 +35,10 @@ class App
 
             $message = $e->getMessage();
 
+            if (method_exists($e, 'getAltMessage')) {
+                $message = $e->getAltMessage();
+            }
+
             $server = $request->getServerParams();
 
             $is_json = strcasecmp($server['HTTP_X_REQUESTED_WITH'] ?? '', 'XMLHttpRequest') == 0;
