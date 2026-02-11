@@ -25,6 +25,8 @@ class App
 
         try {
 
+            Config::getAuth($request);
+
             if (!self::dispatch($request, self::$routes)) {
                 throw new PageNotFoundException($request->getUri()->getPath());
             }
@@ -136,7 +138,7 @@ class App
                             }
 
                             elseif ($type == Auth::class) {
-                                $invoke_parameters[] = Config::getAuth($request);
+                                $invoke_parameters[] = Config::getAuth();
                             }
 
                             elseif ($type == stdClass::class) {

@@ -3,12 +3,53 @@ namespace Fluxion;
 
 use stdClass;
 use ReflectionException;
-use Fluxion\Exception\{PermissionDeniedException};
 use Fluxion\Menu\{MenuGroup};
+use Fluxion\Exception\{PermissionDeniedException};
 use Psr\Http\Message\{MessageInterface, RequestInterface};
 
 class CrudController extends Controller
 {
+
+    /**
+     * @throws PermissionDeniedException
+     * @throws Exception
+     */
+    protected function getModel(Model $model, string $id): Model
+    {
+
+        # Dados básicos
+
+        $auth = Config::getAuth();
+
+        # Permissões do usuário
+
+        if ($id == 'add') {
+
+            if (!$auth->hasPermission($model, Permission::INSERT)) {
+                throw new PermissionDeniedException('Usuário sem acesso à inclusão!');
+            }
+
+        }
+
+        else {
+
+            if (!$auth->hasPermission($model, Permission::VIEW)) {
+                throw new PermissionDeniedException('Usuário sem acesso à visualização!');
+            }
+
+            $ids = explode(';', $id);
+
+            $args = array_map(function () use (&$ids) {
+                return array_shift($ids);
+            }, $model->getPrimaryKeys());
+
+            $model = $model::loadById($args);
+
+        }
+
+        return $model;
+
+    }
 
     /**
      * @noinspection PhpUnused
@@ -46,6 +87,7 @@ class CrudController extends Controller
             ['url' => '/add', 'method' => 'GET', 'class' => $class, 'action' => 'home'],
             ['url' => '/data', 'method' => 'POST', 'class' => $class, 'action' => 'data'],
             ['url' => '/fields', 'method' => 'POST', 'class' => $class, 'action' => 'fields'],
+            ['url' => '/save', 'method' => 'POST', 'class' => $class, 'action' => 'save'],
         ];
 
         $keys = [];
@@ -81,8 +123,7 @@ class CrudController extends Controller
                 args: ['model' => $model]
             );
 
-            $route->setClass($item['class']);
-            $route->setMethod($item['action']);
+            $route->setClassMethod($item['class'], $item['action']);
             $route->setModel($model);
 
             $controller->addRoute($route);
@@ -106,8 +147,9 @@ class CrudController extends Controller
 
         # Dados básicos
 
-        $auth = Config::getAuth($request);
+        $auth = Config::getAuth();
         $model = $route->getModel();
+
         $model->changeState(State::VIEW);
 
         $crud_details = $model->getCrud();
@@ -236,48 +278,23 @@ class CrudController extends Controller
     public function fields(RequestInterface $request, Route $route): MessageInterface
     {
 
-        # Dados básicos
-
-        $auth = Config::getAuth($request);
-        $model = $route->getModel();
-
-        # Dados da requisição
-
         $is = json_decode($request->getBody()->getContents());
 
-        # Permissões do usuário
+        $id = $is->__id ?? $is->__grupo ?? null;
 
-        if ($is->__id == 'add') {
+        # Dados básicos
 
-            $save = $auth->hasPermission($model, Permission::INSERT);
-
-            if (!$save) {
-                throw new PermissionDeniedException('Usuário sem acesso à inclusão!');
-            }
-
-        }
-
-        else {
-
-            if (!$auth->hasPermission($model, Permission::VIEW)) {
-                throw new PermissionDeniedException('Usuário sem acesso à visualização!');
-            }
-
-            $save = $auth->hasPermission($model, Permission::UPDATE);
-
-            $ids = explode(';', $is->__id);
-
-            $args = array_map(function () use (&$ids) {
-                return array_shift($ids);
-            }, $model->getPrimaryKeys());
-
-            $model = $model::loadById($args);
-
-        }
+        $auth = Config::getAuth();
+        $model = $this->getModel($route->getModel(), $id);
 
         $model->changeState(State::VIEW);
 
-        $crud_details = $model->getCrud();
+        # Verificar se habilita o campo de salvar
+
+        $save = ($is->__id == 'add')
+            ? $auth->hasPermission($model, Permission::INSERT)
+            : $auth->hasPermission($model, Permission::UPDATE);
+
         $table = $model->getTable();
 
         $save = (!$table->view && $save);
@@ -294,7 +311,7 @@ class CrudController extends Controller
 
             $form_field = $f->getFormField();
 
-            if (in_array($form_field->type, ['choices', 'colors'])) {
+            if (in_array($form_field->type, ['choices', 'radio', 'colors'])) {
                 $form_field->choices = $form_field->getChoices();
             }
 
@@ -314,6 +331,8 @@ class CrudController extends Controller
 
         # Retorna dados
 
+        $crud_details = $model->getCrud();
+
         $json = [
             'size' => $crud_details->form_size,
             'header' => $model->getFormHeader(),
@@ -324,6 +343,61 @@ class CrudController extends Controller
             'html_title' => $crud_details->title,
             'save' => $save,
             '$is' => $is,
+        ];
+
+        return ResponseFactory::fromJson($json);
+
+    }
+
+    /**
+     * @throws PermissionDeniedException
+     * @throws Exception
+     */
+    public function save(RequestInterface $request, Route $route): MessageInterface
+    {
+
+        $is = json_decode($request->getBody()->getContents());
+
+        $id = $is->__id ?? $is->__grupo ?? null;
+
+        # Dados básicos
+
+        $model = $this->getModel($route->getModel(), $id);
+
+        $model->changeState(State::BEFORE_SAVE);
+
+        $model->changeState(State::VIEW);
+
+        # Salva dados
+
+        foreach ($model->getFields() as $key => $f) {
+
+            if ($f->protected || $f->readonly) {
+                continue;
+            }
+
+            $f->setValue($is->$key ?? null);
+
+        }
+
+        $model->changeState(State::SAVE);
+
+        $model->save();
+
+        # Salva os inlines
+
+        foreach ($is->__inlines as $inline_id => $inline_data) {
+
+            //TODO
+
+        }
+
+        # Retorna dados
+
+        $json = [
+            'type' => 'refresh',
+            'ok' => true,
+            'id' => $model->id(),
         ];
 
         return ResponseFactory::fromJson($json);

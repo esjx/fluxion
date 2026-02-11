@@ -56,7 +56,20 @@ class ManyToManyField extends Field
             return $this->_value;
         }
 
-        if (is_null($this->_value) && $this->_model->isSaved()) {
+        $this->load();
+
+        return $this->format($this->_value);
+
+    }
+
+    /**
+     * @throws ReflectionException
+     * @throws Exception
+     */
+    public function load(): void
+    {
+
+        if (is_null($this->_value) && !$this->_changed && $this->_model->isSaved()) {
 
             $class = get_class($this->_model);
 
@@ -64,11 +77,9 @@ class ManyToManyField extends Field
 
             $field_id = $this->_model->getFieldId();
 
-            return $mn_model->load($field_id->getValue());
+            $this->_value = $mn_model->load($field_id->getValue());
 
         }
-
-        return $this->format($this->_value);
 
     }
 

@@ -131,9 +131,12 @@ abstract class Field
             return $this->_value;
         }
 
-        //if (empty($this->_value)) return null;
-
         return $this->format($this->_value);
+
+    }
+
+    public function load(): void
+    {
 
     }
 
@@ -175,7 +178,10 @@ abstract class Field
 
         $new_value = $this->translate($value);
 
-        if ($this->_value !== $new_value) {
+        $this->load();
+
+        if ($this->_value !== $new_value
+            || ($this->_type_target == 'array' && (array) $this->_value !=  (array) $new_value)) {
             $this->_changed = true;
             $this->_value = $new_value;
         }

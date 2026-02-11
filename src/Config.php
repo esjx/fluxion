@@ -31,7 +31,7 @@ class Config
     private static ?Auth $auth = null;
 
     /** @throws Exception */
-    public static function getAuth(RequestInterface $request): Auth
+    public static function getAuth(?RequestInterface $request = null): Auth
     {
 
         if (is_null(self::$auth)) {

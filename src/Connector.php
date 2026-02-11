@@ -330,6 +330,8 @@ abstract class Connector
     public function prepare(string $sql): false|PDOStatement
     {
 
+        error_log($sql);
+
         try {
             return $this->getPDO()->prepare($sql);
         }
@@ -345,6 +347,8 @@ abstract class Connector
      */
     public function query(string $sql): false|PDOStatement
     {
+
+        file_put_contents('php://stderr', $sql);
 
         try {
             return $this->getPDO()->query($sql);

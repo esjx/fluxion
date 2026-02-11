@@ -24,12 +24,17 @@ class BooleanField extends Field
     public function validate(mixed &$value): bool
     {
 
-        if ($this->required && !in_array($value, [true, false], true)) {
+        if ($this->required && !$value) {
             return false;
         }
 
         return true;
 
+    }
+
+    public function format(mixed $value): bool
+    {
+        return !!$value;
     }
 
 }

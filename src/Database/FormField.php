@@ -12,6 +12,7 @@ class FormField
     public ?string $maxDate = null;
     public ?string $typeahead = null;
     public bool $multiple = false;
+    public bool $inline = false;
 
     protected array $_choices = [];
 

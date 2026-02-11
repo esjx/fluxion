@@ -14,7 +14,7 @@ class Development extends Auth
      * @throws AuthException
      * @throws Exception
      */
-    public function __construct(RequestInterface $request)
+    public function __construct(?RequestInterface $request)
     {
 
         parent::__construct($request);

@@ -13,7 +13,7 @@ abstract class Auth
     /**
      * @throws AuthException
      */
-    public function __construct(RequestInterface $request)
+    public function __construct(?RequestInterface $request)
     {
 
         if (empty($_ENV[$this->_env_model])) {

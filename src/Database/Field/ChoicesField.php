@@ -2,6 +2,7 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
+use BackedEnum;
 use Fluxion\Color;
 use Fluxion\Database\Field;
 use Fluxion\Database\FormField;
@@ -11,6 +12,11 @@ use Fluxion\Exception;
 class ChoicesField extends Field
 {
 
+    use Choices;
+
+    /**
+     * @throws Exception
+     */
     public function __construct(public ?bool   $required = false,
                                 public ?bool   $primary_key = false,
                                 public ?bool   $protected = false,
@@ -18,12 +24,19 @@ class ChoicesField extends Field
                                 public ?int    $max_length = null,
                                 public ?array  $choices = null,
                                 public ?array  $choices_colors = null,
+                                public ?string $class_name = null,
+                                public bool    $radio = false,
+                                public bool    $inline = false,
                                 public mixed   $default = null,
                                 public bool    $default_literal = false,
                                 public ?string $column_name = null,
-                                public ?bool $enabled = true)
+                                public ?bool   $enabled = true)
     {
+
+        $this->createChoices();
+
         parent::__construct();
+
     }
 
     /** @throws Exception */
@@ -55,31 +68,6 @@ class ChoicesField extends Field
             'integer' => (new IntegerField())->validate($value),
             default => (new StringField())->validate($value),
         };
-
-    }
-
-    public function getFormField(): FormField
-    {
-
-        $form_field = parent::getFormField();
-
-        foreach ($this->choices as $key => $label) {
-
-            if ($this->_type == self::TYPE_STRING) {
-                $key = (string) $key;
-            }
-
-            $form_field->addChoice(
-                value: $key,
-                label: $label,
-                color: Color::tryFrom($this->choices_colors[$key] ?? '')
-            );
-
-        }
-
-        $form_field->type = 'choices';
-
-        return $form_field;
 
     }
 

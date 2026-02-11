@@ -10,6 +10,8 @@ use Fluxion\Database\{Field, FormField};
 class ManyChoicesField extends Field
 {
 
+    use Choices;
+
     protected ManyChoicesModel $_mc_model;
 
     public ?bool $fake = true;
@@ -52,7 +54,20 @@ class ManyChoicesField extends Field
             return $this->_value;
         }
 
-        if (is_null($this->_value) && $this->_model->isSaved()) {
+        $this->load();
+
+        return $this->format($this->_value);
+
+    }
+
+    /**
+     * @throws ReflectionException
+     * @throws Exception
+     */
+    public function load(): void
+    {
+
+        if (is_null($this->_value) && !$this->_changed && $this->_model->isSaved()) {
 
             $class = get_class($this->_model);
 
@@ -60,11 +75,9 @@ class ManyChoicesField extends Field
 
             $field_id = $this->_model->getFieldId();
 
-            return $mn_model->load($field_id->getValue());
+            $this->_value = $mn_model->load($field_id->getValue());
 
         }
-
-        return $this->format($this->_value);
 
     }
 
@@ -72,8 +85,9 @@ class ManyChoicesField extends Field
      * @throws Exception
      */
     public function __construct(array          $choices,
-                                string         $choices_type = 'string',
                                 public ?array  $choices_colors = null,
+                                string         $choices_type = 'string',
+                                public ?string $class_name = null,
                                 public bool    $show = false,
                                 public ?string $type = null,
                                 public ?array  $filter = null,
@@ -90,6 +104,8 @@ class ManyChoicesField extends Field
         }
 
         $this->_type = $choices_type;
+
+        $this->createChoices();
 
         parent::__construct();
 
@@ -128,32 +144,6 @@ class ManyChoicesField extends Field
     public function isManyChoices(): bool
     {
         return true;
-    }
-
-    public function getFormField(): FormField
-    {
-
-        $form_field = parent::getFormField();
-
-        foreach ($this->choices as $key => $label) {
-
-            if ($this->_type == self::TYPE_STRING) {
-                $key = (string) $key;
-            }
-
-            $form_field->addChoice(
-                value: $key,
-                label: $label,
-                color: Color::tryFrom($this->choices_colors[$key] ?? '')
-            );
-
-        }
-
-        $form_field->type = 'choices';
-        $form_field->multiple = $this->multiple;
-
-        return $form_field;
-
     }
 
 }
