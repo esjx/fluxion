@@ -21,7 +21,7 @@ class Crud
                                 public ?string $field_tab = null,
                                 public string $form_size = 'modal-md',
                                 public int $itens_per_page = 20,
-                                public int $refresh_time = 60000)
+                                public int $refresh_time = 60000000)
     {
 
         if ($subtitle instanceof BackedEnum) {

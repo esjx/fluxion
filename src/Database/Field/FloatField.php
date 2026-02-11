@@ -43,7 +43,7 @@ class FloatField extends Field
     public function translate(mixed $value): ?float
     {
 
-        if (empty($value)) {
+        if (is_null($value)) {
             return null;
         }
 

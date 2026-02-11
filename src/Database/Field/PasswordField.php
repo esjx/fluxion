@@ -40,7 +40,7 @@ class PasswordField extends Field
     public function translate(mixed $value): ?string
     {
 
-        if (empty($value)) {
+        if (is_null($value) || $value === '') {
             return null;
         }
 

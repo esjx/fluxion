@@ -150,7 +150,13 @@ abstract class Field
 
     public function translate(mixed $value): mixed
     {
+
+        if (is_null($value) || $value === '') {
+            return null;
+        }
+
         return (string) $value;
+
     }
 
     /** @throws Exception */

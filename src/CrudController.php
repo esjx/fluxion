@@ -2,6 +2,7 @@
 namespace Fluxion;
 
 use stdClass;
+use ReflectionException;
 use Fluxion\Exception\{PermissionDeniedException};
 use Fluxion\Menu\{MenuGroup};
 use Psr\Http\Message\{MessageInterface, RequestInterface};
@@ -98,7 +99,7 @@ class CrudController extends Controller
 
     /**
      * @throws Exception
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function data(RequestInterface $request, Route $route): MessageInterface
     {
