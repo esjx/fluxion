@@ -36,7 +36,6 @@ class Exception extends \Exception
         return $this->_log;
     }
 
-    /** @noinspection PhpUnused */
     public function getAltMessage(): string
     {
         return $this->_message;
