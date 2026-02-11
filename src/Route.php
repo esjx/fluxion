@@ -39,19 +39,24 @@ class Route
         return $this->class;
     }
 
-    public function setClass(string $class): void
-    {
-        $this->class = $class;
-    }
-
     public function getMethod(): ?string
     {
         return $this->method;
     }
 
-    public function setMethod(string $method): void
+    /**
+     * @throws Exception
+     */
+    public function setClassMethod(string $class, string $method): void
     {
+
+        if (!method_exists($class, $method)) {
+            throw new Exception("Método '$class:$method()' não existe!");
+        }
+
+        $this->class = $class;
         $this->method = $method;
+
     }
 
     public function getModel(): ?Model

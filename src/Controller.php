@@ -170,6 +170,7 @@ class Controller
 
     /**
      * @throws ReflectionException
+     * @throws Exception
      * @noinspection PhpUnusedParameterInspection
      */
     public function __construct(RequestInterface $request)
@@ -211,8 +212,7 @@ class Controller
                     $instance->route = $this->base_route . $instance->route;
                 }
 
-                $instance->setClass($class_name);
-                $instance->setMethod($method->getName());
+                $instance->setClassMethod($class_name, $method->getName());
 
                 $this->addRoute($instance);
 
