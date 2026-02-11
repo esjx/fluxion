@@ -1,6 +1,7 @@
 <?php
 namespace Fluxion;
 
+use ReflectionException;
 use stdClass;
 use Fluxion\Database\{Crud, Detail, Field};
 use Fluxion\Query\QuerySql;
@@ -126,6 +127,7 @@ trait ModelCrud
     /**
      * @return array<string, Connector\TableTab>
      * @throws Exception
+     * @throws ReflectionException
      */
     public function getTabs(Query $query): array
     {
@@ -197,12 +199,12 @@ trait ModelCrud
 
         }
 
-        elseif ($field instanceof Field\ManyToManyField) {
+        elseif ($field instanceof Field\ManyToManyField ) {
 
             $field_id = $field->getReferenceModel()->getFieldId();
             $field_id_name = $field_id->getName();
 
-            $mn_model = $field->getMnModel();
+            $mn_model = $field->getManyToManyModel();
             $mn_field_name = $mn_model->getRight();
 
             $labels = [];
@@ -228,7 +230,21 @@ trait ModelCrud
         }
 
         elseif ($field instanceof Field\ManyChoicesField) {
-            #TODO
+
+            $mn_model = $field->getManyChoicesModel();
+            $mn_field_name = $mn_model->getRight();
+
+            $list_right = $mn_model->_query()->groupBy($mn_field_name);
+
+            foreach ($list_right->count($mn_field_name)->select() as $item) {
+
+                $id = $item->$mn_field_name;
+                $label = $field->choices[$id] ?? (string) $id;
+
+                $list[] = new Connector\TableTab(id: $id, label: $label, itens: $item->total);
+
+            }
+
         }
 
         else {
@@ -251,6 +267,7 @@ trait ModelCrud
     /**
      * @return array<string, Connector\TableFilter>
      * @throws Exception
+     * @throws ReflectionException
      */
     public function getFilters(Query $query, stdClass $filters): array
     {
@@ -366,7 +383,7 @@ trait ModelCrud
                 $field_id = $field->getReferenceModel()->getFieldId();
                 $field_id_name = $field_id->getName();
 
-                $mn_model = $field->getMnModel();
+                $mn_model = $field->getManyToManyModel();
                 $mn_field_name = $mn_model->getRight();
 
                 $field_color_name = '';
@@ -407,7 +424,26 @@ trait ModelCrud
             }
 
             elseif ($field instanceof Field\ManyChoicesField) {
-                #TODO
+
+                $mn_model = $field->getManyChoicesModel();
+                $mn_field_name = $mn_model->getRight();
+
+                $list_right = $mn_model->_query()->groupBy($mn_field_name);
+
+                foreach ($list_right->select() as $item) {
+
+                    $id = $item->$mn_field_name;
+                    $label = $field->choices[$id] ?? (string) $id;
+
+                    $filter->itens[] = new Connector\TableFilterItem(
+                        id: $id,
+                        label: $label,
+                        active: in_array($id, $options),
+                        color: $field->choices_colors[$id] ?? null
+                    );
+
+                }
+
             }
 
             else {
@@ -437,8 +473,9 @@ trait ModelCrud
 
     /**
      * @throws Exception
+     * @throws ReflectionException
      */
-    public function tab(Query $query, ?string &$tab): Query
+    public function tab(Query $query, null|string|int &$tab, null|string|int $default_tab): Query
     {
 
         $crud = $this->getCrud();
@@ -453,7 +490,7 @@ trait ModelCrud
 
             $field_id = $this->getFieldId();
 
-            $mn_model = $field->getMnModel();
+            $mn_model = $field->getManyToManyModel();
             $mn_field_right = $mn_model->getRight();
             $mn_field_left = $mn_model->getLeft();
 
@@ -461,23 +498,67 @@ trait ModelCrud
 
             $test = (clone $query)->filter($field_id->getName(), $list)->first();
 
-            if (!is_null($test)) {
-                $query = $query->filter($field_id->getName(), $list);
+            if (is_null($test)) {
+
+                if (is_null($default_tab)) {
+                    return $query;
+                }
+
+                else {
+                    $tab = $default_tab;
+                }
+
             }
+
+            $query = $query->filter($field_id->getName(), $list);
 
         }
 
         elseif ($field instanceof Field\ManyChoicesField) {
-            #TODO
+
+            $field_id = $this->getFieldId();
+
+            $mn_model = $field->getManyChoicesModel();
+            $mn_field_right = $mn_model->getRight();
+            $mn_field_left = $mn_model->getLeft();
+
+            $list = $mn_model->_filter($mn_field_right, $tab)->groupBy($mn_field_left);
+
+            $test = (clone $query)->filter($field_id->getName(), $list)->first();
+
+            if (is_null($test)) {
+
+                if (is_null($default_tab)) {
+                    return $query;
+                }
+
+                else {
+                    $tab = $default_tab;
+                }
+
+            }
+
+            $query = $query->filter($field_id->getName(), $list);
+
         }
 
         else {
 
             $test = (clone $query)->filter($crud->field_tab, $tab)->first();
 
-            if (!is_null($test)) {
-                $query = $query->filter($crud->field_tab, $tab);
+            if (is_null($test)) {
+
+                if (is_null($default_tab)) {
+                    return $query;
+                }
+
+                else {
+                    $tab = $default_tab;
+                }
+
             }
+
+            $query = $query->filter($crud->field_tab, $tab);
 
         }
 
@@ -538,6 +619,7 @@ trait ModelCrud
 
     /**
      * @throws Exception
+     * @throws ReflectionException
      */
     public function filterItens(Query $query, stdClass $filters): Query
     {
@@ -554,7 +636,7 @@ trait ModelCrud
 
                 $field_id = $this->getFieldId();
 
-                $mn_model = $field->getMnModel();
+                $mn_model = $field->getManyToManyModel();
                 $mn_field_right = $mn_model->getRight();
                 $mn_field_left = $mn_model->getLeft();
 
@@ -565,7 +647,17 @@ trait ModelCrud
             }
 
             elseif ($field instanceof Field\ManyChoicesField) {
-                #TODO
+
+                $field_id = $this->getFieldId();
+
+                $mn_model = $field->getManyChoicesModel();
+                $mn_field_right = $mn_model->getRight();
+                $mn_field_left = $mn_model->getLeft();
+
+                $list = $mn_model->_filter($mn_field_right, $value)->groupBy($mn_field_left);
+
+                $query = $query->filter($field_id->getName(), $list);
+
             }
 
             else {
@@ -580,11 +672,13 @@ trait ModelCrud
 
     public function changeState(State $state): void {}
 
+    /** @noinspection PhpUnusedParameterInspection */
     public function getFormHeader(?Action $action = null): ?string
     {
         return null;
     }
 
+    /** @noinspection PhpUnusedParameterInspection */
     public function getFormFooter(?Action $action = null): ?string
     {
         return null;

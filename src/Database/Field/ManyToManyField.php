@@ -2,11 +2,9 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
-use Fluxion\Database\Field;
-use Fluxion\Database\FormField;
-use Fluxion\Exception;
-use Fluxion\MnModel;
-use Fluxion\Model;
+use ReflectionException;
+use Fluxion\{Exception, ManyToManyModel, Model};
+use Fluxion\Database\{Field};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class ManyToManyField extends Field
@@ -14,7 +12,7 @@ class ManyToManyField extends Field
 
     use Typeahead;
 
-    protected MnModel $_mn_model;
+    protected ManyToManyModel $_mn_model;
 
     private ?Field $_field = null;
 
@@ -23,13 +21,6 @@ class ManyToManyField extends Field
 
     protected string $_type_target = 'array';
 
-    protected string $_name;
-
-    public function setName(string $name): void
-    {
-        $this->_name = $name;
-    }
-
     public function setModel(Model $model): void
     {
         $this->_model = $model;
@@ -37,13 +28,14 @@ class ManyToManyField extends Field
 
     /**
      * @throws Exception
+     * @throws ReflectionException
      */
-    public function getMnModel(): MnModel
+    public function getManyToManyModel(): ManyToManyModel
     {
 
         if (empty($this->_mn_model)) {
 
-            $this->_mn_model = new MnModel($this->_model, $this->_name, $this->inverted);
+            $this->_mn_model = new ManyToManyModel($this->_model, $this->_name, $this->inverted);
 
         }
 
@@ -53,6 +45,7 @@ class ManyToManyField extends Field
 
     /**
      * @throws Exception
+     * @throws ReflectionException
      */
     public function getValue($row = false): mixed
     {
@@ -67,7 +60,7 @@ class ManyToManyField extends Field
 
             $class = get_class($this->_model);
 
-            $mn_model = new MnModel(new $class(), $this->_name, $this->inverted);
+            $mn_model = new ManyToManyModel(new $class(), $this->_name, $this->inverted);
 
             $field_id = $this->_model->getFieldId();
 
@@ -89,8 +82,7 @@ class ManyToManyField extends Field
                                 public ?bool   $required = false,
                                 public ?bool   $protected = false,
                                 public ?bool   $readonly = false,
-                                public ?string $column_name = null,
-                                public ?bool $enabled = true)
+                                public ?bool   $enabled = true)
     {
 
         $class = new $class_name;

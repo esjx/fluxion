@@ -1880,7 +1880,7 @@ abstract class ModelOld {
 
                     $m = $this->createModelFromName($value['many_to_many']);
 
-                    $mn = new MnModel($this, $key, false, $config, $auth);
+                    $mn = new ManyToManyModel($this, $key, false, $config, $auth);
 
                     $m_id = $m->_field_id;
 
@@ -2022,7 +2022,7 @@ abstract class ModelOld {
 
                 if (isset($this->_fields[$key]['many_to_many'])) {
 
-                    $mn = new MnModel($this, $key, false, $config, $auth);
+                    $mn = new ManyToManyModel($this, $key, false, $config, $auth);
 
                     $itens = $mn->_filter('b', $permitted)->groupBy('a');
 
@@ -2263,7 +2263,7 @@ abstract class ModelOld {
 
                 $m = $this->createModelFromName($value['many_to_many']);
 
-                $mn = new MnModel($this, $key, false);
+                $mn = new ManyToManyModel($this, $key, false);
 
                 $m_id = $m->_field_id;
 
@@ -2372,7 +2372,7 @@ abstract class ModelOld {
 
                 //$m = $this->createModelFromName($value['many_to_many']);
 
-                $mn = new MnModel($this, $key, false);
+                $mn = new ManyToManyModel($this, $key, false);
 
                 $teste = (clone $query)->filter($this->_field_id, $mn->_filter('b', $tab)->groupBy('a'))->firstOrNew();
 
@@ -2542,7 +2542,7 @@ abstract class ModelOld {
         if (isset($this->_fields[$field]['many_choices'])) {
             $mn = new MnChoicesModelOld($this, $field, $config, $auth);
         } else {
-            $mn = new MnModel($this, $field, $inverted, $config, $auth);
+            $mn = new ManyToManyModel($this, $field, $inverted, $config, $auth);
         }
 
         return $mn->load($this->{$this->_field_id});

@@ -1,12 +1,13 @@
 <?php
 namespace Fluxion;
 
-use Fluxion\Exception\SqlException;
 use Generator;
 use PDO;
 use PDOException;
 use PDOStatement;
+use ReflectionException;
 use Fluxion\Query\{QueryWhere};
+use Fluxion\Exception\SqlException;
 use Psr\Http\Message\StreamInterface;
 
 abstract class Connector
@@ -35,6 +36,7 @@ abstract class Connector
         $this->log_stream = $stream;
     }
 
+    /** @noinspection PhpUnused */
     public function getLogStream(): ?StreamInterface
     {
         return $this->log_stream;
@@ -90,14 +92,11 @@ abstract class Connector
         $this->extra_break = false;
 
         if (!is_null($this->log_stream)) {
-            $this->log_stream->write(SqlFormatter::highlight($sql, false));
+            $this->log_stream->write(SqlFormatter::highlight($sql, false) . "\n\n");
         }
 
     }
 
-    /**
-     * @throws SqlException
-     */
     protected function execute($sql, bool $break_after = false): int
     {
 
@@ -212,7 +211,9 @@ abstract class Connector
         return "T" . $this::$table_id++;
     }
 
-    /** @throws Exception */
+    /** @throws Exception
+     * @throws ReflectionException
+     */
     public function sync(string $class_name): void
     {
 
@@ -229,9 +230,7 @@ abstract class Connector
 
         # Criar as tabelas MN
 
-        $many_to_many = $model->getManyToMany();
-
-        foreach ($many_to_many as $key => $mn) {
+        foreach ($model->getManyToMany() as $key => $mn) {
 
             if ($mn->inverted) {
                 continue;
@@ -241,7 +240,21 @@ abstract class Connector
 
             # Criar a tabela de relacionamento
 
-            $this->executeSync($mn->getMnModel());
+            $this->executeSync($mn->getManyToManyModel());
+
+        }
+
+        foreach ($model->getManyChoices() as $key => $mn) {
+
+            if ($mn->inverted) {
+                continue;
+            }
+
+            $this->comment("<b>Tabela MN para o campo '$key'</b>", break_after: true);
+
+            # Criar a tabela de relacionamento
+
+            $this->executeSync($mn->getManyChoicesModel());
 
         }
 
@@ -433,6 +446,7 @@ abstract class Connector
 
     /**
      * @throws Exception
+     * @throws ReflectionException
      */
     public function save(Model $model): bool
     {
@@ -469,7 +483,7 @@ abstract class Connector
 
             if ($mn->isChanged()) {
 
-                $mn_model = $mn->getMnModel();
+                $mn_model = $mn->getManyToManyModel();
                 $id = $field_id->getValue();
                 $left = $mn_model->getLeft();
                 $right = $mn_model->getRight();
@@ -552,6 +566,9 @@ abstract class Connector
 
     }
 
+    /**
+     * @noinspection PhpUnused
+     */
     public function truncate(Query $query): bool
     {
 

@@ -98,6 +98,7 @@ class CrudController extends Controller
 
     /**
      * @throws Exception
+     * @throws \ReflectionException
      */
     public function data(RequestInterface $request, Route $route): MessageInterface
     {
@@ -157,6 +158,7 @@ class CrudController extends Controller
         $query = $this->permissionFilter($model->query(), $auth);
 
         $tabs = $model->getTabs(clone $query);
+        $default_tab = $tabs[0]->id ?? null;
 
         // Executa busca
         if (!empty($search)) {
@@ -169,7 +171,7 @@ class CrudController extends Controller
         else {
 
             $query = $model->filterItens($query, $filters);
-            $query = $model->tab($query, $tab);
+            $query = $model->tab($query, $tab, $default_tab);
 
         }
 

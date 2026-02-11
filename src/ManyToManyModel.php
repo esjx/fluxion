@@ -1,34 +1,31 @@
 <?php
 namespace Fluxion;
 
-use Fluxion\Query\QuerySql;
+use ReflectionException;
+use ReflectionProperty;
+use Fluxion\Database\Field\{ForeignKeyField};
 
-class MnModel extends Model
+class ManyToManyModel extends Model
 {
 
-    public mixed $a;
-    public mixed $b;
+    use ModelMany;
 
-    protected string $left = 'a';
-    protected string $right = 'b';
-
-    public function getLeft(): string
-    {
-        return $this->left;
-    }
-
-    public function getRight(): string
-    {
-        return $this->right;
-    }
-
-    /** @throws Exception */
+    /**
+     * @throws Exception
+     * @throws ReflectionException
+     */
     public function __construct(protected ?Model  $model = null,
                                 protected ?string $field = null,
                                 protected bool    $inverted = false)
     {
 
         if (!is_null($model)) {
+
+            $reflection = new ReflectionProperty($this->model, $field);
+
+            if (strval($reflection->getType()) != '?array') {
+                throw new Exception("Campo $this->model:$field deve ser um array e permitir nulos!");
+            }
 
             $this->comment = get_class($model) . " MN[$field]";
 
@@ -75,15 +72,16 @@ class MnModel extends Model
 
             $this->_table->table .= '_has_' . $field_name;
 
-            foreach (['a', 'b'] as $name) {
+            foreach (['a', 'b'] as $key) {
 
-                $this->_fields[$name] = new Database\Field\ForeignKeyField(get_class($models[$name]), real: true, type: 'CASCADE');
-                $this->_fields[$name]->column_name = $name;
-                $this->_fields[$name]->required = true;
-                $this->_fields[$name]->primary_key = true;
-                $this->_fields[$name]->setName($name);
-                $this->_fields[$name]->setModel($this);
-                $this->_fields[$name]->initialize();
+                $this->_fields[$key] = new ForeignKeyField(get_class($models[$key]), real: true, type: 'CASCADE');
+                $this->_fields[$key]->column_name = $key;
+                $this->_fields[$key]->required = true;
+                $this->_fields[$key]->primary_key = true;
+                $this->_fields[$key]->setName($key);
+                $this->_fields[$key]->setModel($this);
+                $this->_fields[$key]->setTypeProperty($reflection->getType());
+                $this->_fields[$key]->initialize();
 
             }
 
@@ -93,34 +91,6 @@ class MnModel extends Model
         }
 
         parent::__construct();
-
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function load($id): array
-    {
-
-        $query = new Query($this);
-
-        return $query->filter($this->left, $id)->only($this->right)->toArray();
-
-    }
-
-    public function _filter(string|QuerySql $field, $value = null): Query
-    {
-
-        $query = new Query($this);
-
-        return $query->filter($field, $value);
-
-    }
-
-    public function _query(): Query
-    {
-
-        return new Query($this);
 
     }
 

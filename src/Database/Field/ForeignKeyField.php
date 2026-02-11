@@ -2,7 +2,8 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
-use Fluxion\{Database\Field, Database\FormField, Exception, Model};
+use Fluxion\{Exception, Model};
+use Fluxion\Database\{Field};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class ForeignKeyField extends Field
@@ -11,13 +12,6 @@ class ForeignKeyField extends Field
     use Typeahead;
 
     private ?Field $_field = null;
-
-    protected string $_name;
-
-    public function setName(string $name): void
-    {
-        $this->_name = $name;
-    }
 
     public function setModel(Model $model): void
     {

@@ -70,6 +70,9 @@ class SQLServer extends Connector
 
     }
 
+    /**
+     * @throws SqlException
+     */
     protected function updateDatabase(Database\Table $table): void
     {
 

@@ -6,12 +6,18 @@ class Exception extends \Exception
 
     private bool $_log;
 
+    protected string $_message;
+
     public function __construct(string $message = '', array $data = [], bool $log = true)
     {
 
         $this->_log = $log;
 
-        parent::__construct(Message::create($this->highlight($message), $data));
+        $message = Message::create($message, $data);
+
+        $this->_message = $this->highlight($message);
+
+        parent::__construct(strip_tags($message));
 
     }
 
@@ -28,6 +34,12 @@ class Exception extends \Exception
     public function getLog(): bool
     {
         return $this->_log;
+    }
+
+    /** @noinspection PhpUnused */
+    public function getAltMessage(): string
+    {
+        return $this->_message;
     }
 
 }

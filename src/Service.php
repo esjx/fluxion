@@ -365,7 +365,7 @@ class Service
 
             if (!is_null($id)) {
 
-                $mn = new MnModel($model_name, $name, isset($value['i_many_to_many']));
+                $mn = new ManyToManyModel($model_name, $name, isset($value['i_many_to_many']));
                 $field['value'] = $mn->load($model->$id_field);
 
             }

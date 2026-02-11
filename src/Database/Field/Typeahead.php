@@ -13,6 +13,7 @@ trait Typeahead
     public function getFormField(): FormField
     {
 
+        /** @noinspection PhpMultipleClassDeclarationsInspection */
         $form_field = parent::getFormField();
 
         $pre = 30;
@@ -57,7 +58,7 @@ trait Typeahead
 
                 $form_field->addChoice(
                     value: $row->$field_id_name,
-                    label: (string)$row
+                    label: (string) $row
                 );
 
             }

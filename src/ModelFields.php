@@ -2,7 +2,7 @@
 namespace Fluxion;
 
 use Fluxion\Database\{Field, Table};
-use Fluxion\Database\Field\{ForeignKeyField, ManyToManyField};
+use Fluxion\Database\Field\{ForeignKeyField, ManyChoicesField, ManyToManyField};
 
 trait ModelFields
 {
@@ -132,6 +132,14 @@ trait ModelFields
     {
         return array_filter($this->_fields, function ($field) {
             return $field->isManyToMany();
+        });
+    }
+
+    /** @return array<string, ManyChoicesField> */
+    public function getManyChoices(): array
+    {
+        return array_filter($this->_fields, function ($field) {
+            return $field->isManyChoices();
         });
     }
 

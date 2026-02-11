@@ -1,9 +1,8 @@
 <?php
 namespace Fluxion\Database;
 
-use Fluxion\Exception;
-use Fluxion\Model;
-use Fluxion\Query\QueryWhere;
+use Fluxion\{Exception, Model};
+use Fluxion\Query\{QueryWhere};
 
 abstract class Field
 {
@@ -214,6 +213,11 @@ abstract class Field
     }
 
     public function isManyToMany(): bool
+    {
+        return false;
+    }
+
+    public function isManyChoices(): bool
     {
         return false;
     }

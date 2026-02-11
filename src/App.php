@@ -45,7 +45,7 @@ class App
 
             $code = 500;
 
-            if ($e instanceof PageNotFoundException) {/**/
+            if ($e instanceof PageNotFoundException) {
                 $code = 404;
             }
 

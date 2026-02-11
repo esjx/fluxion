@@ -167,7 +167,7 @@ class AuthOld
 
         if (!isset($GLOBALS['$profiles'])) {
 
-            $mn = new MnModel(Models\Profile::class, 'groups');
+            $mn = new ManyToManyModel(Models\Profile::class, 'groups');
 
             $GLOBALS['$profiles'] = $mn->_filter('b', $this->groups())->groupBy('a')->toArray();
 

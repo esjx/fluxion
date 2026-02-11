@@ -2,29 +2,20 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
-use Fluxion\Database\Field;
-use Fluxion\Exception;
-use Fluxion\MnModel;
-use Fluxion\Model;
+use ReflectionException;
+use Fluxion\{Exception, ManyChoicesModel, Model, Color};
+use Fluxion\Database\{Field, FormField};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class ManyChoicesField extends Field
 {
 
-    protected MnModel $_mn_model;
-
-    private ?Field $_field = null;
+    protected ManyChoicesModel $_mc_model;
 
     public ?bool $fake = true;
+    public ?bool $multiple = true;
 
     protected string $_type_target = 'array';
-
-    protected string $_name;
-
-    public function setName(string $name): void
-    {
-        $this->_name = $name;
-    }
 
     public function setModel(Model $model): void
     {
@@ -33,22 +24,24 @@ class ManyChoicesField extends Field
 
     /**
      * @throws Exception
+     * @throws ReflectionException
      */
-    public function getMnModel(): MnModel
+    public function getManyChoicesModel(): ManyChoicesModel
     {
 
-        if (empty($this->_mn_model)) {
+        if (empty($this->_mc_model)) {
 
-            $this->_mn_model = new MnModel($this->_model, $this->_name, $this->inverted);
+            $this->_mc_model = new ManyChoicesModel($this->_model, $this->_name);
 
         }
 
-        return $this->_mn_model;
+        return $this->_mc_model;
 
     }
 
     /**
      * @throws Exception
+     * @throws ReflectionException
      */
     public function getValue($row = false): mixed
     {
@@ -63,7 +56,7 @@ class ManyChoicesField extends Field
 
             $class = get_class($this->_model);
 
-            $mn_model = new MnModel(new $class(), $this->_name, $this->inverted);
+            $mn_model = new ManyChoicesModel(new $class(), $this->_name);
 
             $field_id = $this->_model->getFieldId();
 
@@ -75,29 +68,28 @@ class ManyChoicesField extends Field
 
     }
 
-    /** @throws Exception */
-    public function __construct(public string  $class_name,
-                                public bool    $inverted = false,
-                                public bool    $real = false,
+    /**
+     * @throws Exception
+     */
+    public function __construct(array          $choices,
+                                string         $choices_type = 'string',
+                                public ?array  $choices_colors = null,
                                 public bool    $show = false,
                                 public ?string $type = null,
                                 public ?array  $filter = null,
                                 public ?bool   $required = false,
                                 public ?bool   $protected = false,
                                 public ?bool   $readonly = false,
-                                public ?string $column_name = null,
-                                public ?bool $enabled = true)
+                                public ?bool   $enabled = true)
     {
 
-        $class = new $class_name;
+        $this->choices = $choices;
 
-        if (!$class instanceof Model) {
-            throw new Exception(message: "Classe '$class_name' não é Model", log: false);
+        if (!in_array($choices_type, [self::TYPE_STRING, self::TYPE_INTEGER])) {
+            throw new Exception("Tipo de opções '$choices_type' inválido!");
         }
 
-        $this->_reference_model = $class;
-
-        $this->_field = $class->getFieldId();
+        $this->_type = $choices_type;
 
         parent::__construct();
 
@@ -129,15 +121,39 @@ class ManyChoicesField extends Field
     public function initialize(): void
     {
 
-        $this->_type = $this->_field->getType();
-
         parent::initialize();
 
     }
 
-    public function isManyToMany(): bool
+    public function isManyChoices(): bool
     {
         return true;
+    }
+
+    public function getFormField(): FormField
+    {
+
+        $form_field = parent::getFormField();
+
+        foreach ($this->choices as $key => $label) {
+
+            if ($this->_type == self::TYPE_STRING) {
+                $key = (string) $key;
+            }
+
+            $form_field->addChoice(
+                value: $key,
+                label: $label,
+                color: Color::tryFrom($this->choices_colors[$key] ?? '')
+            );
+
+        }
+
+        $form_field->type = 'choices';
+        $form_field->multiple = $this->multiple;
+
+        return $form_field;
+
     }
 
 }
