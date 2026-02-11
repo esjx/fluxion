@@ -3,8 +3,7 @@ namespace Fluxion\Database\Field;
 
 use Attribute;
 use Fluxion\Color;
-use Fluxion\Database\Field;
-use Fluxion\Database\FormField;
+use Fluxion\Database\{Field, FormField};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class ColorField extends Field
@@ -32,11 +31,7 @@ class ColorField extends Field
 
         $form_field = parent::getFormField();
 
-        foreach (Color::cases() as $color) {
-
-            if (in_array($color, [Color::INDIGO, Color::LIGHT_BLUE, Color::WHITE, Color::GREY, Color::BLUE_GREY])) {
-                continue;
-            }
+        foreach (Color::getColors() as $color) {
 
             $form_field->addChoice(
                 value: $color->value,

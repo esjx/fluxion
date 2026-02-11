@@ -1,10 +1,11 @@
 <?php
 namespace Fluxion\Connector;
 
-use Fluxion\{Color, Connector, Database, Exception, Model, Query, Time};
-use Fluxion\Query\{QueryWhere};
 use PDO;
 use Random\RandomException;
+use Fluxion\Exception\{SqlException};
+use Fluxion\{Color, Connector, Database, Exception, Model, Query, Time};
+use Fluxion\Query\{QueryWhere};
 
 class SQLServer extends Connector
 {
@@ -21,6 +22,9 @@ class SQLServer extends Connector
         PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_UTF8,
     ];
 
+    /**
+     * @throws SqlException
+     */
     protected function updateStructure(): void
     {
 
@@ -51,7 +55,7 @@ class SQLServer extends Connector
 
         foreach ($this->_structure as $database => $value) {
 
-            $this->getPDO()->exec("USE $database;");
+            $this->exec("USE $database;");
 
             foreach ($this->fetch($sql) as $result) {
 
@@ -105,6 +109,9 @@ class SQLServer extends Connector
 
     }
 
+    /**
+     * @throws SqlException
+     */
     public function getTableInfo(Database\Table $table): TableInfo
     {
 
@@ -114,7 +121,7 @@ class SQLServer extends Connector
 
         # Alterando banco de dados atual
 
-        $this->getPDO()->exec("USE $table->database;");
+        $this->exec("USE $table->database;");
 
         # Buscando campos da tabela
 
@@ -1132,7 +1139,7 @@ class SQLServer extends Connector
 
         $sql = "SELECT$top" . implode(",\n\t", $fields);
 
-        $sql .= "\nFROM $table->database.$table->schema.$table->table AS $id WITH (nolock)";
+        $sql .= "\nFROM $table->database.$table->schema.$table->table AS $id WITH (NOLOCK)";
 
         if (count($where) > 0) {
             $sql .= "\nWHERE\t" . implode(" AND\n\t", $where);

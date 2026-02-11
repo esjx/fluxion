@@ -156,6 +156,8 @@ class CrudController extends Controller
 
         $query = $this->permissionFilter($model->query(), $auth);
 
+        $tabs = $model->getTabs(clone $query);
+
         // Executa busca
         if (!empty($search)) {
 
@@ -167,11 +169,9 @@ class CrudController extends Controller
         else {
 
             $query = $model->filterItens($query, $filters);
-            $query = $model->tab($query, $order);
+            $query = $model->tab($query, $tab);
 
         }
-
-        $tabs = $model->getTabs(clone $query);
 
         $filters = $model->getFilters(clone $query, $filters);
 

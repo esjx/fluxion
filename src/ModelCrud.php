@@ -1,7 +1,6 @@
 <?php
 namespace Fluxion;
 
-use Psr\Http\Message\RequestInterface;
 use stdClass;
 use Fluxion\Database\{Crud, Detail, Field};
 use Fluxion\Query\QuerySql;
@@ -22,7 +21,7 @@ trait ModelCrud
 
     public function getDetail(string $key): Detail
     {
-        return $this->_details[$key] ?? new Detail(label: $key);
+        return $this->_details[$key] ?? new Detail(label: ucfirst($key));
     }
 
     protected ?Crud $_crud = null;
@@ -135,44 +134,114 @@ trait ModelCrud
 
         $crud = $this->getCrud();
 
-        if (is_null($crud->field_tab)) {
+        $key = $crud->field_tab;
+
+        if (is_null($key)) {
             return $list;
         }
 
-        $field = $this->getField($crud->field_tab);
-        $detail = $this->getDetail($crud->field_tab);
+        $field = $this->getField($key);
+
+        $item = (clone $query)->count()->first();
+
+        $list[] = new Connector\TableTab(id: null, label: '(Todos)', itens: $item->total);
 
         if ($field instanceof Field\ChoicesField) {
-            #TODO
+
+            foreach ((clone $query)->groupBy($key)->count($key)->select() as $item) {
+
+                $id = $item->$key;
+                $label = $field->choices[$id] ?? (string) $id;
+
+                $list[] = new Connector\TableTab(id: $id, label: $label, itens: $item->total);
+
+            }
+
         }
 
         elseif ($field instanceof Field\BooleanField) {
 
-            foreach ((clone $query)->groupBy($crud->field_tab)->count($crud->field_tab)->select() as $tab) {
+            foreach ((clone $query)->groupBy($key)->count($key)->select() as $item) {
 
-                $id = $tab->{$crud->field_tab};
+                $id = $item->$key;
                 $label = ($id) ? 'Sim' : 'Não';
 
-                $list[] = new Connector\TableTab(id: $id, label: $label, itens: $tab->total);
+                $list[] = new Connector\TableTab(id: $id, label: $label, itens: $item->total);
 
             }
 
         }
 
         elseif ($field instanceof Field\ForeignKeyField) {
-            #TODO
+
+            $field_id = $field->getReferenceModel()->getFieldId();
+            $field_id_name = $field_id->getName();
+
+            $labels = [];
+
+            foreach ($field->getReferenceModel()::filter($field_id_name, (clone $query)->groupBy($key))
+                         ->select() as $item) {
+
+                $labels[$item->$field_id_name] = (string) $item;
+
+            }
+
+            foreach ((clone $query)->groupBy($key)->count($key)->select() as $item) {
+
+                $id = $item->$key;
+                $label = $labels[$id] ?? (string) $id;
+
+                $list[] = new Connector\TableTab(id: $id, label: $label, itens: $item->total);
+
+            }
+
+        }
+
+        elseif ($field instanceof Field\ManyToManyField) {
+
+            $field_id = $field->getReferenceModel()->getFieldId();
+            $field_id_name = $field_id->getName();
+
+            $mn_model = $field->getMnModel();
+            $mn_field_name = $mn_model->getRight();
+
+            $labels = [];
+
+            $list_right = $mn_model->_query()->groupBy($mn_field_name);
+
+            foreach ($field->getReferenceModel()::filter($field_id_name, $list_right)
+                         ->select() as $item) {
+
+                $labels[$item->$field_id_name] = (string) $item;
+
+            }
+
+            foreach ($list_right->count($mn_field_name)->select() as $item) {
+
+                $id = $item->$mn_field_name;
+                $label = $labels[$id] ?? (string) $id;
+
+                $list[] = new Connector\TableTab(id: $id, label: $label, itens: $item->total);
+
+            }
+
         }
 
         elseif ($field instanceof Field\ManyChoicesField) {
             #TODO
         }
 
-        elseif ($field instanceof Field\ManyToManyField) {
-            #TODO
-        }
-
         else {
-            #TODO
+
+            foreach ((clone $query)->groupBy($key)->count($key)->select() as $item) {
+
+                $id = $item->$key;
+                $label = (string) $id;
+
+                $list[] = new Connector\TableTab(id: $id, label: $label, itens: $item->total);
+
+            }
+
         }
 
         return $list;
@@ -195,7 +264,7 @@ trait ModelCrud
 
             $detail = $this->getDetail($key);
 
-            if (is_null($detail) || $crud->field_tab == $key || !$detail->filterable) {
+            if ($crud->field_tab == $key || !$detail->filterable) {
                 continue;
             }
 
@@ -219,7 +288,21 @@ trait ModelCrud
             );
 
             if ($field instanceof Field\ChoicesField) {
-                #TODO
+
+                foreach ((clone $query)->groupBy($key)->select() as $item) {
+
+                    $id = $item->$key;
+                    $label = $field->choices[$id] ?? (string) $id;
+
+                    $filter->itens[] = new Connector\TableFilterItem(
+                        id: $id,
+                        label: $label,
+                        active: in_array($id, $options),
+                        color: $field->choices_colors[$id] ?? null
+                    );
+
+                }
+
             }
 
             elseif ($field instanceof Field\BooleanField) {
@@ -239,19 +322,109 @@ trait ModelCrud
             }
 
             elseif ($field instanceof Field\ForeignKeyField) {
-                #TODO
+
+                $field_id = $field->getReferenceModel()->getFieldId();
+                $field_id_name = $field_id->getName();
+
+                $field_color_name = '';
+
+                foreach ($field->getReferenceModel()->getFields() as $f) {
+                    if ($f instanceof Field\ColorField) {
+                        $field_color_name = $f->getName();
+                        break;
+                    }
+                }
+
+                $labels = [];
+                $colors = [];
+
+                foreach ($field->getReferenceModel()::filter($field_id_name, (clone $query)->groupBy($key))
+                             ->select() as $item) {
+
+                    $labels[$item->$field_id_name] = (string) $item;
+                    $colors[$item->$field_id_name] = Color::tryFrom($item->$field_color_name ?? '');
+
+                }
+
+                foreach ((clone $query)->groupBy($key)->select() as $item) {
+
+                    $id = $item->$key;
+
+                    $filter->itens[] = new Connector\TableFilterItem(
+                        id: $id,
+                        label: $labels[$id] ?? (string) $id,
+                        active: in_array($id, $options),
+                        color: $colors[$id] ?? null
+                    );
+
+                }
+
+            }
+
+            elseif ($field instanceof Field\ManyToManyField) {
+
+                $field_id = $field->getReferenceModel()->getFieldId();
+                $field_id_name = $field_id->getName();
+
+                $mn_model = $field->getMnModel();
+                $mn_field_name = $mn_model->getRight();
+
+                $field_color_name = '';
+
+                foreach ($field->getReferenceModel()->getFields() as $f) {
+                    if ($f instanceof Field\ColorField) {
+                        $field_color_name = $f->getName();
+                        break;
+                    }
+                }
+
+                $labels = [];
+                $colors = [];
+
+                $list_right = $mn_model->_query()->groupBy($mn_field_name);
+
+                foreach ($field->getReferenceModel()::filter($field_id_name, $list_right)
+                             ->select() as $item) {
+
+                    $labels[$item->$field_id_name] = (string) $item;
+                    $colors[$item->$field_id_name] = Color::tryFrom($item->$field_color_name ?? '');
+
+                }
+
+                foreach ($list_right->select() as $item) {
+
+                    $id = $item->$mn_field_name;
+
+                    $filter->itens[] = new Connector\TableFilterItem(
+                        id: $id,
+                        label: $labels[$id] ?? (string) $id,
+                        active: in_array($id, $options),
+                        color: $colors[$id] ?? null
+                    );
+
+                }
+
             }
 
             elseif ($field instanceof Field\ManyChoicesField) {
                 #TODO
             }
 
-            elseif ($field instanceof Field\ManyToManyField) {
-                #TODO
-            }
-
             else {
-                #TODO
+
+                foreach ((clone $query)->groupBy($key)->select() as $item) {
+
+                    $id = $item->$key;
+
+                    $filter->itens[] = new Connector\TableFilterItem(
+                        id: $id,
+                        label: "$id",
+                        active: in_array($id, $options),
+                        color: null
+                    );
+
+                }
+
             }
 
             $list[] = $filter;
@@ -278,14 +451,18 @@ trait ModelCrud
 
         if ($field instanceof Field\ManyToManyField) {
 
+            $field_id = $this->getFieldId();
+
             $mn_model = $field->getMnModel();
+            $mn_field_right = $mn_model->getRight();
+            $mn_field_left = $mn_model->getLeft();
 
-            $list = $mn_model->_filter('b', $tab)->groupBy('a');
+            $list = $mn_model->_filter($mn_field_right, $tab)->groupBy($mn_field_left);
 
-            $test = (clone $query)->filter($crud->field_tab, $list)->first();
+            $test = (clone $query)->filter($field_id->getName(), $list)->first();
 
             if (!is_null($test)) {
-                $query = $query->filter($crud->field_tab, $list);
+                $query = $query->filter($field_id->getName(), $list);
             }
 
         }
@@ -343,13 +520,7 @@ trait ModelCrud
 
         $searches = [];
 
-        foreach ($this->getFields() as $key => $field) {
-
-            $detail = $this->getDetail($key);
-
-            if (is_null($detail)) {
-                continue;
-            }
+        foreach ($this->getFields() as $field) {
 
             if ($param = $field->getSearch($search)) {
                 $searches[] = $param;
@@ -381,11 +552,15 @@ trait ModelCrud
 
             if ($field instanceof Field\ManyToManyField) {
 
+                $field_id = $this->getFieldId();
+
                 $mn_model = $field->getMnModel();
+                $mn_field_right = $mn_model->getRight();
+                $mn_field_left = $mn_model->getLeft();
 
-                $list = $mn_model->_filter('b', $value)->groupBy('a');
+                $list = $mn_model->_filter($mn_field_right, $value)->groupBy($mn_field_left);
 
-                $query = $query->filter($key, $list);
+                $query = $query->filter($field_id->getName(), $list);
 
             }
 

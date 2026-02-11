@@ -132,7 +132,7 @@ abstract class Field
             return $this->_value;
         }
 
-        if (empty($this->_value)) return null;
+        //if (empty($this->_value)) return null;
 
         return $this->format($this->_value);
 
@@ -170,7 +170,7 @@ abstract class Field
 
         $new_value = $this->translate($value);
 
-        if ($this->_value != $new_value) {
+        if ($this->_value !== $new_value) {
             $this->_changed = true;
             $this->_value = $new_value;
         }

@@ -24,14 +24,23 @@ enum Color: string
     case ORANGE = 'orange';
     case DEEP_ORANGE = 'deep-orange';
     case BROWN = 'brown';
-    case GREY = 'grey'; //TODO: retirar depois de ajustar no front-end
     case GRAY = 'gray';
-    case BLUE_GREY = 'blue-grey';
+    case BLUE_GRAY = 'blue-grey';
     case BLACK = 'black';
 
     public static function getColors(): array
     {
-        return array_values(self::cases());
+
+        $list = [];
+
+        foreach (self::cases() as $color) {
+            if (!in_array($color, [self::INDIGO, self::LIGHT_BLUE, self::WHITE, self::BLUE_GRAY])) {
+                $list[] = $color;
+            }
+        }
+
+        return $list;
+
     }
 
     public function code(): string
@@ -61,8 +70,8 @@ enum Color: string
             self::ORANGE => '#ff9800',
             self::DEEP_ORANGE => '#ff5722',
             self::BROWN => '#795548',
-            self::GRAY, self::GREY => '#9e9e9e',
-            self::BLUE_GREY => '#607d8b',
+            self::GRAY => '#9e9e9e',
+            self::BLUE_GRAY => '#607d8b',
             self::BLACK => '#000000',
         };
         
@@ -95,8 +104,8 @@ enum Color: string
             self::ORANGE => 'Laranja',
             self::DEEP_ORANGE => 'Laranja Escuro',
             self::BROWN => 'Marrom',
-            self::GRAY, self::GREY => 'Cinza',
-            self::BLUE_GREY => 'Cinza Azulado',
+            self::GRAY => 'Cinza',
+            self::BLUE_GRAY => 'Cinza Azulado',
             self::BLACK => 'Preto',
         };
 
@@ -104,11 +113,12 @@ enum Color: string
 
     /**
      * @throws RandomException
+     * @noinspection PhpUnused
      */
     public static function random(): self
     {
 
-        $colors = array_values(self::cases());
+        $colors = array_values(self::getColors());
 
         return $colors[random_int(0, count($colors) - 1)];
 

@@ -1,11 +1,12 @@
 <?php
 namespace Fluxion;
 
-use Fluxion\Query\{QueryWhere};
+use Fluxion\Exception\SqlException;
 use Generator;
 use PDO;
 use PDOException;
 use PDOStatement;
+use Fluxion\Query\{QueryWhere};
 use Psr\Http\Message\StreamInterface;
 
 abstract class Connector
@@ -94,6 +95,9 @@ abstract class Connector
 
     }
 
+    /**
+     * @throws SqlException
+     */
     protected function execute($sql, bool $break_after = false): int
     {
 
@@ -101,26 +105,23 @@ abstract class Connector
 
         $this->extra_break = $break_after;
 
-        $stmt = $this->getPDO()->prepare($sql);
-
         try {
+
+            $stmt = $this->prepare($sql);
             $stmt->execute();
+
+            return $stmt->rowCount();
+
         }
 
-        catch (PDOException $e) {
+        catch (PDOException|SqlException $e) {
 
             $erro = $e->getMessage();
-            $exp = explode('[SQL Server]', $erro);
-
-            if (isset($exp[1])) {
-                $erro = $exp[1];
-            }
-
             $this->comment("<b>ERRO</b>: $erro", Color::RED);
 
         }
 
-        return $stmt->rowCount();
+        return -1;
 
     }
 
@@ -185,11 +186,11 @@ abstract class Connector
 
     }
 
-    /** @throws PDOException */
+    /** @throws SqlException */
     public function fetch(string $sql): Generator
     {
 
-        $stmt = $this->getPDO()->query($sql);
+        $stmt = $this->query($sql);
 
         while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
             yield $result;
@@ -290,13 +291,7 @@ abstract class Connector
                     continue;
                 }
 
-                if (isset($result[$field->column_name])) {
-                    $field->setValue($result[$field->column_name], true);
-                }
-
-                else {
-                    $field->setValue(null, true);
-                }
+                $field->setValue($result[$field->column_name] ?? null, true);
 
             }
 
@@ -317,7 +312,55 @@ abstract class Connector
     }
 
     /**
-     * @throws Exception
+     * @throws SqlException
+     */
+    public function prepare(string $sql): false|PDOStatement
+    {
+
+        try {
+            return $this->getPDO()->prepare($sql);
+        }
+
+        catch (PDOException $e) {
+            throw new SqlException($e->getMessage(), $sql);
+        }
+
+    }
+
+    /**
+     * @throws SqlException
+     */
+    public function query(string $sql): false|PDOStatement
+    {
+
+        try {
+            return $this->getPDO()->query($sql);
+        }
+
+        catch (PDOException $e) {
+            throw new SqlException($e->getMessage(), $sql);
+        }
+
+    }
+
+    /**
+     * @throws SqlException
+     */
+    public function exec(string $sql): false|int
+    {
+
+        try {
+            return $this->getPDO()->exec($sql);
+        }
+
+        catch (PDOException $e) {
+            throw new SqlException($e->getMessage(), $sql);
+        }
+
+    }
+
+    /**
+     * @throws SqlException|Exception
      */
     public function execute_insert(Model $model, array $data = []): void
     {
@@ -330,7 +373,7 @@ abstract class Connector
 
         $this->logSql($sql);
 
-        $stmt = $this->getPDO()->query($sql);
+        $stmt = $this->query($sql);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 

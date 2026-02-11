@@ -59,7 +59,7 @@ class SqlFormatter
         'SQL_SMALL_RESULT', 'SQL_WARNINGS', 'SQL_CACHE', 'SQL_NO_CACHE', 'START', 'STARTING', 'STATUS', 'STOP', 'STORAGE',
         'STRAIGHT_JOIN', 'STRING', 'STRIPED', 'SUPER', 'TABLE', 'TABLES', 'TEMPORARY', 'TERMINATED', 'THEN', 'TO', 'TRAILING', 'TRANSACTIONAL', 'TRUE',
         'TRUNCATE', 'TYPE', 'TYPES', 'UNCOMMITTED', 'UNIQUE', 'UNLOCK', 'UNSIGNED', 'USAGE', 'USE', 'USING', 'VARIABLES',
-        'VIEW', 'WHEN', 'WITH', 'WORK', 'WRITE', 'YEAR_MONTH', 'INSERTED', 'TOP', 'OFF'
+        'VIEW', 'WHEN', 'WITH', 'WORK', 'WRITE', 'YEAR_MONTH', 'INSERTED', 'TOP', 'OFF', 'NOLOCK'
     );
 
     // For SQL formatting
@@ -108,16 +108,16 @@ class SqlFormatter
 
     // For HTML syntax highlighting
     // Styles applied to different token types
-    public static $quote_attributes = 'style="color: blue;"';
-    public static $backtick_quote_attributes = 'style="color: purple;"';
-    public static $reserved_attributes = 'style="font-weight:bold;"';
+    public static $quote_attributes = 'class="text-amber"';
+    public static $backtick_quote_attributes = 'class="text-pink"';
+    public static $reserved_attributes = 'class="text-teal"';
     public static $boundary_attributes = '';
-    public static $number_attributes = 'style="color: green;"';
-    public static $word_attributes = 'style="color: #333;"';
-    public static $error_attributes = 'style="background-color: red;"';
-    public static $comment_attributes = 'style="color: #aaa;"';
-    public static $variable_attributes = 'style="color: orange;"';
-    public static $pre_attributes = 'style="color: black; background-color: white;"';
+    public static $number_attributes = 'class="text-light-blue"';
+    public static $word_attributes = '"';
+    public static $error_attributes = 'class="bg-red"';
+    public static $comment_attributes = 'class="text-gray"';
+    public static $variable_attributes = 'class="text-deep-orange"';
+    public static $pre_attributes = '';
 
     // Boolean - whether or not the current environment is the CLI
     // This affects the type of syntax highlighting
@@ -739,7 +739,7 @@ class SqlFormatter
             $return .= self::highlightToken($token);
         }
 
-        return self::output($return, $pre);
+        return trim(self::output($return, $pre));
     }
 
     /**

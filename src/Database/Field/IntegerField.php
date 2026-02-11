@@ -32,20 +32,12 @@ class IntegerField extends Field
             return false;
         }
 
-        if (empty($value)) {
-            $value = null;
-        }
-
         return is_null($value) || is_numeric($value);
 
     }
 
     public function translate(mixed $value): null|int|array
     {
-
-        if (empty($value)) {
-            return null;
-        }
 
         return intval($value);
 

@@ -117,4 +117,11 @@ class MnModel extends Model
 
     }
 
+    public function _query(): Query
+    {
+
+        return new Query($this);
+
+    }
+
 }

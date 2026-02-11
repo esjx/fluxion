@@ -38,6 +38,26 @@ class ChoicesField extends Field
 
     }
 
+    public function translate(mixed $value): string|int|null
+    {
+
+        return match ($this->_type) {
+            'integer' => (new IntegerField())->translate($value),
+            default => (new StringField())->translate($value),
+        };
+
+    }
+
+    public function validate(mixed &$value): bool
+    {
+
+        return match ($this->_type) {
+            'integer' => (new IntegerField())->validate($value),
+            default => (new StringField())->validate($value),
+        };
+
+    }
+
     public function getFormField(): FormField
     {
 

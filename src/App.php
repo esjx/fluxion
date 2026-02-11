@@ -5,7 +5,7 @@ use stdClass;
 use ReflectionMethod;
 use ReflectionException;
 use Exception as _Exception;
-use Fluxion\Exception\PageNotFoundException;
+use Fluxion\Exception\{PageNotFoundException, SqlException};
 use GuzzleHttp\Psr7\{Response, ServerRequest};
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use Psr\Http\Message\{RequestInterface, ResponseInterface};
@@ -33,24 +33,34 @@ class App
 
         catch (_Exception $e) {
 
+            $message = $e->getMessage();
+
             $server = $request->getServerParams();
 
             $is_json = strcasecmp($server['HTTP_X_REQUESTED_WITH'] ?? '', 'XMLHttpRequest') == 0;
             $is_text = strcasecmp($server['HTTP_ACCEPT'] ?? '', 'text/strings') == 0;
 
+            $trace = str_replace(__DIR__, '.../...', $e->getTraceAsString());
+            $trace = str_replace(dirname(__DIR__, 4), '...', $trace);
+
             $code = 500;
 
-            if ($e instanceof PageNotFoundException) {
+            if ($e instanceof PageNotFoundException) {/**/
                 $code = 404;
             }
 
-            $message = $e->getMessage();
+            elseif ($e instanceof SqlException) {
 
-            if ($code == 500) {
+                $message .= "<br><br><pre>"
+                    . SqlFormatter::highlight($e->getSql(), false)
+                    . "\n<span class=\"text-red\">-- {$e->getOriginalMessage()}" . "</span>"
+                    . "\n\n<span class=\"text-gray\">/*\n$trace\n*/</span>" . "</pre>";
 
-                $message .= '<br><br><pre>'
-                    . str_replace(dirname(__DIR__, 4), '...', $e->getTraceAsString())
-                    . '</pre>';
+            }
+
+            elseif ($e instanceof Exception) {
+
+                $message .= "<br><br><pre>$trace</pre>";
 
             }
 
