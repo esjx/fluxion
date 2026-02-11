@@ -180,6 +180,21 @@ trait ModelQuery
             return $obj;
         }
 
+        return self::findById($id)->firstOrNew();
+
+    }
+
+    /**
+     * @throws Exception
+     */
+    public static function findById(mixed $id): Query
+    {
+
+        $class = get_called_class();
+
+        /** @var self $obj */
+        $obj = new $class();
+
         $primary_keys = $obj->getPrimaryKeys();
 
         if (count($primary_keys) == 0) {
@@ -201,7 +216,7 @@ trait ModelQuery
 
         }
 
-        return $query->firstOrNew();
+        return $query;
 
     }
 

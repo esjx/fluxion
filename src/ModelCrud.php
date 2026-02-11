@@ -5,6 +5,7 @@ use ReflectionException;
 use stdClass;
 use Fluxion\Database\{Crud, Detail, Field};
 use Fluxion\Query\QuerySql;
+use Fluxion\Exception\{PermissionDeniedException};
 
 trait ModelCrud
 {
@@ -574,9 +575,12 @@ trait ModelCrud
 
     /**
      * @return Connector\TableAction[]
+     * @throws Exception
      */
-    public function getActions(Auth $auth): array
+    public function getActions(): array
     {
+
+        $auth = Config::getAuth();
 
         $actions = [];
 
@@ -593,6 +597,26 @@ trait ModelCrud
         }
 
         return $actions;
+
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function executeAction(Action $action): void
+    {
+
+        $auth = Config::getAuth();
+
+        if ($action == Action::DELETE) {
+
+            if (!$auth->hasPermission($this, Permission::DELETE)) {
+                throw new PermissionDeniedException('Usuário sem acesso à apagar!');
+            }
+
+            $this::findById($this->id())->delete();
+
+        }
 
     }
 

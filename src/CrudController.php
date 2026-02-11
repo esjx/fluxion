@@ -88,6 +88,7 @@ class CrudController extends Controller
             ['url' => '/data', 'method' => 'POST', 'class' => $class, 'action' => 'data'],
             ['url' => '/fields', 'method' => 'POST', 'class' => $class, 'action' => 'fields'],
             ['url' => '/save', 'method' => 'POST', 'class' => $class, 'action' => 'save'],
+            ['url' => '/action', 'method' => 'POST', 'class' => $class, 'action' => 'action'],
         ];
 
         $keys = [];
@@ -237,7 +238,7 @@ class CrudController extends Controller
                 'subtitle' => $k->subtitle(),
                 'extras' => $k->extras(),
                 'tags' => $k->getTags(),
-                'actions' => $k->getActions($auth),
+                'actions' => $k->getActions(),
                 'update' => $k->updateInfo(),
             ];
 
@@ -280,7 +281,7 @@ class CrudController extends Controller
 
         $is = json_decode($request->getBody()->getContents());
 
-        $id = $is->__id ?? $is->__grupo ?? null;
+        $id = $is->__id ?? null;
 
         # Dados básicos
 
@@ -291,7 +292,7 @@ class CrudController extends Controller
 
         # Verificar se habilita o campo de salvar
 
-        $save = ($is->__id == 'add')
+        $save = ($id == 'add')
             ? $auth->hasPermission($model, Permission::INSERT)
             : $auth->hasPermission($model, Permission::UPDATE);
 
@@ -358,11 +359,22 @@ class CrudController extends Controller
 
         $is = json_decode($request->getBody()->getContents());
 
-        $id = $is->__id ?? $is->__grupo ?? null;
+        $id = $is->__grupo ?? null;
 
         # Dados básicos
 
+        $auth = Config::getAuth();
         $model = $this->getModel($route->getModel(), $id);
+
+        # Verificar se habilita o campo de salvar
+
+        $save = ($id == 'add')
+            ? $auth->hasPermission($model, Permission::INSERT)
+            : $auth->hasPermission($model, Permission::UPDATE);
+
+        if (!$save) {
+            throw new PermissionDeniedException('Usuário sem acesso à salvar os dados!');
+        }
 
         $model->changeState(State::BEFORE_SAVE);
 
@@ -386,11 +398,42 @@ class CrudController extends Controller
 
         # Salva os inlines
 
-        foreach ($is->__inlines as $inline_id => $inline_data) {
+        foreach ($is->__inlines as $inline) {
 
             //TODO
 
         }
+
+        # Retorna dados
+
+        $json = [
+            'type' => 'refresh',
+            'ok' => true,
+            'id' => $model->id(),
+        ];
+
+        return ResponseFactory::fromJson($json);
+
+    }
+
+    /**
+     * @throws PermissionDeniedException
+     * @throws Exception
+     */
+    public function action(RequestInterface $request, Route $route): MessageInterface
+    {
+
+        $is = json_decode($request->getBody()->getContents());
+
+        $id = $is->id ?? null;
+
+        # Dados básicos
+
+        $model = $this->getModel($route->getModel(), $id);
+
+        # Executa a ação
+
+        $model->executeAction(Action::from($is->action ?? ''));
 
         # Retorna dados
 
