@@ -14,21 +14,27 @@ class FormField
 
     public array $choices = [];
 
-    public function __construct(public bool    $visible = true,
+    public function __construct(public ?string $label = null,
+                                public ?array  $label_conditions = null,
+                                public bool    $visible = true,
+                                public ?array  $visible_conditions = null,
                                 public ?string $name = null,
                                 public bool    $enabled = true,
-                                public ?string $label = null,
+                                public ?array  $enabled_conditions = null,
                                 public string  $type = 'string',
                                 public int     $size = 12,
                                 public ?int    $min = null,
                                 public ?int    $max = null,
                                 public bool    $required = false,
+                                public ?array  $required_conditions = null,
                                 public string  $placeholder = '',
                                 public ?string $mask = null,
                                 public ?int    $minlength = null,
                                 public ?int    $maxlength = null,
                                 public bool    $readonly = false,
                                 public ?string $help = null,
+                                public ?array  $help_conditions = null,
+                                public ?array  $choices_conditions = null,
                                 public mixed   $value = null)
     {
 

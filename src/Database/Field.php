@@ -269,20 +269,26 @@ abstract class Field
         }
 
         return new FormField(
-            visible: true,
-            name: $this->_name,
-            enabled: $enabled,
             label: $detail->label,
+            label_conditions: $detail->label_conditions,
+            visible: empty($detail->visible_conditions),
+            visible_conditions: $detail->visible_conditions,
+            name: $this->_name,
+            enabled: $enabled && empty($detail->enabled_conditions),
+            enabled_conditions: $detail->enabled_conditions,
             type: $this->_type,
             size: $detail->size,
             min: $this->min_value,
             max: $this->max_value,
-            required: $this->required,
+            required: $this->required && empty($detail->required_conditions),
+            required_conditions: $detail->required_conditions,
             placeholder: $detail->placeholder,
             mask: $detail->mask,
             maxlength: $this->max_length,
             readonly: $this->readonly,
             help: $detail->help,
+            help_conditions: $detail->help_conditions,
+            choices_conditions: $detail->choices_conditions,
             value: $this->getValue(),
         );
 

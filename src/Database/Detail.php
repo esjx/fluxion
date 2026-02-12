@@ -2,9 +2,7 @@
 namespace Fluxion\Database;
 
 use Attribute;
-use Fluxion\Exception;
-use Fluxion\Icon;
-use Fluxion\Mask;
+use Fluxion\{Exception, Icon, Mask};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class Detail
@@ -26,6 +24,23 @@ class Detail
 
     }
 
+    /**
+     * @param string|null $label
+     * @param string|null $mask_class
+     * @param bool $searchable
+     * @param bool $filterable
+     * @param Icon|null $filter_icon
+     * @param string|null $typeahead
+     * @param string|null $help
+     * @param int|null $max_length
+     * @param int|null $size
+     * @param Condition[]|null $visible_conditions
+     * @param Condition[]|null $required_conditions
+     * @param Condition[]|null $choices_conditions
+     * @param Condition[]|null $enabled_conditions
+     * @param Condition[]|null $label_conditions
+     * @param Condition[]|null $help_conditions
+     */
     public function __construct(public ?string $label = null,
                                 public ?string $mask_class = null,
                                 public bool    $searchable = false,
@@ -34,7 +49,13 @@ class Detail
                                 public ?string $typeahead = null,
                                 public ?string $help = null,
                                 public ?int    $max_length = null,
-                                public ?int    $size = 12)
+                                public ?int    $size = 12,
+                                public ?array  $visible_conditions = null,
+                                public ?array  $required_conditions = null,
+                                public ?array  $choices_conditions = null,
+                                public ?array  $enabled_conditions = null,
+                                public ?array  $label_conditions = null,
+                                public ?array  $help_conditions = null)
     {
 
     }
