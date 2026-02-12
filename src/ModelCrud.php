@@ -812,7 +812,7 @@ trait ModelCrud
 
                 if (is_null($data->__id)) {
 
-                    if ($data->__delete) { #TODO: Ajustar para deleted
+                    if ($data->__deleted) {
                         continue;
                     }
 
@@ -826,7 +826,7 @@ trait ModelCrud
 
                 else {
 
-                    if ($data->__delete) { #TODO: Ajustar para deleted
+                    if ($data->__deleted) {
 
                         if (!$inline->delete
                             && !$auth->hasPermission($inline->getInlineModel(), Permission::DELETE)) {
