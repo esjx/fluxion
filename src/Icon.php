@@ -6,6 +6,20 @@ enum Icon: string
 
     case HOME = 'home';
     case KEY = 'key';
+    case EYE = 'eye';
+    case LAMP = 'lamp';
+    case DNS = 'dns';
+    case GLOBE_ALT = 'globe-alt';
+    case SHIELD_SECURITY = 'shield-security';
+    case RULER = 'ruler';
+    case LANDSCAPE = 'landscape';
+    case WRENCH = 'wrench';
+    case CASE_CHECK = 'case-check';
+    case TRENDING_UP = 'trending-up';
+    case MONEY_BOX = 'money-box';
+    case FILE_TEXT = 'file-text';
+    case PIZZA = 'pizza';
+    case ALERT_TRIANGLE = 'alert-triangle';
     case COLLECTION_ITEM = 'collection-item';
     case COLLECTION_ITEM_1 = 'collection-item-1';
     case COLLECTION_ITEM_2 = 'collection-item-2';
