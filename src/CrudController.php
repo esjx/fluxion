@@ -352,7 +352,7 @@ class CrudController extends Controller
 
         $is = json_decode($request->getBody()->getContents());
 
-        $id = $is->__grupo ?? null;
+        $id = $is->__id ?? null;
 
         # Dados básicos
 
@@ -395,7 +395,7 @@ class CrudController extends Controller
 
         $is = json_decode($request->getBody()->getContents());
 
-        $id = $is->id ?? null;
+        $id = $is->__id ?? null;
 
         # Dados básicos
 
