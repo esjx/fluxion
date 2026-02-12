@@ -14,8 +14,6 @@ class ManyToManyField extends Field
 
     protected ManyToManyModel $_mn_model;
 
-    private ?Field $_field = null;
-
     public ?bool $fake = true;
     public ?bool $multiple = true;
 
@@ -83,7 +81,6 @@ class ManyToManyField extends Field
 
     }
 
-    /** @throws Exception */
     public function __construct(public string  $class_name,
                                 public bool    $inverted = false,
                                 public bool    $real = false,
@@ -144,9 +141,7 @@ class ManyToManyField extends Field
 
         $this->_reference_model = $class;
 
-        $this->_field = $class->getFieldId();
-
-        $this->_type = $this->_field->getType();
+        $this->_type = $class->getFieldId()->getType();
 
         parent::initialize();
 

@@ -23,7 +23,6 @@ class ForeignKeyField extends Field
         return $this->_field;
     }
 
-    /** @throws Exception */
     public function __construct(public string  $class_name,
                                 public bool    $real = false,
                                 public bool    $show = false,
@@ -65,7 +64,7 @@ class ForeignKeyField extends Field
 
         $this->_field = $class->getFieldId();
 
-        $field = $this->_model->getFields()[$this->_name];
+        $field = $this->_model->getField($this->_name);
 
         $this->_type = $this->_field->getType();
         $this->_type_target = $this->_field->getTypeTarget();
