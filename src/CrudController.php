@@ -76,11 +76,25 @@ class CrudController extends Controller
         $base_url = $controller->getBaseRoute() . $base_url;
         $crud_details = $model->getCrud();
 
+        $visible = false;
+
+        if ($auth?->hasPermission($model, Permission::LIST) ?? false) {
+            $visible = true;
+        }
+
+        if ($auth?->hasPermission($model, Permission::LIST_UNDER) ?? false) {
+            $visible = true;
+        }
+
+        if ($auth?->hasPermission($model, Permission::LIST_ALL) ?? false) {
+            $visible = true;
+        }
+
         $menu?->addSub(new Menu\MenuItem(
             title: $crud_details->plural_title,
             route: $base_url,
-            visible: $auth?->hasPermission($model, Permission::LIST) ?? false)
-        );
+            visible: $visible
+            ));
 
         $list = [
             ['url' => '', 'method' => 'GET', 'class' => $class, 'action' => 'home'],
@@ -170,8 +184,12 @@ class CrudController extends Controller
 
         # Permissões do usuário
 
-        if (!$auth->hasPermission($model, Permission::LIST)) {
+        if (!$auth->hasPermission($model, Permission::LIST)
+            && !$auth->hasPermission($model, Permission::LIST_UNDER)
+            && !$auth->hasPermission($model, Permission::LIST_ALL)) {
+
             throw new PermissionDeniedException('Usuário sem acesso à visualização!');
+
         }
 
         $permissions = [];
@@ -199,7 +217,7 @@ class CrudController extends Controller
 
         $data = [];
 
-        $query = $this->permissionFilter($model->query(), $auth);
+        $query = $this->permissionFilter($model::query(), $auth);
 
         $tabs = $model->getTabs(clone $query);
         $default_tab = $tabs[0]->id ?? null;

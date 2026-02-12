@@ -96,16 +96,6 @@ class ManyToManyField extends Field
                                 public ?bool   $enabled = true)
     {
 
-        $class = new $class_name;
-
-        if (!$class instanceof Model) {
-            throw new Exception(message: "Classe '$class_name' não é Model", log: false);
-        }
-
-        $this->_reference_model = $class;
-
-        $this->_field = $class->getFieldId();
-
         parent::__construct();
 
     }
@@ -135,6 +125,26 @@ class ManyToManyField extends Field
     /** @throws Exception */
     public function initialize(): void
     {
+
+        $class_name = $this->class_name;
+
+        if ($class_name == get_class($this->_model)) {
+            $class = clone $this->_model;
+        }
+
+        else {
+
+            $class = new $class_name;
+
+            if (!$class instanceof Model) {
+                throw new Exception(message: "Classe '$class_name' não é Model", log: false);
+            }
+
+        }
+
+        $this->_reference_model = $class;
+
+        $this->_field = $class->getFieldId();
 
         $this->_type = $this->_field->getType();
 
