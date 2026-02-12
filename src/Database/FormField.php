@@ -6,8 +6,8 @@ use Fluxion\Color;
 class FormField
 {
 
-    public ?string $minDate = null;
-    public ?string $maxDate = null;
+    public ?string $min_date = null;
+    public ?string $max_date = null;
     public ?string $typeahead = null;
     public bool $multiple = false;
     public bool $inline = false;

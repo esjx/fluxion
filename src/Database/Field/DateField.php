@@ -78,8 +78,8 @@ class DateField extends Field
 
         $form_field->value = Time::convert($this->_value, 'd/m/Y H:i:s');
 
-        $form_field->minDate = Time::convert($this->min_value, 'd/m/Y');
-        $form_field->maxDate = Time::convert($this->max_value, 'd/m/Y');
+        $form_field->min_date = Time::convert($this->min_value, 'd/m/Y');
+        $form_field->max_date = Time::convert($this->max_value, 'd/m/Y');
 
         return $form_field;
 
