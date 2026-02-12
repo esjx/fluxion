@@ -25,7 +25,7 @@ enum Color: string
     case DEEP_ORANGE = 'deep-orange';
     case BROWN = 'brown';
     case GRAY = 'gray';
-    case BLUE_GRAY = 'blue-grey';
+    case BLUE_GRAY = 'blue-gray';
     case BLACK = 'black';
 
     public static function getColors(): array

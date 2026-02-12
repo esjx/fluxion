@@ -45,7 +45,7 @@ class AuthOld
         'amber',
         'deep-orange',
         'brown',
-        'blue-grey',
+        'blue-gray',
     ];
 
     protected $_config;

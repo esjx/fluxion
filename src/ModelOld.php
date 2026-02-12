@@ -43,8 +43,8 @@ abstract class ModelOld {
         'light-blue' => 'Azul Claro',
         //'white' => 'Branco',
         'cyan' => 'Ciano',
-        //'grey' => 'Cinza',
-        //'blue-grey' => 'Cinza Azulado',
+        //'gray' => 'Cinza',
+        //'blue-gray' => 'Cinza Azulado',
         'orange' => 'Laranja',
         'deep-orange' => 'Laranja Escuro',
         'lime' => 'Lima',
@@ -77,9 +77,9 @@ abstract class ModelOld {
         'orange' => 'FF9800',
         'deep-orange' => 'FF5722',
         'brown' => '795548',
-        'grey' => '9E9E9E',
         'gray' => '9E9E9E',
-        'blue-grey' => '607D8B',
+        'gray' => '9E9E9E',
+        'blue-gray' => '607D8B',
         'black' => '000000',
     ];
 
