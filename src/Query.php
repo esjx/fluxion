@@ -338,20 +338,20 @@ class Query
     /**
      * @throws Exception
      */
-    public function paginate(int &$page, int &$pages, int $itens): self
+    public function paginate(int &$page, int &$pages, int $items): self
     {
 
         $query_total = clone $this;
 
         $total = $query_total->clearOrderBy()->count()->firstOrNew()->total;
 
-        $pages = ceil($total / $itens);
+        $pages = ceil($total / $items);
 
         $page = min($page, $pages);
 
-        $offset = ($page - 1) * $itens;
+        $offset = ($page - 1) * $items;
 
-        return $this->limit($itens, max(0, $offset));
+        return $this->limit($items, max(0, $offset));
 
     }
 

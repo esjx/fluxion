@@ -147,7 +147,7 @@ trait ModelCrud
 
         $item = (clone $query)->count()->first();
 
-        $list[] = new Connector\TableTab(id: null, label: '(Todos)', itens: $item->total);
+        $list[] = new Connector\TableTab(id: null, label: '(Todos)', items: $item->total);
 
         if ($field instanceof Field\ChoicesField) {
 
@@ -156,7 +156,7 @@ trait ModelCrud
                 $id = $item->$key;
                 $label = $field->choices[$id] ?? (string) $id;
 
-                $list[] = new Connector\TableTab(id: $id, label: $label, itens: $item->total);
+                $list[] = new Connector\TableTab(id: $id, label: $label, items: $item->total);
 
             }
 
@@ -169,7 +169,7 @@ trait ModelCrud
                 $id = $item->$key;
                 $label = ($id) ? 'Sim' : 'Não';
 
-                $list[] = new Connector\TableTab(id: $id, label: $label, itens: $item->total);
+                $list[] = new Connector\TableTab(id: $id, label: $label, items: $item->total);
 
             }
 
@@ -194,7 +194,7 @@ trait ModelCrud
                 $id = $item->$key;
                 $label = $labels[$id] ?? (string) $id;
 
-                $list[] = new Connector\TableTab(id: $id, label: $label, itens: $item->total);
+                $list[] = new Connector\TableTab(id: $id, label: $label, items: $item->total);
 
             }
 
@@ -224,7 +224,7 @@ trait ModelCrud
                 $id = $item->$mn_field_name;
                 $label = $labels[$id] ?? (string) $id;
 
-                $list[] = new Connector\TableTab(id: $id, label: $label, itens: $item->total);
+                $list[] = new Connector\TableTab(id: $id, label: $label, items: $item->total);
 
             }
 
@@ -242,7 +242,7 @@ trait ModelCrud
                 $id = $item->$mn_field_name;
                 $label = $field->choices[$id] ?? (string) $id;
 
-                $list[] = new Connector\TableTab(id: $id, label: $label, itens: $item->total);
+                $list[] = new Connector\TableTab(id: $id, label: $label, items: $item->total);
 
             }
 
@@ -255,7 +255,7 @@ trait ModelCrud
                 $id = $item->$key;
                 $label = (string) $id;
 
-                $list[] = new Connector\TableTab(id: $id, label: $label, itens: $item->total);
+                $list[] = new Connector\TableTab(id: $id, label: $label, items: $item->total);
 
             }
 
@@ -299,7 +299,7 @@ trait ModelCrud
 
             $filter = new Connector\TableFilter(field: $key, label: $detail->label ?? $key, icon: $icon);
 
-            $filter->itens[] = new Connector\TableFilterItem(
+            $filter->items[] = new Connector\TableFilterItem(
                 id: null,
                 label: '(Todos)',
                 active: (count($options) == 0)
@@ -312,7 +312,7 @@ trait ModelCrud
                     $id = $item->$key;
                     $label = $field->choices[$id] ?? (string) $id;
 
-                    $filter->itens[] = new Connector\TableFilterItem(
+                    $filter->items[] = new Connector\TableFilterItem(
                         id: $id,
                         label: $label,
                         active: in_array($id, $options),
@@ -325,13 +325,13 @@ trait ModelCrud
 
             elseif ($field instanceof Field\BooleanField) {
 
-                $filter->itens[] = new Connector\TableFilterItem(
+                $filter->items[] = new Connector\TableFilterItem(
                     id: false,
                     label: 'Não',
                     active: in_array(false, $options)
                 );
 
-                $filter->itens[] = new Connector\TableFilterItem(
+                $filter->items[] = new Connector\TableFilterItem(
                     id: true,
                     label: 'Sim',
                     active: in_array(true, $options)
@@ -368,7 +368,7 @@ trait ModelCrud
 
                     $id = $item->$key;
 
-                    $filter->itens[] = new Connector\TableFilterItem(
+                    $filter->items[] = new Connector\TableFilterItem(
                         id: $id,
                         label: $labels[$id] ?? (string) $id,
                         active: in_array($id, $options),
@@ -413,7 +413,7 @@ trait ModelCrud
 
                     $id = $item->$mn_field_name;
 
-                    $filter->itens[] = new Connector\TableFilterItem(
+                    $filter->items[] = new Connector\TableFilterItem(
                         id: $id,
                         label: $labels[$id] ?? (string) $id,
                         active: in_array($id, $options),
@@ -436,7 +436,7 @@ trait ModelCrud
                     $id = $item->$mn_field_name;
                     $label = $field->choices[$id] ?? (string) $id;
 
-                    $filter->itens[] = new Connector\TableFilterItem(
+                    $filter->items[] = new Connector\TableFilterItem(
                         id: $id,
                         label: $label,
                         active: in_array($id, $options),
@@ -453,7 +453,7 @@ trait ModelCrud
 
                     $id = $item->$key;
 
-                    $filter->itens[] = new Connector\TableFilterItem(
+                    $filter->items[] = new Connector\TableFilterItem(
                         id: $id,
                         label: "$id",
                         active: in_array($id, $options),

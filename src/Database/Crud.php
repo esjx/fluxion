@@ -12,18 +12,18 @@ class Crud
     public ?string $subtitle;
     public string $form_size;
 
-    public function __construct(public string $title,
-                                public ?string $plural_title = null,
+    public function __construct(public string          $title,
+                                public ?string         $plural_title = null,
                                 null|string|BackedEnum $subtitle = null,
-                                public string $description = 'Utilize os filtros ou a opção de busca para algum item específico',
-                                public string $not_found_message = 'Nenhum registro encontrado',
-                                public string $search_placeholder = 'Buscar...',
-                                public string $update_title = 'Atualizado em',
-                                public string $update_format = 'dd/MM/y HH:mm',
-                                public ?string $field_tab = null,
-                                FormSize $form_size = FormSize::MEDIUM,
-                                public int $itens_per_page = 20,
-                                public int $refresh_time = 60000000)
+                                public string          $description = 'Utilize os filtros ou a opção de busca para algum item específico',
+                                public string          $not_found_message = 'Nenhum registro encontrado',
+                                public string          $search_placeholder = 'Buscar...',
+                                public string          $update_title = 'Atualizado em',
+                                public string          $update_format = 'dd/MM/y HH:mm',
+                                public ?string         $field_tab = null,
+                                FormSize               $form_size = FormSize::MEDIUM,
+                                public int             $items_per_page = 20,
+                                public int             $refresh_time = 60000000)
     {
 
         $this->form_size = $form_size->value;

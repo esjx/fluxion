@@ -11,9 +11,9 @@ class TableFilter
     public function __construct(
         public string $field,
         public string $label,
-        Icon $icon = Icon::COLLECTION_ITEM,
-        public array $itens = [],
-        public bool $multiple = true)
+        Icon          $icon = Icon::COLLECTION_ITEM,
+        public array  $items = [],
+        public bool   $multiple = true)
     {
 
         $this->icon = $icon->value;

@@ -12,14 +12,11 @@ class FormInline
     public string $id;
     public string $title;
     public string $not_found_message;
-    public int $max_itens;
+    public int $max_items;
     public ?bool $insert;
     public ?bool $delete;
     public array $fields;
     public array $items;
-
-    public string $no_itens; #TODO: Remover
-    public array $itens; #TODO: Remover
 
     /**
      * @throws Exception
@@ -118,15 +115,11 @@ class FormInline
         $this->id = $inline->id ?? 'inline_' . self::$sequence++;
         $this->title = $inline->title ?? $il_crud->plural_title;
         $this->not_found_message = $inline->not_found_message ?? $il_crud->not_found_message;
-        $this->max_itens = $inline->max_itens ?? 20;
+        $this->max_items = $inline->max_items ?? 20;
         $this->insert = $inline->insert ?? $auth->hasPermission($il_model, Permission::INSERT);
         $this->delete = $inline->delete ?? $auth->hasPermission($il_model, Permission::DELETE);
         $this->fields = $inline_fields;
         $this->items = $inline_itens;
-
-        # TODO: Remover
-        $this->no_itens = $inline->not_found_message ?? $il_crud->not_found_message;
-        $this->itens = $inline_itens;
 
     }
 

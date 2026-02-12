@@ -238,7 +238,7 @@ class CrudController extends Controller
         $query = $query->paginate(
             page: $page,
             pages: $pages,
-            itens: $crud_details->itens_per_page
+            items: $crud_details->items_per_page
         );
 
         $model->changeState(State::LIST);
@@ -277,7 +277,7 @@ class CrudController extends Controller
             'tabs' => $tabs,
             'page' => $page,
             'pages' => $pages,
-            'itens_per_page' => $crud_details->itens_per_page,
+            'itens_per_page' => $crud_details->items_per_page,
             'permissions' => $permissions,
             'filters' => $filters,
             'data' => $data,

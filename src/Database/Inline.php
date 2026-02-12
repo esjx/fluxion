@@ -61,7 +61,7 @@ class Inline
                                 public ?bool   $delete = null,
                                 public array   $args = [],
                                 public array   $filters = [],
-                                public ?int    $max_itens = null)
+                                public ?int    $max_items = null)
     {
 
         if (!class_exists($class_name)) {
