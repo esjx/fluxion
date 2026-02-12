@@ -1,10 +1,8 @@
 <?php
 namespace Fluxion\Database;
 
-use AllowDynamicProperties;
 use Fluxion\Color;
 
-#[AllowDynamicProperties]
 class FormField
 {
 
@@ -14,7 +12,7 @@ class FormField
     public bool $multiple = false;
     public bool $inline = false;
 
-    protected array $_choices = [];
+    public array $choices = [];
 
     public function __construct(public bool    $visible = true,
                                 public ?string $name = null,
@@ -43,13 +41,13 @@ class FormField
             $label = "<span class='text-$color->value'>$label</span>";
         }
 
-        $this->_choices[] = ['id' => $value, 'label' => $label];
+        $this->choices[] = ['id' => $value, 'label' => $label];
 
     }
 
     public function getChoices(): array
     {
-        return $this->_choices;
+        return $this->choices;
     }
 
 }

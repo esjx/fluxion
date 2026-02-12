@@ -330,10 +330,6 @@ class CrudController extends Controller
 
             $form_field = $f->getFormField();
 
-            if (in_array($form_field->type, ['choices', 'radio', 'colors'])) {
-                $form_field->choices = $form_field->getChoices();
-            }
-
             if (!$save) {
                 $form_field->enabled = false;
             }
