@@ -3,7 +3,7 @@ namespace Fluxion;
 
 use ReflectionException;
 use stdClass;
-use Fluxion\Database\{Crud, Detail, Field};
+use Fluxion\Database\{Crud, Detail, Field, FormInline, Inline};
 use Fluxion\Query\QuerySql;
 use Fluxion\Exception\{PermissionDeniedException};
 
@@ -694,7 +694,7 @@ trait ModelCrud
 
     }
 
-    public function changeState(State $state): void {}
+    public function changeState(State $state, array $args = []): void {}
 
     /** @noinspection PhpUnusedParameterInspection */
     public function getFormHeader(?Action $action = null): ?string
@@ -706,6 +706,157 @@ trait ModelCrud
     public function getFormFooter(?Action $action = null): ?string
     {
         return null;
+    }
+
+    public function getFormFields(bool $save = true): array
+    {
+
+        $fields = [];
+
+        foreach ($this->getFields() as $f) {
+
+            if ($f->protected) {
+                continue;
+            }
+
+            $form_field = $f->getFormField();
+
+            if (!$save) {
+                $form_field->enabled = false;
+            }
+
+            $fields[] = $form_field;
+
+        }
+
+        return $fields;
+
+    }
+
+    /**
+     * @return Inline[]
+     */
+    public function getInlines(): array
+    {
+        return [];
+    }
+
+    /**
+     * @return FormInline[]
+     * @throws Exception
+     */
+    public function getFormInlines(bool $save = true): array
+    {
+
+        $inlines = [];
+
+        FormInline::$sequence = 0;
+
+        foreach ($this->getInlines() as $inline) {
+
+            $inlines[] = new FormInline($this, $inline, $save);
+
+        }
+
+        return $inlines;
+
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function saveFromForm(stdClass $is): void
+    {
+
+        $auth = Config::getAuth();
+
+        $this->changeState(State::VIEW);
+
+        $this->changeState(State::BEFORE_SAVE);
+
+        # Salva dados
+
+        foreach ($this->getFields() as $key => $f) {
+
+            if ($f->protected || $f->readonly) {
+                continue;
+            }
+
+            $f->setValue($is->$key ?? null);
+
+        }
+
+        $this->changeState(State::SAVE);
+
+        $this->save();
+
+        # Salva os inlines
+
+        FormInline::$sequence = 0;
+
+        foreach ($this->getInlines() as $inline) {
+
+            $id = $inline->id ?? 'inline_' . FormInline::$sequence++;
+
+            if (!isset($is->__inlines->$id)) {
+                continue;
+            }
+
+            $field_id = $this->getFieldId()->getName();
+
+            $il_field_ref = $inline->getInlineField($this);
+
+            foreach ($is->__inlines->$id as $data) {
+
+                # Novos registros
+
+                if (is_null($data->__id)) {
+
+                    if ($data->__delete) { #TODO: Ajustar para deleted
+                        continue;
+                    }
+
+                    $il_model = clone $inline->getInlineModel();
+
+                    $il_model->$il_field_ref = $this->$field_id;
+
+                }
+
+                # Valores existentes
+
+                else {
+
+                    if ($data->__delete) { #TODO: Ajustar para deleted
+
+                        if (!$inline->delete
+                            && !$auth->hasPermission($inline->getInlineModel(), Permission::DELETE)) {
+                            throw new PermissionDeniedException("Exclusão não permitida!");
+                        }
+
+                        $inline->getInlineModel()::findById($data->__id)->delete();
+
+                        continue;
+
+                    }
+
+                    $il_model = $inline->getInlineModel()::loadById($data->__id);
+
+                }
+
+                # Atualiza os campos
+
+                $il_model->changeState(State::INLINE_SAVE, $inline->args);
+
+                foreach ($inline->fields as $field) {
+                    $il_model->$field = $data->$field;
+                }
+
+                $il_model->save();
+
+            }
+
+        }
+
     }
 
 }

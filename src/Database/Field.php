@@ -41,6 +41,7 @@ abstract class Field
     public ?bool $primary_key = false;
     public ?bool $identity = false;
     public ?bool $fake = false;
+    public ?bool $assistant_table = false;
     public ?int $max_length = null;
     public ?array $choices = null;
     public ?array $choices_colors = null;
@@ -180,9 +181,16 @@ abstract class Field
 
         $this->load();
 
-        if ($this->_value !== $new_value
-            || ($this->_type_target == 'array' && (array) $this->_value !=  (array) $new_value)) {
-            $this->_changed = true;
+        if ($this->_type_target == 'array') {
+            $changed = ($this->_value != $new_value);
+        }
+
+        else {
+            $changed = ($this->_value !== $new_value);
+        }
+
+        if ($changed) {
+            $this->_changed = ($new_value != $this->_saved_value);
             $this->_value = $new_value;
         }
 
@@ -196,6 +204,11 @@ abstract class Field
 
     public function __construct()
     {
+
+        if ($this->primary_key) {
+            $this->required = true;
+            $this->readonly = true;
+        }
 
     }
 
@@ -244,7 +257,7 @@ abstract class Field
         return null;
     }
 
-    public function getFormField(): FormField
+    public function getFormField(array $extras = []): FormField
     {
 
         $detail = $this->_model->getDetail($this->getName());

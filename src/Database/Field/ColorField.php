@@ -14,11 +14,12 @@ class ColorField extends Field
     public ?array $choices = null;
     public ?int $max_length = 15;
 
-    public function __construct(public ?bool   $required = false,
-                                public ?bool   $protected = false,
-                                public ?bool   $readonly = false,
-                                public mixed   $default = null,
-                                public bool    $default_literal = false,
+    public function __construct(public ?bool $required = false,
+                                public ?bool $protected = false,
+                                public ?bool $readonly = false,
+                                public mixed $default = null,
+                                public bool  $default_literal = false,
+                                public ?bool $fake = false,
                                 public ?bool $enabled = true)
     {
 
@@ -26,10 +27,10 @@ class ColorField extends Field
 
     }
 
-    public function getFormField(): FormField
+    public function getFormField(array $extras = []): FormField
     {
 
-        $form_field = parent::getFormField();
+        $form_field = parent::getFormField($extras);
 
         foreach (Color::getColors() as $color) {
 

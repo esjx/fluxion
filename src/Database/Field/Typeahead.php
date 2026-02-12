@@ -10,11 +10,11 @@ trait Typeahead
     /**
      * @throws Exception
      */
-    public function getFormField(): FormField
+    public function getFormField(array $extras = []): FormField
     {
 
         /** @noinspection PhpMultipleClassDeclarationsInspection */
-        $form_field = parent::getFormField();
+        $form_field = parent::getFormField($extras);
 
         $pre = 30;
         $i = 0;
@@ -36,9 +36,15 @@ trait Typeahead
 
             foreach ((clone $query)->filter($field_id_name, $this->_value)->select() as $row) {
 
+                $pos = array_search($row->$field_id_name, $extras);
+
+                if ($pos !== false) {
+                    array_splice($extras, $pos, 1);
+                };
+
                 $form_field->addChoice(
                     value: $row->$field_id_name,
-                    label: (string)$row
+                    label: (string) $row
                 );
 
             }
@@ -49,12 +55,31 @@ trait Typeahead
 
         if ($form_field->enabled) {
 
-            foreach ($query->limit($pre + 1)->select() as $row) {
+            foreach ((clone $query)->limit($pre + 1)->select() as $row) {
 
                 if (++$i > $pre) {
                     $extra = true;
                     break;
                 }
+
+                $pos = array_search($row->$field_id_name, $extras);
+
+                if ($pos !== false) {
+                    array_splice($extras, $pos, 1);
+                };
+
+                $form_field->addChoice(
+                    value: $row->$field_id_name,
+                    label: (string) $row
+                );
+
+            }
+
+        }
+
+        if (count($extras) > 0) {
+
+            foreach ((clone $query)->filter($field_id_name, $extras)->select() as $row) {
 
                 $form_field->addChoice(
                     value: $row->$field_id_name,

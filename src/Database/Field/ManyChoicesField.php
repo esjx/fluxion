@@ -3,8 +3,8 @@ namespace Fluxion\Database\Field;
 
 use Attribute;
 use ReflectionException;
-use Fluxion\{Exception, ManyChoicesModel, Model, Color};
-use Fluxion\Database\{Field, FormField};
+use Fluxion\{Exception, ManyChoicesModel, Model};
+use Fluxion\Database\{Field};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class ManyChoicesField extends Field
@@ -14,8 +14,10 @@ class ManyChoicesField extends Field
 
     protected ManyChoicesModel $_mc_model;
 
-    public ?bool $fake = true;
+    public ?bool $assistant_table = true;
     public ?bool $multiple = true;
+    public bool $radio = false;
+    public bool $inline = false;
 
     protected string $_type_target = 'array';
 
@@ -67,6 +69,10 @@ class ManyChoicesField extends Field
     public function load(): void
     {
 
+        if ($this->fake) {
+            return;
+        }
+
         if (is_null($this->_value) && !$this->_changed && $this->_model->isSaved()) {
 
             $class = get_class($this->_model);
@@ -84,7 +90,7 @@ class ManyChoicesField extends Field
     /**
      * @throws Exception
      */
-    public function __construct(array          $choices,
+    public function __construct(?array         $choices = null,
                                 public ?array  $choices_colors = null,
                                 string         $choices_type = 'string',
                                 public ?string $class_name = null,
@@ -94,6 +100,7 @@ class ManyChoicesField extends Field
                                 public ?bool   $required = false,
                                 public ?bool   $protected = false,
                                 public ?bool   $readonly = false,
+                                public ?bool   $fake = false,
                                 public ?bool   $enabled = true)
     {
 
@@ -111,7 +118,7 @@ class ManyChoicesField extends Field
 
     }
 
-    public function translate(mixed $value): array
+    public function translate(mixed $value): ?array
     {
 
         if (empty($value)) {
@@ -129,7 +136,7 @@ class ManyChoicesField extends Field
             return false;
         }
 
-        return is_array($value);
+        return is_array($value) || is_null($value);
 
     }
 
@@ -143,7 +150,7 @@ class ManyChoicesField extends Field
 
     public function isManyChoices(): bool
     {
-        return true;
+        return !$this->fake;
     }
 
 }

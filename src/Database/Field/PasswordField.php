@@ -48,10 +48,10 @@ class PasswordField extends Field
 
     }
 
-    public function getFormField(): FormField
+    public function getFormField(array $extras = []): FormField
     {
 
-        $form_field = parent::getFormField();
+        $form_field = parent::getFormField($extras);
 
         $form_field->value = null;
 

@@ -30,6 +30,7 @@ class ChoicesField extends Field
                                 public mixed   $default = null,
                                 public bool    $default_literal = false,
                                 public ?string $column_name = null,
+                                public ?bool   $fake = false,
                                 public ?bool   $enabled = true)
     {
 

@@ -32,11 +32,15 @@ abstract class Model
 
             if ($instance instanceof Table) {
 
+                $instance->initialize();
+
                 $this->_table = $instance;
 
             }
 
             elseif ($instance instanceof Crud) {
+
+                $instance->initialize($this);
 
                 $this->_crud = $instance;
 
@@ -55,6 +59,10 @@ abstract class Model
             }
 
             $name = $property->getName();
+
+            if (in_array($name, ['__id', '__deleted', '__created', '__inlines'])) {
+                throw new Exception("Nome de campo '$name' é reservado!");
+            }
 
             $attributes = $property->getAttributes();
 

@@ -33,7 +33,7 @@ class ForeignKeyField extends Field
                                 public ?bool   $protected = false,
                                 public ?bool   $readonly = false,
                                 public ?string $column_name = null,
-                                public ?bool $enabled = true)
+                                public ?bool   $enabled = true)
     {
 
         parent::__construct();

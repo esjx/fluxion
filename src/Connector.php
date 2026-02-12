@@ -300,7 +300,7 @@ abstract class Connector
 
             foreach ($fields as $field) {
 
-                if ($field->fake || $field->column_name == 'total') {
+                if ($field->fake || $field->assistant_table || $field->column_name == 'total') {
                     continue;
                 }
 

@@ -37,13 +37,7 @@ class CrudController extends Controller
                 throw new PermissionDeniedException('Usuário sem acesso à visualização!');
             }
 
-            $ids = explode(';', $id);
-
-            $args = array_map(function () use (&$ids) {
-                return array_shift($ids);
-            }, $model->getPrimaryKeys());
-
-            $model = $model::loadById($args);
+            $model = $model::loadById($id);
 
         }
 
@@ -165,8 +159,6 @@ class CrudController extends Controller
         $auth = Config::getAuth();
         $model = $route->getModel();
 
-        $model->changeState(State::VIEW);
-
         $crud_details = $model->getCrud();
         $class_name = $model->getComment();
         $has_search = false;
@@ -222,6 +214,8 @@ class CrudController extends Controller
         $tabs = $model->getTabs(clone $query);
         $default_tab = $tabs[0]->id ?? null;
 
+        $model->changeState(State::FILTER);
+
         // Executa busca
         if (!empty($search)) {
 
@@ -246,6 +240,8 @@ class CrudController extends Controller
             pages: $pages,
             itens: $crud_details->itens_per_page
         );
+
+        $model->changeState(State::LIST);
 
         /** @var Model $k */
         foreach ($query->select() as $k) {
@@ -320,29 +316,11 @@ class CrudController extends Controller
 
         # Campos
 
-        $fields = [];
-
-        foreach ($model->getFields() as $f) {
-
-            if ($f->protected) {
-                continue;
-            }
-
-            $form_field = $f->getFormField();
-
-            if (!$save) {
-                $form_field->enabled = false;
-            }
-
-            $fields[] = $form_field;
-
-        }
+        $fields = $model->getFormFields($save);
 
         # Inlines
 
-        $inlines = [];
-
-        #TODO
+        $inlines = $model->getFormInlines($save);
 
         # Retorna dados
 
@@ -368,6 +346,7 @@ class CrudController extends Controller
      * @throws PermissionDeniedException
      * @throws Exception
      */
+    #[Transaction]
     public function save(RequestInterface $request, Route $route): MessageInterface
     {
 
@@ -380,7 +359,7 @@ class CrudController extends Controller
         $auth = Config::getAuth();
         $model = $this->getModel($route->getModel(), $id);
 
-        # Verificar se habilita o campo de salvar
+        # Verificar se tem permissão para salvar
 
         $save = ($id == 'add')
             ? $auth->hasPermission($model, Permission::INSERT)
@@ -390,33 +369,9 @@ class CrudController extends Controller
             throw new PermissionDeniedException('Usuário sem acesso à salvar os dados!');
         }
 
-        $model->changeState(State::BEFORE_SAVE);
+        # Salva os dados
 
-        $model->changeState(State::VIEW);
-
-        # Salva dados
-
-        foreach ($model->getFields() as $key => $f) {
-
-            if ($f->protected || $f->readonly) {
-                continue;
-            }
-
-            $f->setValue($is->$key ?? null);
-
-        }
-
-        $model->changeState(State::SAVE);
-
-        $model->save();
-
-        # Salva os inlines
-
-        foreach ($is->__inlines as $inline) {
-
-            //TODO
-
-        }
+        $model->saveFromForm($is);
 
         # Retorna dados
 
@@ -434,6 +389,7 @@ class CrudController extends Controller
      * @throws PermissionDeniedException
      * @throws Exception
      */
+    #[Transaction]
     public function action(RequestInterface $request, Route $route): MessageInterface
     {
 

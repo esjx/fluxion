@@ -401,7 +401,7 @@ class SQLServer extends Connector
 
         foreach ($fields as $key => $f) {
 
-            if ($f->fake) {
+            if ($f->fake || $f->assistant_table) {
                 continue;
             }
 
@@ -427,7 +427,7 @@ class SQLServer extends Connector
 
             foreach ($fields as $key => $value) {
 
-                if ($value->fake) {
+                if ($value->fake || $value->assistant_table) {
                     continue;
                 }
 
@@ -713,7 +713,7 @@ class SQLServer extends Connector
 
             foreach ($fields as $value) {
 
-                if ($value->fake) {
+                if ($value->fake || $value->assistant_table) {
                     continue;
                 }
 
@@ -1057,7 +1057,7 @@ class SQLServer extends Connector
 
         if ($query->isAllFields()) {
             foreach ($model->getFields() as $field) {
-                if (!$field->fake) {
+                if (!$field->fake && !$field->assistant_table) {
                     $fields[] = "$id.[$field->column_name]";
                 }
             }
@@ -1187,7 +1187,7 @@ class SQLServer extends Connector
 
         foreach ($fields as $f) {
 
-            if ($f->fake) {
+            if ($f->fake || $f->assistant_table) {
                 continue;
             }
 
@@ -1213,7 +1213,7 @@ class SQLServer extends Connector
 
             foreach ($fields as $key => $f) {
 
-                if ($f->fake) {
+                if ($f->fake || $f->assistant_table) {
                     continue;
                 }
 
@@ -1249,13 +1249,17 @@ class SQLServer extends Connector
 
         else {
 
+            $class_name = get_class($model);
+
             foreach ($data as $d) {
 
                 $values_sql = [];
 
+                $i_model = new $class_name;
+
                 foreach ($fields as $key => $f) {
 
-                    if ($f->fake) {
+                    if ($f->assistant_table) {
                         continue;
                     }
 
@@ -1269,17 +1273,33 @@ class SQLServer extends Connector
                         throw new Exception("Campo '$key' não pode ser nulo");
                     }
 
-                    if ($f->required && is_null($value) && !is_null($f->default)) {
-                        $values_sql[] = $this->default_value;
-                    }
-
-                    else {
-                        $values_sql[] = $this->escape($value);
-                    }
+                    $i_model->$key = $value;
 
                 }
 
-                $inserts_sql[] = "(" . implode(", ", $values_sql) . ")";
+                if ($i_model->onSave()) {
+
+                    foreach ($fields as $key => $f) {
+
+                        if ($f->fake || $f->assistant_table) {
+                            continue;
+                        }
+
+                        if ($f->required && is_null($i_model->$key) && !is_null($f->default)) {
+                            $values_sql[] = $this->default_value;
+                        } else {
+                            $values_sql[] = $this->escape($i_model->$key);
+                        }
+
+                    }
+
+                    $inserts_sql[] = "(" . implode(", ", $values_sql) . ")";
+
+                }
+
+                else {
+                    $this->comment('Erro ao salvar o registro: ' . json_encode($d), Color::RED);
+                }
 
             }
 
@@ -1347,7 +1367,7 @@ class SQLServer extends Connector
 
         foreach ($model->getFields() as $f) {
 
-            if ($f->fake) {
+            if ($f->fake || $f->assistant_table) {
                 continue;
             }
 

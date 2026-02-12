@@ -5,6 +5,7 @@ namespace Fluxion;
 enum State
 {
 
+    case LIST;
     case VIEW;
     case EDIT;
     case DOWNLOAD;
@@ -16,6 +17,7 @@ enum State
     case FILTER_PARAMS;
     case INLINE;
     case INLINE_SAVE;
+    case INLINE_VIEW;
     case TYPEAHEAD;
 
 }

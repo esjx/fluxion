@@ -51,10 +51,11 @@ trait Choices
 
     }
 
-    public function getFormField(): FormField
+    public function getFormField(array $extras = []): FormField
     {
 
-        $form_field = parent::getFormField();
+        /** @noinspection PhpMultipleClassDeclarationsInspection */
+        $form_field = parent::getFormField($extras);
 
         foreach ($this->choices as $key => $label) {
 
@@ -80,6 +81,7 @@ trait Choices
 
         $form_field->type = ($this->radio) ? 'radio' : 'choices';
         $form_field->inline = $this->inline;
+        $form_field->multiple = $this->multiple;
 
         return $form_field;
 

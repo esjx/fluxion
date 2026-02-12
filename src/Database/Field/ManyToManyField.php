@@ -14,7 +14,7 @@ class ManyToManyField extends Field
 
     protected ManyToManyModel $_mn_model;
 
-    public ?bool $fake = true;
+    public ?bool $assistant_table = true;
     public ?bool $multiple = true;
 
     protected string $_type_target = 'array';
@@ -149,7 +149,7 @@ class ManyToManyField extends Field
 
     public function isManyToMany(): bool
     {
-        return true;
+        return !$this->fake;
     }
 
 }

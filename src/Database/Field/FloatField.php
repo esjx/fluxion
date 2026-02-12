@@ -20,7 +20,7 @@ class FloatField extends Field
                                 public mixed           $default = null,
                                 public bool            $default_literal = false,
                                 public ?bool           $fake = false,
-                                public ?bool $enabled = true)
+                                public ?bool           $enabled = true)
     {
         parent::__construct();
     }
@@ -51,10 +51,10 @@ class FloatField extends Field
 
     }
 
-    public function getFormField(): FormField
+    public function getFormField(array $extras = []): FormField
     {
 
-        $form_field = parent::getFormField();
+        $form_field = parent::getFormField($extras);
 
         $form_field->type = 'float';
 

@@ -205,6 +205,16 @@ trait ModelQuery
             $id = [$obj->getFieldId()->getName() => $id];
         }
 
+        elseif (count($primary_keys) > 1 && is_string($id)) {
+
+            $ids = explode(';', $id);
+
+            $id = array_map(function () use (&$ids) {
+                return array_shift($ids);
+            }, $primary_keys);
+
+        }
+
         $query = $obj->query();
 
         foreach ($primary_keys as $key => $primary_key) {

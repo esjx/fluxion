@@ -23,7 +23,8 @@ class DateField extends Field
                                 public null|int|string $max_value = null,
                                 public mixed           $default = null,
                                 public bool            $default_literal = false,
-                                public ?bool $enabled = true)
+                                public ?bool           $fake = false,
+                                public ?bool           $enabled = true)
     {
         parent::__construct();
     }
@@ -70,10 +71,10 @@ class DateField extends Field
 
     }
 
-    public function getFormField(): FormField
+    public function getFormField(array $extras = []): FormField
     {
 
-        $form_field = parent::getFormField();
+        $form_field = parent::getFormField($extras);
 
         $form_field->value = Time::convert($this->_value, 'd/m/Y H:i:s');
 

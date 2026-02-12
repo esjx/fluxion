@@ -2,6 +2,7 @@
 namespace Fluxion\Database;
 
 use Attribute;
+use Fluxion\{Model, Exception};
 
 #[Attribute(Attribute::TARGET_CLASS)]
 class Table
@@ -13,7 +14,12 @@ class Table
                                 public ?bool $view = false)
     {
 
-        if (is_null($database)
+    }
+
+    public function initialize(): void
+    {
+
+        if (is_null($this->database)
             && preg_match('/database=(?P<database>[A-Za-z0-9_]+)/i', $_ENV['DB_HOST'] ?? '', $data)) {
 
             $this->database = $data['database'];

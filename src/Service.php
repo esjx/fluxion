@@ -511,7 +511,7 @@ class Service
                 $inline_permissions['delete'] = false;
             }
 
-            $inline_fields = [
+             $inline_fields = [
                 [
                     'name' => '__id',
                     'type' => 'string',
