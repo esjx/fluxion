@@ -45,9 +45,4 @@ class FormField
 
     }
 
-    public function getChoices(): array
-    {
-        return $this->choices;
-    }
-
 }
