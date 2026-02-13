@@ -15,6 +15,7 @@ enum Action: string
     case ARCHIVE = 'archive';
     case RESTORE = 'restore';
     case INDEX = 'index';
+    case CLEAR = 'clear';
 
     # Controle de acesso e segurança
     case BLOCK = 'block';
