@@ -50,7 +50,10 @@ abstract class Field
     public bool $default_literal = false;
     public null|int|string $min_value = null;
     public null|int|string $max_value = null;
-    public ?array $filter = null;
+
+    /** @var QueryWhere[] */
+    public array $filters = [];
+    public ?string $typeahead = null;
 
     public function isChanged(): bool
     {
@@ -257,7 +260,7 @@ abstract class Field
         return null;
     }
 
-    public function getFormField(array $extras = []): FormField
+    public function getFormField(array $extras = [], ?string $route = null): FormField
     {
 
         $detail = $this->_model->getDetail($this->getName());

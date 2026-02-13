@@ -14,10 +14,10 @@ class Route
     /**
      * @throws Exception
      */
-    public function __construct(public string $route,
-                                public array|string  $methods = 'GET',
-                                public array  $args = [],
-                                public bool   $append = true)
+    public function __construct(public string       $route,
+                                public array|string $methods = 'GET',
+                                public array        $args = [],
+                                public bool         $append = true)
     {
 
         if (is_string($methods)) {
@@ -27,7 +27,7 @@ class Route
         foreach ($this->methods as $method) {
 
             if (!in_array($method, ['GET', 'POST', 'PUT', 'DELETE'])) {
-                throw new Exception("Method $method not allowed");
+                throw new Exception("Método HTTP '$method' não suportado!");
             }
 
         }

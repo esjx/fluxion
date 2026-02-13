@@ -21,7 +21,7 @@ class FormInline
     /**
      * @throws Exception
      */
-    public function __construct(Model $model, Inline $inline, ?bool $save = null)
+    public function __construct(Model $model, Inline $inline, ?bool $save = null, ?string $route = null)
     {
 
         # Dados e permissões
@@ -100,7 +100,7 @@ class FormInline
 
             $il_field = $il_model->getField($key);
 
-            $form_field = $il_field->getFormField($extras[$key] ?? []);
+            $form_field = $il_field->getFormField($extras[$key] ?? [], $route);
 
             if (!$save) {
                 $form_field->enabled = false;

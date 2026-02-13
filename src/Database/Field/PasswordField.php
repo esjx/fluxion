@@ -48,7 +48,7 @@ class PasswordField extends Field
 
     }
 
-    public function getFormField(array $extras = []): FormField
+    public function getFormField(array $extras = [], ?string $route = null): FormField
     {
 
         $form_field = parent::getFormField($extras);

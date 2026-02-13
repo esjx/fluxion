@@ -708,7 +708,7 @@ trait ModelCrud
         return null;
     }
 
-    public function getFormFields(bool $save = true): array
+    public function getFormFields(bool $save = true, ?string $route = null): array
     {
 
         $fields = [];
@@ -719,7 +719,7 @@ trait ModelCrud
                 continue;
             }
 
-            $form_field = $f->getFormField();
+            $form_field = $f->getFormField([], $route);
 
             if (!$save) {
                 $form_field->enabled = false;
@@ -745,7 +745,7 @@ trait ModelCrud
      * @return FormInline[]
      * @throws Exception
      */
-    public function getFormInlines(bool $save = true): array
+    public function getFormInlines(bool $save = true, ?string $route = null): array
     {
 
         $inlines = [];
@@ -754,7 +754,7 @@ trait ModelCrud
 
         foreach ($this->getInlines() as $inline) {
 
-            $inlines[] = new FormInline($this, $inline, $save);
+            $inlines[] = new FormInline($this, $inline, $save, $route);
 
         }
 

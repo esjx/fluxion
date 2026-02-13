@@ -86,7 +86,7 @@ class ManyToManyField extends Field
                                 public bool    $real = false,
                                 public bool    $show = false,
                                 public ?string $type = null,
-                                public ?array  $filter = null,
+                                public array   $filters = [],
                                 public ?bool   $required = false,
                                 public ?bool   $protected = false,
                                 public ?bool   $readonly = false,

@@ -96,7 +96,6 @@ class ManyChoicesField extends Field
                                 public ?string $class_name = null,
                                 public bool    $show = false,
                                 public ?string $type = null,
-                                public ?array  $filter = null,
                                 public ?bool   $required = false,
                                 public ?bool   $protected = false,
                                 public ?bool   $readonly = false,

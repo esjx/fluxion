@@ -1,6 +1,7 @@
 <?php
 namespace Fluxion\Database\Field;
 
+use Fluxion\Query\{QuerySql};
 use Fluxion\Database\{FormField};
 use Fluxion\Exception;
 
@@ -10,7 +11,7 @@ trait Typeahead
     /**
      * @throws Exception
      */
-    public function getFormField(array $extras = []): FormField
+    public function getFormField(array $extras = [], ?string $route = null): FormField
     {
 
         /** @noinspection PhpMultipleClassDeclarationsInspection */
@@ -30,7 +31,9 @@ trait Typeahead
 
         # Filtrar
 
-        #TODO
+        if (count($this->filters) > 0) {
+            $query = $query->filter(QuerySql::_and($this->filters));
+        }
 
         if (!empty($this->_value)) {
 
@@ -93,9 +96,14 @@ trait Typeahead
         $form_field->type = 'choices';
         $form_field->multiple = $this->multiple;
 
-        if ($extra) {
+        if (!is_null($this->typeahead)) {
             $form_field->type = 'typeahead';
-            $form_field->typeahead = 'url'; #TODO
+            $form_field->typeahead = $this->typeahead;
+        }
+
+        elseif ($extra) {
+            $form_field->type = 'typeahead';
+            $form_field->typeahead = "$route/typeahead/{$this->getName()}";
         }
 
         return $form_field;

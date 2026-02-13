@@ -4,6 +4,7 @@ namespace Fluxion;
 use stdClass;
 use ReflectionException;
 use Fluxion\Menu\{MenuGroup};
+use Fluxion\Query\{QuerySql};
 use Fluxion\Exception\{PermissionDeniedException};
 use Psr\Http\Message\{MessageInterface, RequestInterface};
 
@@ -97,6 +98,7 @@ class CrudController extends Controller
             ['url' => '/fields', 'method' => 'POST', 'class' => $class, 'action' => 'fields'],
             ['url' => '/save', 'method' => 'POST', 'class' => $class, 'action' => 'save'],
             ['url' => '/action', 'method' => 'POST', 'class' => $class, 'action' => 'action'],
+            ['url' => '/typeahead/{field:string}', 'method' => 'POST', 'class' => $class, 'action' => 'typeahead'],
         ];
 
         $keys = [];
@@ -314,13 +316,15 @@ class CrudController extends Controller
 
         $save = (!$table->view && $save);
 
+        $base_route = preg_replace('/\/fields$/', '', $route->route);
+
         # Campos
 
-        $fields = $model->getFormFields($save);
+        $fields = $model->getFormFields($save, $base_route);
 
         # Inlines
 
-        $inlines = $model->getFormInlines($save);
+        $inlines = $model->getFormInlines($save, $base_route);
 
         # Retorna dados
 
@@ -411,6 +415,60 @@ class CrudController extends Controller
             'type' => 'refresh',
             'ok' => true,
             'id' => $model->id(),
+        ];
+
+        return ResponseFactory::fromJson($json);
+
+    }
+
+    /**
+     * @throws PermissionDeniedException
+     * @throws Exception
+     */
+    #[Transaction]
+    public function typeahead(RequestInterface $request, Route $route, stdClass $args): MessageInterface
+    {
+
+        # Dados da requisição
+
+        $is = json_decode($request->getBody()->getContents());
+
+        # Dados básicos
+
+        $model = $route->getModel();
+
+        $field = $model->getField($args->field);
+
+        if (!$field->isForeignKey() && !$field->isManyToMany()) {
+            throw new Exception("Campo '$args->field' não possui fonte de dados!");
+        }
+
+        $ref_model = $field->getReferenceModel();
+
+        $ref_field_id = $ref_model->getFieldId()->getName();
+
+        # Executa a busca
+
+        $query = $ref_model->query();
+
+        if (count($field->filters) > 0) {
+            $query = $query->filter(QuerySql::_and($field->filters));
+        }
+
+        $query = $ref_model->search($query, $is->search);
+
+        $query = $ref_model->order($query, $order);
+
+        $choices = [];
+
+        foreach ($query->limit(10)->select() as $item) {
+            $choices[] = ['id' => $item->$ref_field_id, 'label' => (string) $item];
+        }
+
+        # Retorna dados
+
+        $json = [
+            'items' => $choices,
         ];
 
         return ResponseFactory::fromJson($json);
