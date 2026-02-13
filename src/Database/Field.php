@@ -287,7 +287,7 @@ abstract class Field
             required_conditions: $detail->required_conditions,
             placeholder: $detail->placeholder,
             mask: $detail->mask,
-            maxlength: $this->max_length,
+            maxlength: $detail->max_length ?? $this->max_length,
             readonly: $this->readonly,
             help: $detail->help,
             help_conditions: $detail->help_conditions,

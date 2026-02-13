@@ -40,6 +40,7 @@ class Detail
      * @param Condition[]|null $enabled_conditions
      * @param Condition[]|null $label_conditions
      * @param Condition[]|null $help_conditions
+     * @throws Exception
      */
     public function __construct(public ?string $label = null,
                                 public ?string $mask_class = null,
@@ -57,7 +58,7 @@ class Detail
                                 public ?array  $label_conditions = null,
                                 public ?array  $help_conditions = null)
     {
-
+        $this->initialize();
     }
 
     /**
@@ -86,7 +87,7 @@ class Detail
             $this->placeholder = $mask->placeholder ?? '';
             $this->pattern = $mask->pattern_validator;
             $this->label = $this->label ?? $mask->label;
-            $this->max_length = $this->max_length ?? $mask->max_length;
+            $this->max_length = mb_strlen($mask->mask);
 
         }
 

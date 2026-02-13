@@ -6,13 +6,13 @@ use Fluxion\Exception\MaskException;
 abstract class Mask
 {
 
-    public string $mask;
-    public string $placeholder;
-    public string $pattern;
-    public string $pattern_validator;
-    public string $pattern_message;
-    public string $label;
-    public int $max_length;
+    public string $mask = '';
+    public string $placeholder = '';
+    public string $pattern = '';
+    public string $pattern_validator = '';
+    public string $pattern_message = '';
+    public string $label = '';
+    public int $max_length = 255;
 
     public static function mask(?string $value): string
     {
