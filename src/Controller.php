@@ -124,8 +124,6 @@ class Controller
         asort($list);
         foreach ($list as $class => $index) {
 
-            $connector->sync($class);
-
             if (!is_null($perm_model) && get_class($perm_model) != $class) {
 
                 $field_id = $perm_model->getFieldId()->getName();
@@ -141,6 +139,8 @@ class Controller
                 }
 
             }
+
+            $connector->sync($class);
 
         }
 

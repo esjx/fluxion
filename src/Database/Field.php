@@ -106,7 +106,7 @@ abstract class Field
     public function validate(mixed &$value): bool
     {
 
-        if ($this->required && empty($value)) {
+        if ($this->required && empty($value) && is_null($this->default)) {
             return false;
         }
 
@@ -166,6 +166,18 @@ abstract class Field
 
         return (string) $value;
 
+    }
+
+    public function setChanged(bool $changed): void
+    {
+        $this->_changed = $changed;
+    }
+
+    public function clear(): void
+    {
+        $this->_value = null;
+        $this->_saved_value = null;
+        $this->_changed = false;
     }
 
     /** @throws Exception */

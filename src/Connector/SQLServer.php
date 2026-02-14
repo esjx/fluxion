@@ -2,6 +2,7 @@
 namespace Fluxion\Connector;
 
 use PDO;
+use ReflectionException;
 use Random\RandomException;
 use Fluxion\Exception\{SqlException};
 use Fluxion\{Color, Connector, Database, Exception, Model, Query, Time};
@@ -381,6 +382,7 @@ class SQLServer extends Connector
     /**
      * @throws Exception
      * @throws RandomException
+     * @throws ReflectionException
      */
     protected function executeSync(Model $model): void
     {
@@ -425,6 +427,8 @@ class SQLServer extends Connector
 
             $this->comment("Tabela '$table->schema.$table->table' já existe");
 
+            # Campos utilizados
+
             foreach ($fields as $key => $value) {
 
                 if ($value->fake || $value->assistant_table) {
@@ -445,6 +449,8 @@ class SQLServer extends Connector
                     if (!is_null($default_value)) {
                         $sql .= " default $default_value";
                     }
+
+                    #TODO: Validar inclusão de campo não nulo sem valor padrão quando já existir registros na tabela
 
                     $sql .= ";";
 
@@ -710,6 +716,8 @@ class SQLServer extends Connector
         else {
 
             $create_fields = [];
+
+            # Campos utilizados
 
             foreach ($fields as $value) {
 
@@ -1183,25 +1191,7 @@ class SQLServer extends Connector
         $inserts_sql = [];
         $outputs_sql = [];
 
-        # Campos
-
-        foreach ($fields as $f) {
-
-            if ($f->fake || $f->assistant_table) {
-                continue;
-            }
-
-            if (!$f->isChanged() && $model->isSaved()) {
-                continue;
-            }
-
-            if ($f->identity && is_null($f->getValue())) {
-                continue;
-            }
-
-            $fields_sql[] = "[$f->column_name]";
-
-        }
+        $identity_insert = false;
 
         # Inclusão de um único registro
 
@@ -1239,6 +1229,10 @@ class SQLServer extends Connector
                     throw new Exception("Campo '$key' não pode ser nulo <pre>" . json_encode($f, JSON_PRETTY_PRINT) . '</pre>');
                 }
 
+                if ($f->identity) {
+                    $identity_insert = true;
+                }
+
                 if ($f->required && is_null($value) && !is_null($f->default)) {
                     $values_sql[] = $this->default_value;
                 }
@@ -1265,11 +1259,8 @@ class SQLServer extends Connector
 
                 foreach ($fields as $key => $f) {
 
-                    if ($f->assistant_table) {
-                        continue;
-                    }
-
-                    if (!$f->isChanged() && $model->isSaved()) {
+                    if (!array_key_exists($key, $d)) {
+                        $f->clear();
                         continue;
                     }
 
@@ -1277,6 +1268,10 @@ class SQLServer extends Connector
 
                     if ($f->required && is_null($value) && is_null($f->default)) {
                         throw new Exception("Campo '$key' não pode ser nulo");
+                    }
+
+                    if ($f->identity && !is_null($f->getValue())) {
+                        $identity_insert = true;
                     }
 
                     $i_model->$key = $value;
@@ -1293,7 +1288,9 @@ class SQLServer extends Connector
 
                         if ($f->required && is_null($i_model->$key) && !is_null($f->default)) {
                             $values_sql[] = $this->default_value;
-                        } else {
+                        }
+
+                        else {
                             $values_sql[] = $this->escape($i_model->$key);
                         }
 
@@ -1311,26 +1308,32 @@ class SQLServer extends Connector
 
         }
 
+        # Campos
+
+        foreach ($fields as $f) {
+
+            if ($f->fake || $f->assistant_table) {
+                continue;
+            }
+
+            if (!$f->isChanged() && $model->isSaved()) {
+                continue;
+            }
+
+            if ($f->identity && !$identity_insert) {
+                continue;
+            }
+
+            $fields_sql[] = "[$f->column_name]";
+
+        }
+
         if (count($fields_sql) == 0) {
             throw new Exception("Nenhum campo alterado para incluir");
         }
 
         if (count($inserts_sql) == 0) {
             throw new Exception("Nenhum registro para incluir");
-        }
-
-        $identity_insert = false;
-
-        foreach ($model->getIdentity() as $key => $i) {
-
-            if (!is_null($i->getValue())) {
-                $identity_insert = true;
-            }
-
-            if (count($data) > 0 && !is_null($data[0][$key] ?? null)) {
-                $identity_insert = true;
-            }
-
         }
 
         $sql = "INSERT INTO $table->database.$table->schema.$table->table";
