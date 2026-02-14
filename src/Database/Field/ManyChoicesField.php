@@ -35,7 +35,9 @@ class ManyChoicesField extends Field
 
         if (empty($this->_mc_model)) {
 
-            $this->_mc_model = new ManyChoicesModel($this->_model, $this->_name);
+            $class_name = $this->_model;
+
+            $this->_mc_model = new ManyChoicesModel(new $class_name(), $this->_name);
 
         }
 

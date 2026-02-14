@@ -33,7 +33,9 @@ class ManyToManyField extends Field
 
         if (empty($this->_mn_model)) {
 
-            $this->_mn_model = new ManyToManyModel($this->_model, $this->_name, $this->inverted);
+            $class_name = $this->_model;
+
+            $this->_mn_model = new ManyToManyModel(new $class_name(), $this->_name, $this->inverted);
 
         }
 
