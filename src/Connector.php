@@ -1,6 +1,8 @@
 <?php
 namespace Fluxion;
 
+use Fluxion\Database\Field\ManyChoicesField;
+use Fluxion\Database\Field\ManyToManyField;
 use Generator;
 use PDO;
 use PDOException;
@@ -477,13 +479,23 @@ abstract class Connector
 
         # Atualizar dados nas tabelas MN
 
-        foreach ($model->getManyToMany() as $mn) {
+        foreach ($model->getFields() as $mn) {
 
-            $field_id = $model->getFieldId();
+            if ($mn->isChanged() && $mn->fake) {
 
-            if ($mn->isChanged()) {
+                if ($mn instanceof ManyToManyField) {
+                    $mn_model = $mn->getManyToManyModel();
+                }
 
-                $mn_model = $mn->getManyToManyModel();
+                elseif ($mn instanceof ManyChoicesField) {
+                    $mn_model = $mn->getManyChoicesModel();
+                }
+
+                else {
+                    continue;
+                }
+
+                $field_id = $model->getFieldId();
                 $id = $field_id->getValue();
                 $left = $mn_model->getLeft();
                 $right = $mn_model->getRight();

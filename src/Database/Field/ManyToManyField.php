@@ -79,6 +79,8 @@ class ManyToManyField extends Field
 
             $this->_value = $mn_model->load($field_id->getValue());
 
+            $this->_saved_value = $this->_value;
+
         }
 
     }

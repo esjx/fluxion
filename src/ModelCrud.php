@@ -786,11 +786,11 @@ trait ModelCrud
                 $f->readonly = false;
             }
 
-            if (($f->protected || $f->readonly)) {
+            if ($f->protected || $f->readonly) {
                 continue;
             }
 
-            $f->setValue($is->$key ?? null);
+            $this->$key = $is->$key ?? null;
 
         }
 

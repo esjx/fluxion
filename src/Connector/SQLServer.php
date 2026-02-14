@@ -1257,13 +1257,11 @@ class SQLServer extends Connector
 
         else {
 
-            $class_name = get_class($model);
-
             foreach ($data as $d) {
 
                 $values_sql = [];
 
-                $i_model = new $class_name;
+                $i_model = clone $model;
 
                 foreach ($fields as $key => $f) {
 
