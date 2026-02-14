@@ -481,7 +481,7 @@ abstract class Connector
 
         foreach ($model->getFields() as $mn) {
 
-            if ($mn->isChanged() && $mn->fake) {
+            if ($mn->isChanged() && !$mn->fake) {
 
                 if ($mn instanceof ManyToManyField) {
                     $mn_model = $mn->getManyToManyModel();
