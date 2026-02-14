@@ -1,7 +1,7 @@
 <?php
 namespace Fluxion;
 
-class ImageManipulate
+class Image
 {
 
     public static function createThumbFromFile($file, int $max_size = 250): ?string
@@ -74,7 +74,7 @@ class ImageManipulate
 
     }
 
-    public static function createThumbFromString($str, $file, $newX = 200, $newY = 200)
+    public static function createThumbFromString($str, $file, $newX = 200, $newY = 200): void
     {
 
         if ($src = @imagecreatefromstring($str)) {
@@ -87,7 +87,7 @@ class ImageManipulate
 
     }
 
-    public static function createThumb($scr, $file, $newX = 200, $newY = 200, $quality = 100)
+    public static function createThumb($scr, $file, $newX = 200, $newY = 200, $quality = 100): void
     {
 
         $oldX = imagesx($scr);
@@ -125,7 +125,7 @@ class ImageManipulate
 
         $dir = dirname($file);
 
-        Upload::createDir($dir);
+        FileManager::createDir($dir);
 
         @imagejpeg($img, $file, $quality);
 

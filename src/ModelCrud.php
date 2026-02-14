@@ -21,6 +21,9 @@ trait ModelCrud
         return $this->_details;
     }
 
+    /**
+     * @throws Exception
+     */
     public function getDetail(string $key): Detail
     {
         return $this->_details[$key] ?? new Detail(label: ucfirst($key));
@@ -764,6 +767,7 @@ trait ModelCrud
 
     /**
      * @throws Exception
+     * @throws ReflectionException
      */
     public function saveFromForm(stdClass $is): void
     {
@@ -778,7 +782,11 @@ trait ModelCrud
 
         foreach ($this->getFields() as $key => $f) {
 
-            if ($f->protected || $f->readonly) {
+            if ($f->readonly && !$f->identity && $f->primary_key && is_null($this->$key)) {
+                $f->readonly = false;
+            }
+
+            if (($f->protected || $f->readonly)) {
                 continue;
             }
 

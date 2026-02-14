@@ -10,7 +10,7 @@ use Fluxion\Database\{Field};
 class ManyChoicesField extends Field
 {
 
-    use Choices;
+    use StaticChoices;
 
     protected ManyChoicesModel $_mc_model;
 

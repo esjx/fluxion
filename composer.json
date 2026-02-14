@@ -35,6 +35,9 @@
         "ext-mbstring": "*",
         "ext-pdo": "*",
         "ext-zip": "*",
+        "ext-calendar": "*",
+        "ext-gd": "*",
+        "ext-iconv": "*",
         "guzzlehttp/guzzle": "^7.10",
         "laminas/laminas-httphandlerrunner": "^2.13",
         "micheh/psr7-cache": "^0.5.0"

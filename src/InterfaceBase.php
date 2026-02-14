@@ -1,6 +1,9 @@
 <?php
 namespace Fluxion;
 
+use AllowDynamicProperties;
+
+#[AllowDynamicProperties]
 abstract class InterfaceBase
 {
 

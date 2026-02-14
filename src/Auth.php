@@ -31,11 +31,13 @@ abstract class Auth
 
     protected bool $_authenticated = false;
 
+    /** @noinspection PhpUnused */
     public function isAuthenticated(): bool
     {
         return $this->_authenticated;
     }
 
+    /** @noinspection PhpUnusedParameterInspection */
     public function hasPermission(Model $model, Permission $permission): bool
     {
         return true;

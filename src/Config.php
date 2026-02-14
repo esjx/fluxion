@@ -73,6 +73,7 @@ class Config
 
     /**
      * @throws Exception
+     * @noinspection PhpUnused
      */
     public static function setPermissionModel(string $class): void
     {

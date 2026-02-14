@@ -13,9 +13,11 @@ class UserModel extends Model
     #[PasswordField]
     public ?string $password;
 
+    /** @noinspection PhpUnused */
     #[StringField]
     public ?string $mail;
 
+    /** @noinspection PhpUnused */
     #[BooleanField(default: false)]
     public ?bool $super = false;
 

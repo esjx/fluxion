@@ -1195,6 +1195,10 @@ class SQLServer extends Connector
                 continue;
             }
 
+            if ($f->identity && is_null($f->getValue())) {
+                continue;
+            }
+
             $fields_sql[] = "[$f->column_name]";
 
         }
@@ -1227,8 +1231,12 @@ class SQLServer extends Connector
                     $outputs_sql[] = "INSERTED.[$f->column_name]";
                 }
 
+                if ($f->identity && is_null($f->getValue())) {
+                    continue;
+                }
+
                 if ($f->required && is_null($value) && is_null($f->default)) {
-                    throw new Exception("Campo '$key' não pode ser nulo");
+                    throw new Exception("Campo '$key' não pode ser nulo <pre>" . json_encode($f, JSON_PRETTY_PRINT) . '</pre>');
                 }
 
                 if ($f->required && is_null($value) && !is_null($f->default)) {

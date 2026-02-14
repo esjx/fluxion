@@ -8,11 +8,6 @@ use IntlDateFormatter;
 trait Format
 {
 
-    public static function fixed(?float $value, int $size = 4): string
-    {
-        return sprintf("%0{$size}d", $value);
-    }
-
     public static function money(?float $value, int $decimals = 2): string
     {
         return 'R$ ' . self::number($value, $decimals);
@@ -205,6 +200,69 @@ trait Format
     public static function size(?float $size, int $decimals = 2): string
     {
         return self::numberBase($size, $decimals, 1024, 'B KB MB GB TB PB');
+    }
+
+    public static function abreviaNome($nome): string
+    {
+
+        $partes = explode(' ', $nome);
+
+        $meio = ' ';
+
+        for ($i = 1; $i < (count($partes) - 1); $i++) {
+
+            if (strlen($partes[$i]) > 3) {
+
+                $meio .= substr($partes[$i], 0, 1) . ' ';
+
+            }
+
+        }
+
+        return $partes[0] . $meio . $partes[count($partes) - 1];
+
+    }
+
+    public static function sanitize($str): string
+    {
+
+        $str = preg_replace('/[áàãâä]/u', 'a', $str);
+        $str = preg_replace('/[éèêë]/u', 'e', $str);
+        $str = preg_replace('/[íìîï]/u', 'i', $str);
+        $str = preg_replace('/[óòõôö]/u', 'o', $str);
+        $str = preg_replace('/[úùûü]/u', 'u', $str);
+        $str = preg_replace('/ç/u', 'c', $str);
+
+        $str = preg_replace('/[ÁÀÃÂÄ]/u', 'A', $str);
+        $str = preg_replace('/[ÉÈÊË]/u', 'E', $str);
+        $str = preg_replace('/[ÍÌÎÏ]/u', 'I', $str);
+        $str = preg_replace('/[ÓÒÕÔÖ]/u', 'O', $str);
+        $str = preg_replace('/[ÚÙÛÜ]/u', 'U', $str);
+        $str = preg_replace('/Ç/u', 'c', $str);
+
+        $str = preg_replace('/[^a-z0-9]/i', ' ', $str);
+        $str = preg_replace('/\s+/', ' ', $str);
+
+        return trim($str);
+
+    }
+
+    public static function onlyNumbers($str): string
+    {
+
+        return preg_replace('/[^0-9]/i', '', $str);
+
+    }
+
+    public static function padLeft(?string $string, int $length = 4, string $pad_string = '0'): ?string
+    {
+
+        if (is_null($string)) {
+            return null;
+        }
+
+        return str_pad($string, $length, $pad_string, STR_PAD_LEFT);
+
     }
 
 }

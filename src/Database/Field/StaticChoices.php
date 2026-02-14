@@ -5,7 +5,7 @@ use BackedEnum;
 use Fluxion\{Color, Exception};
 use Fluxion\Database\{FormField};
 
-trait Choices
+trait StaticChoices
 {
 
     /**

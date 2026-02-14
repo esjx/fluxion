@@ -2,17 +2,14 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
-use BackedEnum;
-use Fluxion\Color;
 use Fluxion\Database\Field;
-use Fluxion\Database\FormField;
 use Fluxion\Exception;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class ChoicesField extends Field
 {
 
-    use Choices;
+    use StaticChoices;
 
     /**
      * @throws Exception

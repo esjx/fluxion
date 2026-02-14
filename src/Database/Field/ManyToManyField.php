@@ -10,7 +10,7 @@ use Fluxion\Database\{Field};
 class ManyToManyField extends Field
 {
 
-    use Typeahead;
+    use DynamicChoices;
 
     protected ManyToManyModel $_mn_model;
 

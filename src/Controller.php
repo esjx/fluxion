@@ -1,12 +1,12 @@
 <?php
 namespace Fluxion;
 
+use GuzzleHttp\Psr7\{Response, Utils};
+use Micheh\Cache\CacheUtil;
+use Psr\Http\Message\{MessageInterface, RequestInterface};
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
-use GuzzleHttp\Psr7\{Response, Utils};
-use Psr\Http\Message\{MessageInterface, RequestInterface};
-use Micheh\Cache\CacheUtil;
 
 class Controller
 {
@@ -62,7 +62,7 @@ class Controller
 
         $dir = dirname($ref_controller->getFileName());
 
-        foreach (Util::loadAllFiles("$dir/Models") as $file) {
+        foreach (FileManager::loadAllFiles("$dir/Models") as $file) {
 
             $file = str_replace($dir, '', $file);
             $file = preg_replace('/\.php$/i', '', $file);
@@ -150,9 +150,9 @@ class Controller
 
         # Resumo do processo executado
 
-        $time = Formatter::number(microtime(true) - $start_time);
+        $time = TextFormatter::number(microtime(true) - $start_time);
 
-        $memory = Formatter::size(memory_get_usage());
+        $memory = TextFormatter::size(memory_get_usage());
 
         $stream->write("-- Finalizado em <b>$time segundos</b> utilizando <b>$memory</b>");
 

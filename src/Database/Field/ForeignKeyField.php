@@ -9,7 +9,7 @@ use Fluxion\Database\{Field};
 class ForeignKeyField extends Field
 {
 
-    use Typeahead;
+    use DynamicChoices;
 
     private ?Field $_field = null;
 

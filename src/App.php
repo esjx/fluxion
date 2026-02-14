@@ -1,15 +1,15 @@
 <?php
 namespace Fluxion;
 
-use stdClass;
-use ReflectionMethod;
-use ReflectionException;
 use Exception as _Exception;
 use Fluxion\Exception\{PageNotFoundException, SqlException};
 use GuzzleHttp\Psr7\{Response, ServerRequest};
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
-use Psr\Http\Message\{RequestInterface, ResponseInterface};
 use Micheh\Cache\CacheUtil;
+use Psr\Http\Message\{RequestInterface, ResponseInterface};
+use ReflectionException;
+use ReflectionMethod;
+use stdClass;
 
 class App
 {
@@ -200,7 +200,7 @@ class App
             throw new Exception("Classe $controller não encontrada!");
         }
 
-        /** @var ControllerOld $control */
+        /** @var Controller $control */
         $control = new $control_name(ServerRequest::fromGlobals());
 
         if (!$control instanceof Controller) {

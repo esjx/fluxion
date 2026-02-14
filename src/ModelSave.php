@@ -1,6 +1,8 @@
 <?php
 namespace Fluxion;
 
+use ReflectionException;
+
 trait ModelSave
 {
 
@@ -24,6 +26,7 @@ trait ModelSave
     public function onSaved(): void {}
 
     /**
+     * @throws ReflectionException
      * @throws Exception
      */
     public function save(): bool

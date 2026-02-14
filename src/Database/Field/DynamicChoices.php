@@ -5,7 +5,7 @@ use Fluxion\Query\{QuerySql};
 use Fluxion\Database\{FormField};
 use Fluxion\Exception;
 
-trait Typeahead
+trait DynamicChoices
 {
 
     /**
@@ -43,7 +43,7 @@ trait Typeahead
 
                 if ($pos !== false) {
                     array_splice($extras, $pos, 1);
-                };
+                }
 
                 $form_field->addChoice(
                     value: $row->$field_id_name,
@@ -69,7 +69,7 @@ trait Typeahead
 
                 if ($pos !== false) {
                     array_splice($extras, $pos, 1);
-                };
+                }
 
                 $form_field->addChoice(
                     value: $row->$field_id_name,

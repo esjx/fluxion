@@ -424,6 +424,7 @@ class CrudController extends Controller
     /**
      * @throws PermissionDeniedException
      * @throws Exception
+     * @noinspection PhpUnused
      */
     #[Transaction]
     public function typeahead(RequestInterface $request, Route $route, stdClass $args): MessageInterface

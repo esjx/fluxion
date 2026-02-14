@@ -18,7 +18,7 @@ class Message
             $texto = $data[$match['a']] ?? null;
 
             if ($match['b'] == 'fixed') {
-                $texto = Util::padLeft($texto, $match['c'] ?? 1);
+                $texto = TextFormatter::padLeft($texto, $match['c'] ?? 1);
             }
 
             if ($match['b'] == 'cpf') {
@@ -30,15 +30,15 @@ class Message
             }
 
             if ($match['b'] == 'number') {
-                $texto = Util::formatNumber($texto, false, intval((!in_array($match['c'], ['', 'b', 'u', 'i'])) ? $match['c'] : 2));
+                $texto = TextFormatter::number($texto, intval((!in_array($match['c'], ['', 'b', 'u', 'i'])) ? $match['c'] : 2));
             }
 
             if ($match['b'] == 'percent') {
-                $texto = Util::formatNumber($texto, false, intval((!in_array($match['c'], ['', 'b', 'u', 'i'])) ? $match['c'] : 2)) . '%';
+                $texto = TextFormatter::number($texto, intval((!in_array($match['c'], ['', 'b', 'u', 'i'])) ? $match['c'] : 2)) . '%';
             }
 
             if ($match['b'] == 'date') {
-                $texto = Util::formatDate($texto, (strlen($match['c']) >= 2) ? $match['c'] : 'd/m/Y');
+                $texto = TextFormatter::date($texto, (strlen($match['c']) >= 2) ? $match['c'] : 'd/m/Y');
             }
 
             if ($match['b'] == 'b' || $match['c'] == 'b' || $match['d'] == 'b') {

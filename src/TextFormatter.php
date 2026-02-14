@@ -2,7 +2,7 @@
 
 namespace Fluxion;
 
-class Formatter
+class TextFormatter
 {
     use Format;
 }

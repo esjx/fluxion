@@ -2,7 +2,6 @@
 namespace Fluxion\Database;
 
 use Attribute;
-use Fluxion\{Model, Exception};
 
 #[Attribute(Attribute::TARGET_CLASS)]
 class Table

@@ -13,11 +13,11 @@ class AutoIncrementField extends Field
     public ?bool $identity = true;
     public ?bool $enabled = false;
 
-    public function __construct(public ?bool $required = false,
-                                public ?bool $protected = false,
+    public function __construct(public ?bool $protected = false,
                                 public ?bool $readonly = true)
     {
 
+        $this->required = true;
         $this->primary_key = true;
 
         parent::__construct();

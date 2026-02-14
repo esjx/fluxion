@@ -2,9 +2,9 @@
 namespace Fluxion;
 
 use DateTime;
-use Exception;
+use Exception as _Exception;
 
-class Financeiro
+class Finance
 {
 
     const MENSAL = 1;
@@ -16,6 +16,9 @@ class Financeiro
     const SAC_INVERTIDO = 1;
     const SAC_NORMAL = 2;
 
+    /**
+     * @throws Exception
+     */
     public static function primeiraOcorrenciaMes(string $data, int $mes, int $dif_minima = 0, int $periodicidade = self::ANUAL): string
     {
 
@@ -37,7 +40,7 @@ class Financeiro
 
             }
 
-            $diferenca = Util::date_diff(HOJE, $data);
+            $diferenca = Time::date_diff(Time::TODAY, $data);
 
             if ($diferenca['days'] < $dif_minima) {
 
@@ -47,9 +50,11 @@ class Financeiro
 
             }
 
-        } catch (Exception $e) {
+        }
 
-            Application::error($e->getMessage());
+        catch (_Exception $e) {
+
+            throw new Exception($e->getMessage());
 
         }
 
@@ -57,6 +62,9 @@ class Financeiro
 
     }
 
+    /**
+     * @throws Exception
+     */
     public static function parcelas(string $data_vencimento, string $data_limite, int $primeiro_ano, float $valor_financiado, float $taxa = 0, int $periodicidade = self::ANUAL, int $regra = self::SAC_INVERTIDO, int $carencia = 0): array
     {
 
@@ -132,11 +140,11 @@ class Financeiro
 
             $saldo_teorico = $valor_financiado;
 
-            $data_anterior = HOJE;
+            $data_anterior = Time::TODAY;
 
             foreach ($parcelas as $ano => $parcela) {
 
-                $diferenca = Util::date_diff($data_anterior, $parcela['data']);
+                $diferenca = Time::date_diff($data_anterior, $parcela['data']);
 
                 $parcelas[$ano]['dias'] = $diferenca['days'];
 
@@ -189,9 +197,11 @@ class Financeiro
 
             }
 
-        } catch (Exception $e) {
+        }
 
-            Application::error($e->getMessage());
+        catch (_Exception $e) {
+
+            throw new Exception($e->getMessage());
 
         }
 

@@ -7,6 +7,8 @@ use Fluxion\Query\{QueryWhere};
 abstract class Field
 {
 
+    #TODO: Passar para um Enum
+
     const TYPE_STRING = 'string';
     const TYPE_TEXT = 'text';
     const TYPE_PASSWORD = 'password';
