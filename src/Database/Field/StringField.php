@@ -14,15 +14,20 @@ class StringField extends Field
                                 public ?bool   $primary_key = false,
                                 public ?bool   $protected = false,
                                 public ?bool   $readonly = false,
-                                public ?int    $max_length = null,
+                                ?int           $max_length = null,
                                 public mixed   $default = null,
                                 public bool    $default_literal = false,
                                 public ?string $column_name = null,
                                 ?string        $pattern = null,
                                 ?string        $validator_type = null,
+                                ?string        $text_transform = null,
                                 public ?bool   $fake = false,
                                 public ?bool   $enabled = true)
     {
+
+        if (!is_null($max_length)) {
+            $this->max_length = $max_length;
+        }
 
         if (!is_null($pattern)) {
             $this->pattern = $pattern;
@@ -30,6 +35,10 @@ class StringField extends Field
 
         if (!is_null($validator_type)) {
             $this->validator_type = $validator_type;
+        }
+
+        if (!is_null($text_transform)) {
+            $this->text_transform = $text_transform;
         }
 
         parent::__construct();
@@ -68,6 +77,14 @@ class StringField extends Field
 
         if ($this->validator_type == 'CNPJ' && !DigitValidator::cnpj($value)) {
             return false;
+        }
+
+        if (in_array($this->text_transform, ['l', 'lower', 'lowercase'])) {
+            $value = mb_strtolower($value);
+        }
+
+        if (in_array($this->text_transform, ['u', 'upper', 'uppercase'])) {
+            $value = mb_strtoupper($value);
         }
 
         return true;

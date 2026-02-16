@@ -54,6 +54,7 @@ abstract class Field
     public null|int|string $max_value = null;
     public ?string $pattern = null;
     public ?string $validator_type = null;
+    public ?string $text_transform = null;
 
     /** @var QueryWhere[] */
     public array $filters = [];
@@ -302,6 +303,7 @@ abstract class Field
             placeholder: $detail->placeholder,
             pattern: $detail->pattern ?? $this->pattern,
             validator_type: $this->validator_type,
+            text_transform: $this->text_transform,
             mask: $detail->mask,
             maxlength: $detail->max_length ?? $this->max_length,
             readonly: $this->readonly,

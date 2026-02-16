@@ -30,6 +30,7 @@ class FormField
                                 public string  $placeholder = '',
                                 public ?string $pattern = null,
                                 public ?string $validator_type = null,
+                                public ?string $text_transform = null,
                                 public ?string $mask = null,
                                 public ?int    $minlength = null,
                                 public ?int    $maxlength = null,
