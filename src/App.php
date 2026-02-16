@@ -212,7 +212,7 @@ class App
         if ($is_json && !$is_text) {
             $response = ResponseFactory::fromJson([
                 'status' => $code,
-                'message' => $message,
+                'message' => $message . $detail,
                 'trace' => $e->getTraceAsString()
             ], $code);
         }

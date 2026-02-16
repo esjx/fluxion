@@ -1,9 +1,9 @@
 <?php
 namespace Fluxion\Database\Field;
 
+use Fluxion\{Color, Exception};
 use Fluxion\Query\{QuerySql};
 use Fluxion\Database\{FormField};
-use Fluxion\Exception;
 
 trait DynamicChoices
 {
@@ -35,6 +35,14 @@ trait DynamicChoices
             $query = $query->filter(QuerySql::_and($this->filters));
         }
 
+        $field_color_name = '';
+        foreach ($this->getReferenceModel()->getFields() as $f) {
+            if ($f instanceof ColorField) {
+                $field_color_name = $f->getName();
+                break;
+            }
+        }
+
         if (!empty($this->_value)) {
 
             foreach ((clone $query)->filter($field_id_name, $this->_value)->select() as $row) {
@@ -47,7 +55,8 @@ trait DynamicChoices
 
                 $form_field->addChoice(
                     value: $row->$field_id_name,
-                    label: (string) $row
+                    label: (string) $row,
+                    color: Color::tryFrom($row->$field_color_name ?? '')
                 );
 
             }
@@ -73,7 +82,8 @@ trait DynamicChoices
 
                 $form_field->addChoice(
                     value: $row->$field_id_name,
-                    label: (string) $row
+                    label: (string) $row,
+                    color: Color::tryFrom($row->$field_color_name ?? '')
                 );
 
             }
@@ -86,7 +96,8 @@ trait DynamicChoices
 
                 $form_field->addChoice(
                     value: $row->$field_id_name,
-                    label: (string) $row
+                    label: (string) $row,
+                    color: Color::tryFrom($row->$field_color_name ?? '')
                 );
 
             }

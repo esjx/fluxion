@@ -1,6 +1,7 @@
 <?php
 namespace Fluxion;
 
+use Fluxion\Database\Field\ColorField;
 use stdClass;
 use ReflectionException;
 use Fluxion\Menu\{MenuGroup};
@@ -462,10 +463,24 @@ class CrudController extends Controller
 
         $query = $ref_model->order($query, $order);
 
+        $field_color_name = '';
+        foreach ($ref_model->getFields() as $f) {
+            if ($f instanceof ColorField) {
+                $field_color_name = $f->getName();
+                break;
+            }
+        }
+
         $choices = [];
 
         foreach ($query->limit(10)->select() as $item) {
-            $choices[] = ['id' => $item->$ref_field_id, 'label' => (string) $item];
+
+            $choices[] = [
+                'id' => $item->$ref_field_id,
+                'label' => (string) $item,
+                'color' => Color::tryFrom($item->$field_color_name ?? ''),
+            ];
+
         }
 
         # Retorna dados
