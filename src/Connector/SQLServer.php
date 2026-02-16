@@ -919,7 +919,7 @@ class SQLServer extends Connector
 
         $txt_id = (!is_null($id)) ? "$id." : '';
 
-        $not = ($filter->not) ? 'NOT ' : '';
+        $not = ($filter->not) ? ' NOT ' : '';
 
         if (is_object($filter->field)) {
 
@@ -1026,10 +1026,10 @@ class SQLServer extends Connector
             if (count($filter->value) > 0) {
 
                 if (in_array(null, $filter->value)) {
-                    return "($field{$not}IN " . $this->escape($filter->value) . " OR $field IS {$not}NULL)";
+                    return "($field$not IN " . $this->escape($filter->value) . " OR $field IS {$not}NULL)";
                 }
 
-                return "$field{$not}IN " . $this->escape($filter->value);
+                return "$field$not IN " . $this->escape($filter->value);
 
             }
 
@@ -1042,7 +1042,7 @@ class SQLServer extends Connector
         if (is_object($filter->value)) {
 
             if (get_class($filter->value) == Query::class) {
-                return "$field{$not}IN (" . self::sql_select($filter->value, true) . ")";
+                return "$field$not IN (" . self::sql_select($filter->value, true) . ")";
             }
 
         }

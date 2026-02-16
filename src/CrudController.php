@@ -233,7 +233,7 @@ class CrudController extends Controller
 
         }
 
-        $filters = $model->getFilters(clone $query, $filters);
+        $filters = $model->getFilters($model::query(), $filters);
 
         $query = $model->order($query, $order);
 
@@ -349,6 +349,7 @@ class CrudController extends Controller
     /**
      * @throws PermissionDeniedException
      * @throws Exception
+     * @throws ReflectionException
      */
     #[Transaction]
     public function save(RequestInterface $request, Route $route): MessageInterface
@@ -392,6 +393,7 @@ class CrudController extends Controller
     /**
      * @throws PermissionDeniedException
      * @throws Exception
+     * @noinspection PhpUnused
      */
     #[Transaction]
     public function action(RequestInterface $request, Route $route): MessageInterface

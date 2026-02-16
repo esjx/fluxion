@@ -10,6 +10,8 @@ use Fluxion\Exception\{PermissionDeniedException};
 trait ModelCrud
 {
 
+    public static string $empty_value = '__empty__';
+
     # Detalhes dos campos
 
     /** @var array<string, Detail> */
@@ -315,6 +317,11 @@ trait ModelCrud
                     $id = $item->$key;
                     $label = $field->choices[$id] ?? (string) $id;
 
+                    if (is_null($id)) {
+                        $id = self::$empty_value;
+                        $label = '(Vazios)';
+                    }
+
                     $filter->items[] = new Connector\TableFilterItem(
                         id: $id,
                         label: $label,
@@ -356,7 +363,7 @@ trait ModelCrud
                     }
                 }
 
-                $labels = [];
+                $labels = [self::$empty_value => '(Vazios)'];
                 $colors = [];
 
                 foreach ($field->getReferenceModel()::filter($field_id_name, (clone $query)->groupBy($key))
@@ -369,7 +376,7 @@ trait ModelCrud
 
                 foreach ((clone $query)->groupBy($key)->select() as $item) {
 
-                    $id = $item->$key;
+                    $id = $item->$key ?? self::$empty_value;
 
                     $filter->items[] = new Connector\TableFilterItem(
                         id: $id,
@@ -655,6 +662,12 @@ trait ModelCrud
 
             if (empty($value) || !array_key_exists($key, $this->getFields())) {
                 continue;
+            }
+
+            foreach ($value as &$item) {
+                if ($item == self::$empty_value) {
+                    $item = null;
+                }
             }
 
             $field = $this->getField($key);
