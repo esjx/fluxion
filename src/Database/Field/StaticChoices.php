@@ -64,7 +64,7 @@ trait StaticChoices
             }
 
             if (!$this->radio) {
-                $this->choices_colors[$key] = null;
+                //$this->choices_colors[$key] = null;
             }
 
             elseif (is_string($this->choices_colors[$key])) {

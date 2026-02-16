@@ -53,11 +53,11 @@ class FormField
     public function addChoice(mixed $value, string $label, ?Color $color = null): void
     {
 
-        if (!is_null($color)) {
-            $label = "<span class='text-$color->value'>$label</span>";
-        }
+        //if (!is_null($color)) {
+            //$label = "<span class='text-$color->value'>$label</span>";
+        //}
 
-        $this->choices[] = ['id' => $value, 'label' => $label];
+        $this->choices[] = ['id' => $value, 'label' => $label, 'color' => $color?->value];
 
     }
 

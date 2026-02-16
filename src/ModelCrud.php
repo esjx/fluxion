@@ -10,7 +10,7 @@ use Fluxion\Exception\{PermissionDeniedException};
 trait ModelCrud
 {
 
-    public static string $empty_value = '__empty__';
+    protected static string $empty_value = '__empty__';
 
     # Detalhes dos campos
 
@@ -724,6 +724,9 @@ trait ModelCrud
         return null;
     }
 
+    /**
+     * @throws Exception
+     */
     public function getFormFields(bool $save = true, ?string $route = null): array
     {
 
@@ -795,7 +798,7 @@ trait ModelCrud
 
         foreach ($this->getFields() as $key => $f) {
 
-            if ($f->readonly && !$f->identity && $f->primary_key && is_null($this->$key)) {
+            if ($f->readonly && !$f->identity && is_null($this->$key)) {
                 $f->readonly = false;
             }
 
