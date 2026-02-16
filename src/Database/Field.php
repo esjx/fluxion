@@ -52,6 +52,8 @@ abstract class Field
     public bool $default_literal = false;
     public null|int|string $min_value = null;
     public null|int|string $max_value = null;
+    public ?string $pattern = null;
+    public ?string $validator_type = null;
 
     /** @var QueryWhere[] */
     public array $filters = [];
@@ -168,11 +170,6 @@ abstract class Field
 
     }
 
-    public function setChanged(bool $changed): void
-    {
-        $this->_changed = $changed;
-    }
-
     public function clear(): void
     {
         $this->_value = null;
@@ -274,6 +271,9 @@ abstract class Field
         return null;
     }
 
+    /**
+     * @throws Exception
+     */
     public function getFormField(array $extras = [], ?string $route = null): FormField
     {
 
@@ -300,6 +300,8 @@ abstract class Field
             required: $this->required && empty($detail->required_conditions),
             required_conditions: $detail->required_conditions,
             placeholder: $detail->placeholder,
+            pattern: $detail->pattern ?? $this->pattern,
+            validator_type: $this->validator_type,
             mask: $detail->mask,
             maxlength: $detail->max_length ?? $this->max_length,
             readonly: $this->readonly,

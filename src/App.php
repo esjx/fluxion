@@ -1,15 +1,15 @@
 <?php
 namespace Fluxion;
 
+use ReflectionException;
+use ReflectionMethod;
+use stdClass;
 use Exception as _Exception;
 use Fluxion\Exception\{PageNotFoundException, SqlException};
 use GuzzleHttp\Psr7\{Response, ServerRequest};
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use Micheh\Cache\CacheUtil;
 use Psr\Http\Message\{RequestInterface, ResponseInterface};
-use ReflectionException;
-use ReflectionMethod;
-use stdClass;
 
 class App
 {
@@ -35,60 +35,7 @@ class App
 
         catch (_Exception $e) {
 
-            $message = $e->getMessage();
-
-            if (method_exists($e, 'getAltMessage')) {
-                $message = $e->getAltMessage();
-            }
-
-            $server = $request->getServerParams();
-
-            $is_json = strcasecmp($server['HTTP_X_REQUESTED_WITH'] ?? '', 'XMLHttpRequest') == 0;
-            $is_text = strcasecmp($server['HTTP_ACCEPT'] ?? '', 'text/strings') == 0;
-
-            $trace = str_replace(__DIR__, '.../...', $e->getTraceAsString());
-            $trace = str_replace(dirname(__DIR__, 4), '...', $trace);
-
-            $code = 500;
-
-            if ($e instanceof PageNotFoundException) {
-                $code = 404;
-            }
-
-            elseif ($e instanceof SqlException) {
-
-                $message .= "<br><br><pre>"
-                    . SqlFormatter::highlight($e->getSql(), false)
-                    . "\n<span class=\"text-red\">-- {$e->getOriginalMessage()}" . "</span>"
-                    . "\n\n<span class=\"text-gray\">/*\n$trace\n*/</span>" . "</pre>";
-
-            }
-
-            elseif ($e instanceof Exception) {
-
-                $message .= "<br><br><pre>$trace</pre>";
-
-            }
-
-            /** @var ResponseInterface $response */
-
-            if ($is_json && !$is_text) {
-                $response = ResponseFactory::fromJson([
-                    'status' => $code,
-                    'message' => $message,
-                    'trace' => $e->getTraceAsString()
-                ], $code);
-            }
-
-            else {
-                $response = ResponseFactory::fromText($message, $code);
-            }
-
-            $util = new CacheUtil();
-
-            $response = $util->withCachePrevention($response);
-
-            (new SapiEmitter())->emit($response);
+            self::errorHandler($e, $request);
 
         }
 
@@ -186,28 +133,97 @@ class App
     }
 
     /**
-     * @throws Exception
      * @noinspection PhpUnused
      */
     public static function registerApp(string $namespace, string $dir, string $controller): void
     {
 
-        AutoLoader::addNamespace($namespace, $dir);
+        try {
 
-        $control_name = $namespace . '\\' . $controller;
+            AutoLoader::addNamespace($namespace, $dir);
 
-        if (!class_exists($control_name)) {
-            throw new Exception("Classe $controller não encontrada!");
+            $control_name = $namespace . '\\' . $controller;
+
+            if (!class_exists($control_name)) {
+                throw new Exception("Classe $controller não encontrada!");
+            }
+
+            /** @var Controller $control */
+            $control = new $control_name(ServerRequest::fromGlobals());
+
+            if (!$control instanceof Controller) {
+                throw new Exception("Classe $controller não é um Controller!");
+            }
+
+            self::$routes = array_merge(self::$routes, $control->getRoutes());
+
         }
 
-        /** @var Controller $control */
-        $control = new $control_name(ServerRequest::fromGlobals());
+        catch (_Exception $e) {
 
-        if (!$control instanceof Controller) {
-            throw new Exception("Classe $controller não é um Controller!");
+            self::errorHandler($e);
+
         }
 
-        self::$routes = array_merge(self::$routes, $control->getRoutes());
+    }
+
+    public static function errorHandler(_Exception $e, ?ServerRequest $request = null): void
+    {
+
+        $message = $e->getMessage();
+
+        if (method_exists($e, 'getAltMessage')) {
+            $message = $e->getAltMessage();
+        }
+
+        $server = $request?->getServerParams() ?? [];
+
+        $is_json = strcasecmp($server['HTTP_X_REQUESTED_WITH'] ?? '', 'XMLHttpRequest') == 0;
+        $is_text = strcasecmp($server['HTTP_ACCEPT'] ?? '', 'text/strings') == 0;
+
+        $trace = str_replace(__DIR__, '.../...', $e->getTraceAsString());
+        $trace = str_replace(dirname(__DIR__, 4), '...', $trace);
+
+        $code = 500;
+
+        if ($e instanceof PageNotFoundException) {
+            $code = 404;
+        }
+
+        elseif ($e instanceof SqlException) {
+
+            $message .= "<br><br><pre>"
+                . SqlFormatter::highlight($e->getSql(), false)
+                . "\n<span class=\"text-red\">-- {$e->getOriginalMessage()}" . "</span>"
+                . "\n\n<span class=\"text-gray\">/*\n$trace\n*/</span>" . "</pre>";
+
+        }
+
+        elseif ($e instanceof Exception) {
+
+            $message .= "<br><br><pre>$trace</pre>";
+
+        }
+
+        /** @var ResponseInterface $response */
+
+        if ($is_json && !$is_text) {
+            $response = ResponseFactory::fromJson([
+                'status' => $code,
+                'message' => $message,
+                'trace' => $e->getTraceAsString()
+            ], $code);
+        }
+
+        else {
+            $response = ResponseFactory::fromText($message, $code);
+        }
+
+        $util = new CacheUtil();
+
+        $response = $util->withCachePrevention($response);
+
+        (new SapiEmitter())->emit($response);
 
     }
 

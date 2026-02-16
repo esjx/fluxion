@@ -28,6 +28,8 @@ class FormField
                                 public bool    $required = false,
                                 public ?array  $required_conditions = null,
                                 public string  $placeholder = '',
+                                public ?string $pattern = null,
+                                public ?string $validator_type = null,
                                 public ?string $mask = null,
                                 public ?int    $minlength = null,
                                 public ?int    $maxlength = null,
@@ -37,6 +39,13 @@ class FormField
                                 public ?array  $choices_conditions = null,
                                 public mixed   $value = null)
     {
+
+        if (!is_null($this->pattern)) {
+
+            $this->pattern = preg_replace('/^\//', '', $this->pattern);
+            $this->pattern = preg_replace('/\/\w*$/', '', $this->pattern);
+
+        }
 
     }
 
