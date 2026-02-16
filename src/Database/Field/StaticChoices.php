@@ -63,10 +63,6 @@ trait StaticChoices
                 $key = (string) $key;
             }
 
-            if (!$this->radio) {
-                //$this->choices_colors[$key] = null;
-            }
-
             elseif (is_string($this->choices_colors[$key])) {
                 $this->choices_colors[$key] = Color::tryFrom($this->choices_colors[$key]);
             }
