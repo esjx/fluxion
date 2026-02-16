@@ -186,13 +186,15 @@ class App
 
         $code = 500;
 
+        $detail = '';
+
         if ($e instanceof PageNotFoundException) {
             $code = 404;
         }
 
         elseif ($e instanceof SqlException) {
 
-            $message .= "<br><br><pre>"
+            $detail .= "<br><br><pre>"
                 . SqlFormatter::highlight($e->getSql(), false)
                 . "\n<span class=\"text-red\">-- {$e->getOriginalMessage()}" . "</span>"
                 . "\n\n<span class=\"text-gray\">/*\n$trace\n*/</span>" . "</pre>";
@@ -201,7 +203,7 @@ class App
 
         elseif ($e instanceof Exception) {
 
-            $message .= "<br><br><pre>$trace</pre>";
+            $detail .= "<br><br><pre>$trace</pre>";
 
         }
 
@@ -216,7 +218,26 @@ class App
         }
 
         else {
-            $response = ResponseFactory::fromText($message, $code);
+
+            $view = Config::getErrorView();
+
+            if (is_null($view)) {
+                $response = ResponseFactory::fromText($message . $detail, $code);
+            }
+
+            else {
+
+                /** @var View $view */
+                $view = new $view();
+
+                $view->code = $code;
+                $view->message = $message;
+                $view->detail = $detail;
+
+                $response = ResponseFactory::fromView($view, $code);
+
+            }
+
         }
 
         $util = new CacheUtil();
