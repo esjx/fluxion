@@ -216,6 +216,7 @@ class App
         $code = 500;
 
         $detail = '';
+        $sql = '';
 
         if ($e instanceof PageNotFoundException) {
             $code = 404;
@@ -223,10 +224,14 @@ class App
 
         elseif ($e instanceof SqlException) {
 
-            $detail .= "<br><br><pre>"
+            $original_message = str_replace("\n", "\n--        ", $e->getOriginalMessage());
+
+            $sql .= "\n<pre>"
                 . SqlFormatter::highlight($e->getSql(), false)
-                . "\n<span class=\"text-red\">-- {$e->getOriginalMessage()}" . "</span>"
+                . "\n<span class=\"text-red\">-- $original_message" . "</span>"
                 . "\n\n<span class=\"text-gray\">/*\n$trace\n*/</span>" . "</pre>";
+
+            $detail .= "<br><br>$sql";
 
         }
 
@@ -234,9 +239,11 @@ class App
 
             $detail .= "<br><br><pre>$trace</pre>";
 
+            $sql .= "\n<pre>$trace</pre>";
+
         }
 
-        self::getLogger()->log($log_level, $message);
+        self::getLogger()->log($log_level, $message . "$sql");
 
         /** @var ResponseInterface $response */
 

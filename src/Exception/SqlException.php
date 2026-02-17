@@ -19,7 +19,7 @@ class SqlException extends Exception
 
         $this->_sql = trim($sql);
 
-        $this->_original_message = '[ERRO] ' . $this->highlight($message);
+        $this->_original_message = '[ERRO] ' . str_replace('. ', ". \n", $this->highlight($message));
 
         parent::__construct('Erro ao executar uma consulta no banco de dados!', [], $log_level);
 

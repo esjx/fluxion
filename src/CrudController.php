@@ -41,6 +41,10 @@ class CrudController extends Controller
 
             $model = $model::loadById($id);
 
+            if (!$model->isSaved()) {
+                throw new Exception("Dados não encontrados para o ID '$id'!");
+            }
+
         }
 
         return $model;
@@ -54,6 +58,26 @@ class CrudController extends Controller
     public function home(RequestInterface $request): MessageInterface
     {
         return ResponseFactory::fromText('HOME');
+    }
+
+    /**
+     * @noinspection PhpUnused
+     * @noinspection PhpUnusedParameterInspection
+     * @throws PermissionDeniedException
+     * @throws Exception
+     */
+    public function edit(RequestInterface $request, Route $route, stdClass $args): MessageInterface
+    {
+
+        $ids = [];
+        foreach ($route->getModel()->getPrimaryKeys() as $key => $pk) {
+            $ids[] = $args->$key;
+        }
+
+        $this->getModel($route->getModel(), implode(';', $ids));
+
+        return $this->home($request);
+
     }
 
     /**
@@ -122,7 +146,7 @@ class CrudController extends Controller
                 'url' => "/" . implode(';', $keys),
                 'method' => 'GET',
                 'class' => $class,
-                'action' => 'home',
+                'action' => 'edit',
             ];
 
         }
