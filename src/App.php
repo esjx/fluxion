@@ -33,8 +33,7 @@ class App
     /** @var Route[] */
     protected static array $routes = [];
 
-    /** @var string[] */
-    protected static array $controllers = [];
+    protected array $controllers = [];
 
     public function __construct()
     {
@@ -175,7 +174,7 @@ class App
                 throw new Exception("Classe $controller não é um Controller!");
             }
 
-            $this::$controllers[] = $controller;
+            $this->controllers[] = $controller;
             $this::$routes = array_merge($this::$routes, $control->getRoutes());
 
         }
@@ -325,6 +324,7 @@ class App
         return self::$error_view;
     }
 
+    /** @noinspection PhpUnused */
     public function loadEnvironment(string $file, ?string $environment = null): void
     {
 
@@ -346,6 +346,7 @@ class App
 
     }
 
+    /** @noinspection PhpUnused */
     public function setup(): void
     {
 
@@ -353,7 +354,7 @@ class App
 
             $view = new SetupView();
 
-            foreach ($this::$controllers as $controller) {
+            foreach ($this->controllers as $controller) {
 
                 /** @var Controller $controller */
 
