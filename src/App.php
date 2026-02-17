@@ -411,6 +411,8 @@ class App
 
         try {
 
+            $request = ServerRequest::fromGlobals();
+
             foreach ($this->controllers as $controller) {
 
                 $reflection = new ReflectionClass($controller);
@@ -421,8 +423,16 @@ class App
 
                     if (count($method->getAttributes(Cronjob::class)) > 0) {
 
-                        $reflection = new ReflectionMethod($controller, $method->getName());
-                        $reflection->invoke(new $controller());
+                        try {
+
+                            $reflection = new ReflectionMethod($controller, $method->getName());
+                            $reflection->invoke(new $controller($request));
+
+                        }
+
+                        catch (_Exception $e) {
+                            self::getLogger()->error($e->getMessage());
+                        }
 
                     }
 
