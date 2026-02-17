@@ -33,6 +33,9 @@ class App
     /** @var Route[] */
     protected static array $routes = [];
 
+    /** @var string[] */
+    protected static array $controllers = [];
+
     public function __construct()
     {
         $this->setLogger(new NullLogger());
@@ -156,26 +159,23 @@ class App
     /**
      * @noinspection PhpUnused
      */
-    public function registerApp(string $namespace, string $dir, string $controller): void
+    public function registerApp(string $controller): void
     {
 
         try {
 
-            AutoLoader::addNamespace($namespace, $dir);
-
-            $control_name = $namespace . '\\' . $controller;
-
-            if (!class_exists($control_name)) {
+            if (!class_exists($controller)) {
                 throw new Exception("Classe $controller não encontrada!");
             }
 
             /** @var Controller $control */
-            $control = new $control_name(ServerRequest::fromGlobals());
+            $control = new $controller(ServerRequest::fromGlobals());
 
             if (!$control instanceof Controller) {
                 throw new Exception("Classe $controller não é um Controller!");
             }
 
+            $this::$controllers[] = $controller;
             $this::$routes = array_merge($this::$routes, $control->getRoutes());
 
         }
@@ -257,7 +257,7 @@ class App
 
         else {
 
-            $view = Config::getErrorView();
+            $view = $this->getErrorView();
 
             if (is_null($view)) {
                 $response = ResponseFactory::fromText($message . $detail, $code);
@@ -285,6 +285,94 @@ class App
         (new SapiEmitter())->emit($response);
 
         exit;
+
+    }
+
+    private static ?string $error_view = null;
+
+    /**
+     * @noinspection PhpUnused
+     */
+    public function setErrorView(string $class): void
+    {
+
+        try {
+
+            if (!class_exists($class)) {
+                throw new Exception("Classe '$class' não existe!");
+            }
+
+            $obj = new $class();
+
+            if (!$obj instanceof View) {
+                throw new Exception("Classe '$class' não é uma View!");
+            }
+
+            self::$error_view = $class;
+
+        }
+
+        catch (_Exception $e) {
+
+            $this->errorHandler($e);
+
+        }
+
+    }
+
+    public function getErrorView(): ?string
+    {
+        return self::$error_view;
+    }
+
+    public function loadEnvironment(string $file, ?string $environment = null): void
+    {
+
+        try {
+
+            if (!is_null($environment)) {
+                $_ENV['ENVIRONMENT'] = $environment;
+            }
+
+            Environment::load($file);
+
+        }
+
+        catch (_Exception $e) {
+
+            $this->errorHandler($e);
+
+        }
+
+    }
+
+    public function setup(): void
+    {
+
+        try {
+
+            $view = new SetupView();
+
+            foreach ($this::$controllers as $controller) {
+
+                /** @var Controller $controller */
+
+                $response = $controller::setup();
+                $response->getBody()->rewind();
+
+                $view->content .= $response->getBody()->getContents();
+
+            }
+
+            echo $view->load();
+
+        }
+
+        catch (_Exception $e) {
+
+            $this->errorHandler($e);
+
+        }
 
     }
 

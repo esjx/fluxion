@@ -92,32 +92,4 @@ class Config
 
     }
 
-    private static ?string $error_view = null;
-
-    /**
-     * @throws Exception
-     * @noinspection PhpUnused
-     */
-    public static function setErrorView(string $class): void
-    {
-
-        if (!class_exists($class)) {
-            throw new Exception("Classe '$class' não existe!");
-        }
-
-        $obj = new $class();
-
-        if (!$obj instanceof View) {
-            throw new Exception("Classe '$class' não é uma View!");
-        }
-
-        self::$error_view = $class;
-
-    }
-
-    public static function getErrorView(): ?string
-    {
-        return self::$error_view;
-    }
-
 }
