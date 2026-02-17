@@ -83,8 +83,7 @@ abstract class Mask
             throw new MaskException(
                 label: $obj->label,
                 value: $value,
-                message: $obj->pattern_message ?? htmlspecialchars($obj->pattern),
-                log: false
+                message: $obj->pattern_message ?? htmlspecialchars($obj->pattern)
             );
 
         }

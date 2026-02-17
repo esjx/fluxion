@@ -60,7 +60,7 @@ class ManyToManyModel extends Model
                 }
 
                 if (!isset($field_name)) {
-                    throw new Exception("Referência original não encontrada.", log: false);
+                    throw new Exception("Referência original não encontrada.");
                 }
 
                 $this->left = 'b';

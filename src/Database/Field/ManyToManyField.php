@@ -138,7 +138,7 @@ class ManyToManyField extends Field
             $class = new $class_name;
 
             if (!$class instanceof Model) {
-                throw new Exception(message: "Classe '$class_name' não é Model", log: false);
+                throw new Exception(message: "Classe '$class_name' não é Model");
             }
 
         }

@@ -32,6 +32,8 @@ trait ModelSave
     public function save(): bool
     {
 
+        $class = get_class($this);
+
         $this->changeState(State::SAVE);
 
         if ($this->onSave() && Config::getConnector()->save($this)) {
@@ -39,6 +41,10 @@ trait ModelSave
             $this->saved = true;
 
             $this->onSaved();
+
+            $key = $class . "___loadById___" . $this->id();
+
+            Cache::setValue($key, $this);
 
         }
 

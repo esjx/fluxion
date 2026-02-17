@@ -171,7 +171,17 @@ trait ModelQuery
 
         $class = get_called_class();
 
-        #TODO: Cache de itens já carregados do banco de dados
+        $_id = $id;
+
+        if (is_array($id)) {
+            $_id = implode(';', $id);
+        }
+
+        $key = $class . "___loadById___" . $_id;
+
+        if (Cache::hasValue($key)) {
+            return Cache::getValue($key);
+        }
 
         /** @var self $obj */
         $obj = new $class();
@@ -180,7 +190,13 @@ trait ModelQuery
             return $obj;
         }
 
-        return self::findById($id)->firstOrNew();
+        $obj = self::findById($id)->firstOrNew();
+
+        if ($obj->isSaved()) {
+            Cache::setValue($key, $obj);
+        }
+
+        return $obj;
 
     }
 

@@ -88,7 +88,7 @@ trait ModelFields
         foreach ($this->getPrimaryKeys() as $key => $primary_key) {
 
             if (!is_null($field)) {
-                throw new Exception(message: "Classe '$class_name' possui mais de uma chave primária", log: false);
+                throw new Exception(message: "Classe '$class_name' possui mais de uma chave primária");
             }
 
             $field = $this->_fields[$key];
@@ -96,7 +96,7 @@ trait ModelFields
         }
 
         if (is_null($field)) {
-            throw new Exception(message: "Classe '$class_name' não possui chave primária", log: false);
+            throw new Exception(message: "Classe '$class_name' não possui chave primária");
         }
 
         return $field;

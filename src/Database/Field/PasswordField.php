@@ -25,7 +25,7 @@ class PasswordField extends Field
     {
 
         if (!password_verify($password, $this->_value)) {
-            throw new Exception(message: "Senha inválida!", log: false);
+            throw new Exception(message: "Senha inválida!");
         }
 
         if (password_needs_rehash($this->_value, PASSWORD_DEFAULT)) {

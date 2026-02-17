@@ -188,7 +188,7 @@ abstract class Field
                 $value = json_encode($value);
             }
 
-            throw new Exception(message: "Valor '$value' inválido para o campo '$this->_name'", log: false);
+            throw new Exception(message: "Valor '$value' inválido para o campo '$this->_name'");
 
         }
 
@@ -234,7 +234,7 @@ abstract class Field
         $class = get_class($this->_model);
 
         if ($this->_type_property != 'mixed' && !str_contains($this->_type_property, '?')) {
-            throw new Exception(message: "Campo '$class:$this->_name' deve permitir nulos", log: false);
+            throw new Exception(message: "Campo '$class:$this->_name' deve permitir nulos");
         }
 
         if (is_null($this->max_length) && in_array($this->_type, [self::TYPE_STRING, self::TYPE_PASSWORD])) {

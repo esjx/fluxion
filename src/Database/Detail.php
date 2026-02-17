@@ -68,19 +68,19 @@ class Detail
     {
 
         if (!in_array($this->size, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])) {
-            throw new Exception(message: "Tamanho do campo '$this->_name' inválido: '$this->size'", log: false);
+            throw new Exception(message: "Tamanho do campo '$this->_name' inválido: '$this->size'");
         }
 
         if (!is_null($this->mask_class)) {
 
             if (!class_exists($this->mask_class)) {
-                throw new Exception(message: "Mascára '$this->mask_class' não encontrada", log: false);
+                throw new Exception(message: "Mascára '$this->mask_class' não encontrada");
             }
 
             $mask = new $this->mask_class;
 
             if (!is_subclass_of($mask, Mask::class)) {
-                throw new Exception(message: "Classe '$this->mask_class' não herda 'Mask'", log: false);
+                throw new Exception(message: "Classe '$this->mask_class' não herda 'Mask'");
             }
 
             $this->mask = $mask->mask;
