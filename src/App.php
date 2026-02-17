@@ -3,6 +3,7 @@ namespace Fluxion;
 
 use ReflectionException;
 use ReflectionMethod;
+use ReflectionClass;
 use stdClass;
 use Exception as _Exception;
 use Fluxion\Exception\{PageNotFoundException, SqlException};
@@ -125,15 +126,42 @@ class App
                                 }
 
                                 $invoke_parameters[] = $p;
+
+                            }
+
+                            else {
+                                $invoke_parameters[] = null;
                             }
 
                         }
 
                     }
 
+                    $transaction = (count($reflection->getAttributes(Transaction::class)) > 0);
+
                     $control_name = $route->getClass();
 
-                    $out = $reflection->invokeArgs(new $control_name($request), $invoke_parameters);
+                    if ($transaction) {
+
+                        Config::getConnector()->getPDO()->beginTransaction();
+
+                        try {
+                            $out = $reflection->invokeArgs(new $control_name($request), $invoke_parameters);
+                            Config::getConnector()->getPDO()->commit();
+                        }
+
+                        catch (_Exception $e) {
+                            Config::getConnector()->getPDO()->rollBack();
+                            throw $e;
+                        }
+
+                    }
+
+                    else {
+
+                        $out = $reflection->invokeArgs(new $control_name($request), $invoke_parameters);
+
+                    }
 
                     if ($out instanceof ResponseInterface) {
                         (new SapiEmitter())->emit($out);
@@ -366,6 +394,41 @@ class App
             }
 
             echo $view->load();
+
+        }
+
+        catch (_Exception $e) {
+
+            $this->errorHandler($e);
+
+        }
+
+    }
+
+    /** @noinspection PhpUnused */
+    public function cronjob(): void
+    {
+
+        try {
+
+            foreach ($this->controllers as $controller) {
+
+                $reflection = new ReflectionClass($controller);
+
+                $methods = $reflection->getMethods(ReflectionMethod::IS_PUBLIC);
+
+                foreach ($methods as $method) {
+
+                    if (count($method->getAttributes(Cronjob::class)) > 0) {
+
+                        $reflection = new ReflectionMethod($controller, $method->getName());
+                        $reflection->invoke(new $controller());
+
+                    }
+
+                }
+
+            }
 
         }
 
