@@ -63,7 +63,7 @@ class StringField extends Field
             return true;
         }
 
-        if (!is_null($this->max_length) && strlen($value) > $this->max_length) {
+        if (!is_null($this->max_length) && mb_strlen($value) > $this->max_length) {
             return false;
         }
 

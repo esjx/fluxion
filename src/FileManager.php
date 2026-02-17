@@ -6,6 +6,7 @@ use DirectoryIterator;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use ZipArchive;
 
 class FileManager
 {
@@ -13,8 +14,7 @@ class FileManager
     public static function createDir($dir): void
     {
 
-        $dir = str_replace('/', DIRECTORY_SEPARATOR, $dir);
-        $dir = str_replace('\\', DIRECTORY_SEPARATOR, $dir);
+        $dir = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $dir);
 
         $d = explode(DIRECTORY_SEPARATOR, $dir);
         $dir_now = '';
@@ -55,6 +55,8 @@ class FileManager
 
     public static function loadTextFile($file): Generator
     {
+
+        $file = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $file);
 
         $f = fopen($file, 'r');
 
@@ -100,6 +102,35 @@ class FileManager
         foreach ($rdi as $file)
             if ($file->isDir() && !$file->isDot())
                 yield $file->getPathname();
+
+    }
+
+    public static function unzipFile($fileName, $sameDir = true, $deleteOriginal = true): string
+    {
+
+        $fileName = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $fileName);
+
+        if (!file_exists($fileName))
+            return false;
+
+        if ($sameDir)
+            $extractDir = preg_replace('/\/[A-Z0-9-._ =]+$/i', '', $fileName);
+        else
+            $extractDir = preg_replace('/.[A-Z0-9]+$/i', '/', $fileName);
+
+        self::createDir($extractDir);
+
+        $zip = new ZipArchive();
+        $zip->open($fileName);
+        $zip->extractTo($extractDir);
+        $zip->close();
+
+        unset($zip);
+
+        if ($deleteOriginal)
+            unlink($fileName);
+
+        return $extractDir;
 
     }
 

@@ -329,6 +329,15 @@ abstract class Connector
     /**
      * @throws SqlException
      */
+    public function insert(Model $model, array $data = []): void
+    {
+        $sql = $this->sql_insert($model, $data);
+        $this->exec($sql);
+    }
+
+    /**
+     * @throws SqlException
+     */
     public function prepare(string $sql): false|PDOStatement
     {
 
