@@ -29,18 +29,20 @@
     },
     "require": {
         "php": "^8.2",
+        "ext-calendar": "*",
         "ext-curl": "*",
         "ext-fileinfo": "*",
+        "ext-gd": "*",
+        "ext-iconv": "*",
         "ext-intl": "*",
         "ext-mbstring": "*",
         "ext-pdo": "*",
         "ext-zip": "*",
-        "ext-calendar": "*",
-        "ext-gd": "*",
-        "ext-iconv": "*",
         "guzzlehttp/guzzle": "^7.10",
         "laminas/laminas-httphandlerrunner": "^2.13",
-        "micheh/psr7-cache": "^0.5.0"
+        "micheh/psr7-cache": "^0.5.0",
+        "psr/log": "^3.0",
+        "psr/simple-cache": "^3.0"
     },
     "suggest": {
         "dompdf/dompdf": "Option for rendering PDF with PDF Writer"

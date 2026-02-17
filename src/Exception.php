@@ -1,17 +1,19 @@
 <?php
 namespace Fluxion;
 
+use Psr\Log\{LogLevel};
+
 class Exception extends \Exception
 {
 
-    private bool $_log;
+    private string $_log_level;
 
     protected string $_message;
 
-    public function __construct(string $message = '', array $data = [], bool $log = true)
+    public function __construct(string $message = '', array $data = [], string $log_level = LogLevel::ERROR)
     {
 
-        $this->_log = $log;
+        $this->_log_level = $log_level;
 
         $message = Message::create($message, $data);
 
@@ -31,9 +33,9 @@ class Exception extends \Exception
 
     }
 
-    public function getLog(): bool
+    public function getLogLevel(): string
     {
-        return $this->_log;
+        return $this->_log_level;
     }
 
     public function getAltMessage(): string

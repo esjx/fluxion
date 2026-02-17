@@ -2,6 +2,7 @@
 namespace Fluxion\Exception;
 
 use Fluxion\Exception;
+use Psr\Log\LogLevel;
 
 class SqlException extends Exception
 {
@@ -9,7 +10,7 @@ class SqlException extends Exception
     private string $_sql;
     private string $_original_message;
 
-    public function __construct(string $message = '', string $sql = '', bool $log = true)
+    public function __construct(string $message = '', string $sql = '', string $log_level = LogLevel::ERROR)
     {
 
         $needle = "[SQL Server]";
@@ -20,7 +21,7 @@ class SqlException extends Exception
 
         $this->_original_message = '[ERRO] ' . $this->highlight($message);
 
-        parent::__construct('Erro ao executar uma consulta no banco de dados!', [], $log);
+        parent::__construct('Erro ao executar uma consulta no banco de dados!', [], $log_level);
 
     }
 

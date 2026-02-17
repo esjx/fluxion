@@ -9,16 +9,37 @@ use Fluxion\Exception\{PageNotFoundException, SqlException};
 use GuzzleHttp\Psr7\{Response, ServerRequest};
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use Micheh\Cache\CacheUtil;
+use Psr\Log\{LoggerInterface, LogLevel, NullLogger};
 use Psr\Http\Message\{RequestInterface, ResponseInterface};
 
 class App
 {
 
+    protected static ?LoggerInterface $logger = null;
+
+    public function setLogger(LoggerInterface $logger): void
+    {
+        $this::$logger = $logger;
+    }
+
+    public static function getLogger(): ?LoggerInterface
+    {
+        if (is_null(self::$logger)) {
+            self::$logger = new NullLogger();
+        }
+        return self::$logger;
+    }
+
     /** @var Route[] */
     protected static array $routes = [];
 
+    public function __construct()
+    {
+        $this->setLogger(new NullLogger());
+    }
+
     /** @noinspection PhpUnused */
-    public static function routeUrl(): void
+    public function route(): void
     {
 
         $request = ServerRequest::fromGlobals();
@@ -27,7 +48,7 @@ class App
 
             Config::getAuth($request);
 
-            if (!self::dispatch($request, self::$routes)) {
+            if (!$this->dispatch($request, $this::$routes)) {
                 throw new PageNotFoundException($request->getUri()->getPath());
             }
 
@@ -35,7 +56,7 @@ class App
 
         catch (_Exception $e) {
 
-            self::errorHandler($e, $request);
+            $this->errorHandler($e, $request);
 
         }
 
@@ -46,7 +67,7 @@ class App
      * @throws Exception
      * @throws ReflectionException
      */
-    public static function dispatch(RequestInterface $request, array $routes, array $args = []): bool
+    public function dispatch(RequestInterface $request, array $routes, array $args = []): bool
     {
 
         $path = $request->getUri()->getPath();
@@ -135,7 +156,7 @@ class App
     /**
      * @noinspection PhpUnused
      */
-    public static function registerApp(string $namespace, string $dir, string $controller): void
+    public function registerApp(string $namespace, string $dir, string $controller): void
     {
 
         try {
@@ -155,25 +176,33 @@ class App
                 throw new Exception("Classe $controller não é um Controller!");
             }
 
-            self::$routes = array_merge(self::$routes, $control->getRoutes());
+            $this::$routes = array_merge($this::$routes, $control->getRoutes());
 
         }
 
         catch (_Exception $e) {
 
-            self::errorHandler($e);
+            $this->errorHandler($e);
 
         }
 
     }
 
-    public static function errorHandler(_Exception $e, ?ServerRequest $request = null): void
+    public function errorHandler(_Exception $e, ?ServerRequest $request = null): never
     {
 
         $message = $e->getMessage();
 
         if (method_exists($e, 'getAltMessage')) {
             $message = $e->getAltMessage();
+        }
+
+        if (method_exists($e, 'getLogLevel')) {
+            $log_level = $e->getLogLevel();
+        }
+
+        else {
+            $log_level = LogLevel::ERROR;
         }
 
         $server = $request?->getServerParams() ?? [];
@@ -206,6 +235,8 @@ class App
             $detail .= "<br><br><pre>$trace</pre>";
 
         }
+
+        self::getLogger()->log($log_level, $message);
 
         /** @var ResponseInterface $response */
 
@@ -245,6 +276,8 @@ class App
         $response = $util->withCachePrevention($response);
 
         (new SapiEmitter())->emit($response);
+
+        exit;
 
     }
 
