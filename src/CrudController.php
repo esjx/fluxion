@@ -308,7 +308,7 @@ class CrudController extends Controller
             'tabs' => $tabs,
             'page' => $page,
             'pages' => $pages,
-            'itens_per_page' => $crud_details->items_per_page,
+            'items_per_page' => $crud_details->items_per_page,
             'permissions' => $permissions,
             'filters' => $filters,
             'data' => $data,

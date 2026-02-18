@@ -46,8 +46,10 @@ enum Time: string
         }
 
         if (empty($formats)) {
-            $formats = ['Y-m-d H:i:s.v', 'Y-m-d H:i:s', 'd/m/Y H:i:s', 'Y-m-d', 'd/m/Y', 'd.m.Y'];
+            $formats = ['Y-m-d H:i:s.v', 'Y-m-d H:i:s.v', 'Y-m-d H:i:s', 'd/m/Y H:i:s', 'Y-m-d', 'd/m/Y', 'd.m.Y'];
         }
+
+        $date = false;
 
         foreach ($formats as $format_in) {
 
@@ -60,6 +62,7 @@ enum Time: string
                 }
 
                 break;
+
             }
 
         }

@@ -28,12 +28,8 @@ class FloatField extends Field
     public function validate(mixed &$value): bool
     {
 
-        if (!parent::validate($value)) {
+        if ($this->required && is_null($value)) {
             return false;
-        }
-
-        if (empty($value)) {
-            $value = null;
         }
 
         return is_null($value) || is_numeric($value);

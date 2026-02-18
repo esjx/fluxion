@@ -19,6 +19,7 @@ abstract class Field
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_DATE = 'date';
     const TYPE_DATETIME = 'datetime';
+    const TYPE_GEOGRAPHY = 'geography';
 
     protected mixed $_value = null;
     protected mixed $_saved_value = null;

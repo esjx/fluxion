@@ -1064,11 +1064,23 @@ class SQLServer extends Connector
         $fields = [];
 
         if ($query->isAllFields()) {
+
             foreach ($model->getFields() as $field) {
+
                 if (!$field->fake && !$field->assistant_table) {
-                    $fields[] = "$id.[$field->column_name]";
+
+                    if ($field instanceof Database\Field\GeographyField) {
+                        $fields[] = "$id.[$field->column_name].STAsText() AS [$field->column_name]";
+                    }
+
+                    else {
+                        $fields[] = "$id.[$field->column_name]";
+                    }
+
                 }
+
             }
+
         }
 
         foreach ($query->getFields() as $query_field) {
@@ -1131,17 +1143,7 @@ class SQLServer extends Connector
                 $limit_offset = "OFFSET $l->offset ROWS FETCH NEXT $l->limit ROWS ONLY";
 
                 if (count($order_by) == 0) {
-                    foreach ($model->getPrimaryKeys() as $pk) {
-                        $order_by[] = "$id.[$pk->column_name] ASC";
-                        break;
-                    }
-                }
-
-                if (count($order_by) == 0) {
-                    foreach ($model->getFields() as $f) {
-                        $order_by[] = "$id.[$f->column_name] ASC";
-                        break;
-                    }
+                    $order_by[] = "(SELECT NULL)";
                 }
 
             }
@@ -1233,7 +1235,11 @@ class SQLServer extends Connector
                     $identity_insert = true;
                 }
 
-                if ($f->required && is_null($value) && !is_null($f->default)) {
+                if ($f instanceof Database\Field\GeographyField && !is_null($value)) {
+                    $values_sql[] = "geography::STMPolyFromText('$value', 4326)";
+                }
+
+                elseif ($f->required && is_null($value) && !is_null($f->default)) {
                     $values_sql[] = $this->default_value;
                 }
 
@@ -1266,10 +1272,6 @@ class SQLServer extends Connector
 
                     $value = $d[$key] ?? null;
 
-                    if ($f->required && is_null($value) && is_null($f->default)) {
-                        throw new Exception("Campo '$key' não pode ser nulo");
-                    }
-
                     if ($f->identity && !is_null($f->getValue())) {
                         $identity_insert = true;
                     }
@@ -1286,7 +1288,11 @@ class SQLServer extends Connector
                             continue;
                         }
 
-                        if ($f->required && is_null($i_model->$key) && !is_null($f->default)) {
+                        if ($f instanceof Database\Field\GeographyField && !is_null($i_model->$key)) {
+                            $values_sql[] = "geography::STMPolyFromText('{$i_model->$key}', 4326)";
+                        }
+
+                        elseif ($f->required && is_null($i_model->$key) && !is_null($f->default)) {
                             $values_sql[] = $this->default_value;
                         }
 
@@ -1382,7 +1388,11 @@ class SQLServer extends Connector
 
             $f->update();
 
-            if ($f->isChanged()) {
+            if ($f instanceof Database\Field\GeographyField && !is_null($f->getValue())) {
+                $update[] = "[$f->column_name] = geography::STMPolyFromText('{$f->getValue()}', 4326)";
+            }
+
+            elseif ($f->isChanged()) {
                 $update[] = "[$f->column_name] = " . $this->escape($f->getValue());
             }
 
