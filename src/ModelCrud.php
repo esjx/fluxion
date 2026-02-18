@@ -110,6 +110,13 @@ trait ModelCrud
 
     }
 
+    protected ?int $_active_order = null;
+
+    public function setActiveOrder(int $id): void
+    {
+        $this->_active_order = $id;
+    }
+
     public function order(Query $query, ?int &$id = null): Query
     {
 

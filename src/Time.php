@@ -52,6 +52,11 @@ enum Time: string
             $date = DateTime::createFromFormat($format_in, $value);
 
             if ($date !== false) {
+
+                if ($date->format('Y') < 1500) {
+                    return null;
+                }
+
                 break;
             }
 

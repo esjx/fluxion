@@ -262,6 +262,8 @@ class CrudController extends Controller
 
         $query = $model->order($query, $order);
 
+        $model->setActiveOrder($order);
+
         $query = $query->paginate(
             page: $page,
             pages: $pages,
@@ -272,6 +274,8 @@ class CrudController extends Controller
 
         /** @var Model $k */
         foreach ($query->select() as $k) {
+
+            $k->setActiveOrder($order);
 
             $data[] = [
                 'id' => $k->id(),
