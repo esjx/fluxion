@@ -62,20 +62,24 @@ class Controller
 
         $dir = dirname($ref_controller->getFileName());
 
-        foreach (FileManager::loadAllFiles("$dir/Models") as $file) {
+        if (is_dir("$dir/Models")) {
 
-            $file = str_replace($dir, '', $file);
-            $file = preg_replace('/\.php$/i', '', $file);
-            $file = str_replace(DIRECTORY_SEPARATOR, '\\', $file);
+            foreach (FileManager::loadAllFiles("$dir/Models") as $file) {
 
-            $class = $ref_controller->getNamespaceName() . $file;
+                $file = str_replace($dir, '', $file);
+                $file = preg_replace('/\.php$/i', '', $file);
+                $file = str_replace(DIRECTORY_SEPARATOR, '\\', $file);
 
-            $ref_model = new ReflectionClass($class);
+                $class = $ref_controller->getNamespaceName() . $file;
 
-            if ($ref_model->isSubclassOf(Model::class) && !$ref_model->isAbstract()) {
-                if (!(new $class())->getTable()->view) {
-                    $list[$class] = -1;
+                $ref_model = new ReflectionClass($class);
+
+                if ($ref_model->isSubclassOf(Model::class) && !$ref_model->isAbstract()) {
+                    if (!(new $class())->getTable()->view) {
+                        $list[$class] = -1;
+                    }
                 }
+
             }
 
         }
@@ -146,7 +150,19 @@ class Controller
 
         # Executando scripts SQL
 
-        // TODO
+        if (is_dir("$dir/Sql")) {
+
+            foreach (FileManager::loadAllFiles("$dir/Sql") as $file) {
+
+                $stream->write("<b>/* SQL $file */</b>\n\n");
+
+                $sql = file_get_contents($file);
+
+                $connector->execute($sql);
+
+            }
+
+        }
 
         # Resumo do processo executado
 

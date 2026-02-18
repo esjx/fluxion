@@ -99,7 +99,7 @@ abstract class Connector
 
     }
 
-    protected function execute($sql, bool $break_after = false): int
+    public function execute($sql, bool $break_after = false): int
     {
 
         $this->logSql($sql);
