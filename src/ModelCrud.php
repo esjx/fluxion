@@ -802,7 +802,7 @@ trait ModelCrud
                 $f->readonly = false;
             }
 
-            if ($f->protected || $f->readonly) {
+            if ($f->protected || $f->readonly || !$f->enabled) {
                 continue;
             }
 

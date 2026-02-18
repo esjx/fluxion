@@ -38,14 +38,14 @@ enum Time: string
 
     }
 
-    public static function convert(?string $value, string $format): ?string
+    public static function convert(?string $value, string $format = 'Y-m-d'): ?string
     {
 
         if (is_null($value)) {
             return null;
         }
 
-        $formats = ['Y-m-d H:i:s.v', 'Y-m-d H:i:s', 'Y-m-d'];
+        $formats = ['Y-m-d H:i:s.v', 'Y-m-d H:i:s', 'd/m/Y H:i:s', 'Y-m-d', 'd.m.Y'];
 
         foreach ($formats as $format_in) {
 

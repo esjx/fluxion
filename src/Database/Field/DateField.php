@@ -45,7 +45,7 @@ class DateField extends Field
 
         else {
 
-            $formats = ['Y-m-d H:i:s.v', 'Y-m-d H:i:s', 'Y-m-d'];
+            $formats = ['Y-m-d H:i:s.v', 'Y-m-d H:i:s', 'd/m/Y H:i:s', 'Y-m-d'];
 
             foreach ($formats as $format) {
 

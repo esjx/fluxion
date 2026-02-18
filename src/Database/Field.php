@@ -197,16 +197,21 @@ abstract class Field
         $this->load();
 
         if ($this->_type_target == 'array') {
-            $changed = ($this->_value != $new_value);
+
+            if ($this->_value != $new_value) {
+                $this->_changed = ($new_value != $this->_saved_value);
+                $this->_value = $new_value;
+            }
+
         }
 
         else {
-            $changed = ($this->_value !== $new_value);
-        }
 
-        if ($changed) {
-            $this->_changed = ($new_value != $this->_saved_value);
-            $this->_value = $new_value;
+            if ($this->_value !== $new_value) {
+                $this->_changed = ($new_value !== $this->_saved_value);
+                $this->_value = $new_value;
+            }
+
         }
 
         if ($database) {

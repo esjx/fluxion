@@ -29,4 +29,9 @@ class Cache
         return self::$_data;
     }
 
+    public static function clear(): void
+    {
+        self::$_data = [];
+    }
+
 }

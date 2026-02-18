@@ -3,7 +3,7 @@ namespace Fluxion\Database\Field;
 
 use Attribute;
 use Fluxion\Database\Field;
-use Fluxion\{DigitValidator};
+use Fluxion\{DigitValidator, Exception};
 use Fluxion\Query\{QuerySql, QueryWhere};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -51,6 +51,9 @@ class StringField extends Field
         return QuerySql::filter("{$this->_name}__like", "$value%");
     }
 
+    /**
+     * @throws Exception
+     */
     public function validate(mixed &$value): bool
     {
 
@@ -64,7 +67,7 @@ class StringField extends Field
         }
 
         if (!is_null($this->max_length) && mb_strlen($value) > $this->max_length) {
-            return false;
+            throw new Exception("Valor '$value' maior que o limite de caracteres ($this->max_length)");
         }
 
         if (!is_null($this->pattern) && !preg_match($this->pattern, $value)) {
