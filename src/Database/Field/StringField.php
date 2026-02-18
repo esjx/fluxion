@@ -21,6 +21,7 @@ class StringField extends Field
                                 ?string        $pattern = null,
                                 ?string        $validator_type = null,
                                 ?string        $text_transform = null,
+                                protected bool $trim = true,
                                 public ?bool   $fake = false,
                                 public ?bool   $enabled = true)
     {
@@ -56,6 +57,10 @@ class StringField extends Field
      */
     public function validate(mixed &$value): bool
     {
+
+        if ($this->trim && !empty($value)) {
+            $value = trim($value);
+        }
 
         if (!parent::validate($value)) {
             return false;

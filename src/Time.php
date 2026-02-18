@@ -38,14 +38,16 @@ enum Time: string
 
     }
 
-    public static function convert(?string $value, string $format = 'Y-m-d'): ?string
+    public static function convert(?string $value, string $format = 'Y-m-d', ?array $formats = null): ?string
     {
 
         if (is_null($value)) {
             return null;
         }
 
-        $formats = ['Y-m-d H:i:s.v', 'Y-m-d H:i:s', 'd/m/Y H:i:s', 'Y-m-d', 'd.m.Y'];
+        if (empty($formats)) {
+            $formats = ['Y-m-d H:i:s.v', 'Y-m-d H:i:s', 'd/m/Y H:i:s', 'Y-m-d', 'd/m/Y', 'd.m.Y'];
+        }
 
         foreach ($formats as $format_in) {
 
@@ -53,7 +55,7 @@ enum Time: string
 
             if ($date !== false) {
 
-                if ($date->format('Y') < 1500) {
+                if ($date->format('Y') < 1500 || $date->format('Y') > 2100) {
                     return null;
                 }
 

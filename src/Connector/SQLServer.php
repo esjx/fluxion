@@ -1156,12 +1156,12 @@ class SQLServer extends Connector
             $sql .= "\nWHERE\t" . implode(" AND\n\t", $where);
         }
 
-        if (count($order_by) > 0) {
-            $sql .= "\nORDER BY " . implode(",\n\t", $order_by);
-        }
-
         if (count($group_by) > 0) {
             $sql .= "\nGROUP BY " . implode(",\n\t", $group_by);
+        }
+
+        if (count($order_by) > 0) {
+            $sql .= "\nORDER BY " . implode(",\n\t", $order_by);
         }
 
         if (!is_null($limit_offset)) {

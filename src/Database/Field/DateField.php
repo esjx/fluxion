@@ -35,6 +35,10 @@ class DateField extends Field
     public function validate(mixed &$value): bool
     {
 
+        if (is_string($value) && !empty($value)) {
+            $value = trim($value);
+        }
+
         if (!parent::validate($value)) {
             return false;
         }
@@ -45,24 +49,14 @@ class DateField extends Field
 
         else {
 
-            $formats = ['Y-m-d H:i:s.v', 'Y-m-d H:i:s', 'd/m/Y H:i:s', 'Y-m-d'];
+            $new_value = Time::convert($value, $this->date_format);
 
-            foreach ($formats as $format) {
-
-                $date = DateTime::createFromFormat($format, $value);
-
-                if ($date !== false) {
-                    break;
-                }
-
-            }
-
-            if ($date === false) {
-                throw new Exception("Invalid date format: $value");
+            if (is_null($new_value)) {
+                throw new Exception("Valor '$value' inválido para o campo '$this->_name'");
             }
 
             else {
-                $value = $date->format($this->date_format);
+                $value = $new_value;
             }
 
         }

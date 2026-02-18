@@ -466,7 +466,7 @@ trait ModelCrud
 
             else {
 
-                foreach ((clone $query)->groupBy($key)->select() as $item) {
+                foreach ((clone $query)->orderBy($key)->groupBy($key)->select() as $item) {
 
                     $id = $item->$key;
 
