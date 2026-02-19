@@ -56,7 +56,7 @@ trait ModelCrud
     public function subtitle(): ?string
     {
 
-        if ($id = $this->id()) {
+        if (!is_null($id = $this->id())) {
             return "#$id";
         }
 
@@ -672,7 +672,7 @@ trait ModelCrud
             }
 
             foreach ($value as &$item) {
-                if ($item == self::$empty_value) {
+                if ($item === self::$empty_value) {
                     $item = null;
                 }
             }

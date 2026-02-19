@@ -105,6 +105,29 @@ class FileManager
 
     }
 
+    /**
+     * @throws Exception
+     */
+    public static function loadCsv(string $filename, ?int $length = null, string $separator = ',',
+                                   string $enclosure = '"', string $escape = '\\'): Generator
+    {
+
+        if (!file_exists($filename)) {
+            throw new Exception(message: "Arquivo '$filename' não existe!");
+        }
+
+        $handle = fopen($filename, "r");
+
+        if ($handle === false) {
+            throw new Exception(message: "Erro ao abrir arquivo '$filename'!");
+        }
+
+        while (($data = fgetcsv($handle, $length, $separator, $enclosure, $escape)) !== false) {
+            yield $data;
+        }
+
+    }
+
     public static function unzipFile($fileName, $sameDir = true, $deleteOriginal = true): string
     {
 

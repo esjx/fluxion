@@ -238,9 +238,6 @@ class CrudController extends Controller
 
         $query = $this->permissionFilter($model::query(), $auth);
 
-        $tabs = $model->getTabs(clone $query);
-        $default_tab = $tabs[0]->id ?? null;
-
         $model->changeState(State::FILTER);
 
         // Executa busca
@@ -248,12 +245,18 @@ class CrudController extends Controller
 
             $query = $model->search($query, $search);
 
+            $tabs = $model->getTabs(clone $query);
+
         }
 
         // Executa filtros
         else {
 
             $query = $model->filterItens($query, $filters);
+
+            $tabs = $model->getTabs(clone $query);
+            $default_tab = $tabs[0]->id ?? null;
+
             $query = $model->tab($query, $tab, $default_tab);
 
         }

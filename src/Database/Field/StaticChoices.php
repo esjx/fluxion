@@ -14,6 +14,14 @@ trait StaticChoices
     public function createChoices(): void
     {
 
+        if (is_null($this->choices)) {
+            $this->choices = [];
+        }
+
+        if (is_null($this->choices_colors)) {
+            $this->choices_colors = [];
+        }
+
         $class_name = $this->class_name;
 
         if (!is_null($class_name)) {
@@ -63,14 +71,14 @@ trait StaticChoices
                 $key = (string) $key;
             }
 
-            elseif (is_string($this->choices_colors[$key])) {
+            elseif (is_string($this->choices_colors[$key] ?? null)) {
                 $this->choices_colors[$key] = Color::tryFrom($this->choices_colors[$key]);
             }
 
             $form_field->addChoice(
                 value: $key,
                 label: $label,
-                color: $this->choices_colors[$key]
+                color: $this->choices_colors[$key] ?? null
             );
 
         }

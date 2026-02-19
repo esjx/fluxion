@@ -24,6 +24,7 @@ class DateField extends Field
                                 public mixed           $default = null,
                                 public bool            $default_literal = false,
                                 public ?bool           $fake = false,
+                                public ?bool           $null_if_invalid = false,
                                 public ?bool           $enabled = true)
     {
         parent::__construct();
@@ -51,7 +52,7 @@ class DateField extends Field
 
             $new_value = Time::convert($value, $this->date_format);
 
-            if (is_null($new_value)) {
+            if (is_null($new_value) && !$this->null_if_invalid) {
                 throw new Exception("Valor '$value' inválido para o campo '$this->_name'");
             }
 

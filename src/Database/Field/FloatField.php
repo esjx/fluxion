@@ -32,6 +32,10 @@ class FloatField extends Field
             return false;
         }
 
+        if ($value === '') {
+            $value = null;
+        }
+
         return is_null($value) || is_numeric($value);
 
     }
