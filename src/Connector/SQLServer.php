@@ -1288,6 +1288,10 @@ class SQLServer extends Connector
                             continue;
                         }
 
+                        if ($f->identity && is_null($i_model->$key)) {
+                            continue;
+                        }
+
                         if ($f instanceof Database\Field\GeographyField && !is_null($i_model->$key)) {
                             $values_sql[] = "geography::STMPolyFromText('{$i_model->$key}', 4326)";
                         }

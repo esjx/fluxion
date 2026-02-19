@@ -44,6 +44,7 @@ abstract class Field
     public ?bool $primary_key = false;
     public ?bool $identity = false;
     public ?bool $fake = false;
+    public ?bool $null_if_invalid = false;
     public ?bool $assistant_table = false;
     public ?int $max_length = null;
     public ?array $choices = null;

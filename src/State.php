@@ -6,6 +6,7 @@ enum State
 {
 
     case LIST;
+    case LIST_CHOICE;
     case VIEW;
     case EDIT;
     case DOWNLOAD;

@@ -503,12 +503,15 @@ class CrudController extends Controller
 
         $choices = [];
 
-        foreach ($query->limit(10)->select() as $item) {
+        foreach ($query->limit(10)->select() as $row) {
+
+            /** @var Model $row */
+            $row->changeState(State::LIST_CHOICE);
 
             $choices[] = [
-                'id' => $item->$ref_field_id,
-                'label' => (string) $item,
-                'color' => Color::tryFrom($item->$field_color_name ?? ''),
+                'id' => $row->$ref_field_id,
+                'label' => (string) $row,
+                'color' => Color::tryFrom($row->$field_color_name ?? ''),
             ];
 
         }

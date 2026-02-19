@@ -28,6 +28,7 @@ class ChoicesField extends Field
                                 public bool    $default_literal = false,
                                 public ?string $column_name = null,
                                 public ?bool   $fake = false,
+                                public ?bool   $null_if_invalid = false,
                                 public ?bool   $enabled = true)
     {
 
@@ -53,17 +54,20 @@ class ChoicesField extends Field
     {
 
         return match ($this->_type) {
-            'integer' => (new IntegerField())->translate($value),
+            'integer' => (new IntegerField(null_if_invalid: $this->null_if_invalid))->translate($value),
             default => (new StringField())->translate($value),
         };
 
     }
 
+    /**
+     * @throws Exception
+     */
     public function validate(mixed &$value): bool
     {
 
         return match ($this->_type) {
-            'integer' => (new IntegerField())->validate($value),
+            'integer' => (new IntegerField(null_if_invalid: $this->null_if_invalid))->validate($value),
             default => (new StringField())->validate($value),
         };
 

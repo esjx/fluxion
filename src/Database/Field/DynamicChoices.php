@@ -1,7 +1,7 @@
 <?php
 namespace Fluxion\Database\Field;
 
-use Fluxion\{Color, Exception};
+use Fluxion\{Color, Exception, Model, State};
 use Fluxion\Query\{QuerySql};
 use Fluxion\Database\{FormField};
 
@@ -47,6 +47,9 @@ trait DynamicChoices
 
             foreach ((clone $query)->filter($field_id_name, $this->_value)->select() as $row) {
 
+                /** @var Model $row */
+                $row->changeState(State::LIST_CHOICE);
+
                 $pos = array_search($row->$field_id_name, $extras);
 
                 if ($pos !== false) {
@@ -68,6 +71,9 @@ trait DynamicChoices
         if ($form_field->enabled) {
 
             foreach ((clone $query)->limit($pre + 1)->select() as $row) {
+
+                /** @var Model $row */
+                $row->changeState(State::LIST_CHOICE);
 
                 if (++$i > $pre) {
                     $extra = true;
@@ -93,6 +99,9 @@ trait DynamicChoices
         if (count($extras) > 0) {
 
             foreach ((clone $query)->filter($field_id_name, $extras)->select() as $row) {
+
+                /** @var Model $row */
+                $row->changeState(State::LIST_CHOICE);
 
                 $form_field->addChoice(
                     value: $row->$field_id_name,

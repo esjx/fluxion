@@ -21,6 +21,7 @@ class IntegerField extends Field
                                 public mixed           $default = null,
                                 public bool            $default_literal = false,
                                 public ?bool           $fake = false,
+                                public ?bool           $null_if_invalid = false,
                                 public ?bool           $enabled = true)
     {
         parent::__construct();
@@ -34,6 +35,10 @@ class IntegerField extends Field
         }
 
         if ($value === '') {
+            $value = null;
+        }
+
+        if ($this->null_if_invalid && !is_null($value) && !is_numeric($value)) {
             $value = null;
         }
 
