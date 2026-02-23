@@ -72,9 +72,15 @@ class ManyToManyModel extends Model
 
             $this->_table->table .= '_has_' . $field_name;
 
+            $type = 'CASCADE';
+
+            if (get_class($models['a']) == get_class($models['b'])) {
+                $type = 'NO ACTION';
+            }
+
             foreach (['a', 'b'] as $key) {
 
-                $this->_fields[$key] = new ForeignKeyField(get_class($models[$key]), real: true, type: 'CASCADE');
+                $this->_fields[$key] = new ForeignKeyField(get_class($models[$key]), real: true, type: $type);
                 $this->_fields[$key]->column_name = $key;
                 $this->_fields[$key]->required = true;
                 $this->_fields[$key]->primary_key = true;
