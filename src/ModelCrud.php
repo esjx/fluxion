@@ -653,12 +653,21 @@ trait ModelCrud
 
     }
 
+    /**
+     * @throws Exception
+     */
     public function search(Query $query, string $search): Query
     {
 
         $searches = [];
 
-        foreach ($this->getFields() as $field) {
+        foreach ($this->getFields() as $key => $field) {
+
+            $detail = $this->getDetail($key);
+
+            if (!$detail->searchable || $field->fake) {
+                continue;
+            }
 
             if ($param = $field->getSearch($search)) {
                 $searches[] = $param;

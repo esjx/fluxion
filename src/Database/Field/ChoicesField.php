@@ -41,7 +41,7 @@ class ChoicesField extends Field
     public function initialize(): void
     {
 
-        if ($this->_type_property != 'int') {
+        if (str_contains($this->_type_property, 'int')) {
             $this->_type = self::TYPE_INTEGER;
         }
 

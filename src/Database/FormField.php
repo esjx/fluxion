@@ -39,6 +39,7 @@ class FormField
                                 public ?string $help = null,
                                 public ?array  $help_conditions = null,
                                 public ?array  $choices_conditions = null,
+                                public bool    $zip_code = false,
                                 public mixed   $value = null)
     {
 

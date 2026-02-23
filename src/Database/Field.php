@@ -349,6 +349,7 @@ abstract class Field
             help: $detail->help,
             help_conditions: $detail->help_conditions,
             choices_conditions: $detail->choices_conditions,
+            zip_code: $detail->zip_code,
             value: $this->getValue(),
         );
 

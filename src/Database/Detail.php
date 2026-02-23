@@ -52,6 +52,7 @@ class Detail
                                 public ?string $help = null,
                                 public ?int    $max_length = null,
                                 public ?int    $size = 12,
+                                public bool    $zip_code = false,
                                 public ?array  $visible_conditions = null,
                                 public ?array  $required_conditions = null,
                                 public ?array  $choices_conditions = null,
