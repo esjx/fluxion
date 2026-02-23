@@ -126,6 +126,7 @@ class Controller
         # Ordenando e executando as sincronizações
 
         asort($list);
+
         foreach ($list as $class => $index) {
 
             if (!is_null($perm_model) && get_class($perm_model) != $class) {
@@ -143,6 +144,10 @@ class Controller
                 }
 
             }
+
+        }
+
+        foreach ($list as $class => $index) {
 
             $connector->sync($class);
 

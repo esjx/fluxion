@@ -19,6 +19,7 @@ enum Icon: string
     case MONEY_BOX = 'money-box';
     case FILE_TEXT = 'file-text';
     case PIZZA = 'pizza';
+    case CODE_SETTING = 'code-setting';
     case ALERT_TRIANGLE = 'alert-triangle';
     case COLLECTION_ITEM = 'collection-item';
     case COLLECTION_ITEM_1 = 'collection-item-1';

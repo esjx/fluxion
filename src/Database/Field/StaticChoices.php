@@ -8,11 +8,17 @@ use Fluxion\Database\{FormField};
 trait StaticChoices
 {
 
+    protected bool $created = false;
+
     /**
      * @throws Exception
      */
     public function createChoices(): void
     {
+
+        if ($this->created) {
+            return;
+        }
 
         if (is_null($this->choices)) {
             $this->choices = [];
@@ -32,6 +38,24 @@ trait StaticChoices
 
             /** @var BackedEnum $class_name */
             foreach ($class_name::cases() as $case) {
+
+                $test = false;
+
+                if ($this->multiple && is_array($this->_value) && !in_array($case->value, $this->_value)) {
+                    $test = true;
+                }
+
+                if (!$this->multiple && $case->value != $this->_value) {
+                    $test = true;
+                }
+
+                if ($test) {
+                    foreach ($this->filters as $key => $value) {
+                        if (method_exists($case, $key) && $case->$key() != $value) {
+                            continue 2;
+                        }
+                    }
+                }
 
                 if (method_exists($case, 'label')) {
                     $this->choices[$case->value] = $case->label();
@@ -57,6 +81,8 @@ trait StaticChoices
 
         }
 
+        $this->created = true;
+
     }
 
     public function getFormField(array $extras = [], ?string $route = null): FormField
@@ -64,6 +90,8 @@ trait StaticChoices
 
         /** @noinspection PhpMultipleClassDeclarationsInspection */
         $form_field = parent::getFormField($extras);
+
+        $this->createChoices();
 
         foreach ($this->choices as $key => $label) {
 

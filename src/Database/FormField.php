@@ -32,6 +32,7 @@ class FormField
                                 public ?string $validator_type = null,
                                 public ?string $text_transform = null,
                                 public ?string $mask = null,
+                                public ?bool   $mask_literal = false,
                                 public ?int    $minlength = null,
                                 public ?int    $maxlength = null,
                                 public bool    $readonly = false,

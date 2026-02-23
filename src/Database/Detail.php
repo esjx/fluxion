@@ -44,6 +44,7 @@ class Detail
      */
     public function __construct(public ?string $label = null,
                                 public ?string $mask_class = null,
+                                public bool    $mask_literal = false,
                                 public bool    $searchable = false,
                                 public bool    $filterable = false,
                                 public ?Icon   $filter_icon = null,

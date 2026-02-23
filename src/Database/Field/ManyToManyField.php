@@ -85,7 +85,7 @@ class ManyToManyField extends Field
 
     }
 
-    public function __construct(public string  $class_name,
+    public function __construct(public ?string $class_name,
                                 public bool    $inverted = false,
                                 public bool    $real = false,
                                 public bool    $show = false,
@@ -124,7 +124,7 @@ class ManyToManyField extends Field
     }
 
     /** @throws Exception */
-    public function initialize(): void
+    public function __initialize(): void
     {
 
         $class_name = $this->class_name;

@@ -23,7 +23,7 @@ class ForeignKeyField extends Field
         return $this->_field;
     }
 
-    public function __construct(public string  $class_name,
+    public function __construct(public ?string $class_name,
                                 public bool    $real = false,
                                 public bool    $show = false,
                                 public ?string $type = null,

@@ -22,6 +22,7 @@ class ChoicesField extends Field
                                 public ?array  $choices = null,
                                 public ?array  $choices_colors = null,
                                 public ?string $class_name = null,
+                                public array   $filters = [],
                                 public bool    $radio = false,
                                 public bool    $inline = false,
                                 public mixed   $default = null,
@@ -31,8 +32,6 @@ class ChoicesField extends Field
                                 public ?bool   $null_if_invalid = false,
                                 public ?bool   $enabled = true)
     {
-
-        $this->createChoices();
 
         parent::__construct();
 

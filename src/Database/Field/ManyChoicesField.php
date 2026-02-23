@@ -98,6 +98,7 @@ class ManyChoicesField extends Field
                                 public ?array  $choices_colors = null,
                                 string         $choices_type = 'string',
                                 public ?string $class_name = null,
+                                public array   $filters = [],
                                 public bool    $show = false,
                                 public ?string $type = null,
                                 public ?bool   $required = false,
@@ -114,8 +115,6 @@ class ManyChoicesField extends Field
         }
 
         $this->_type = $choices_type;
-
-        $this->createChoices();
 
         parent::__construct();
 
@@ -140,6 +139,17 @@ class ManyChoicesField extends Field
         }
 
         return is_array($value) || is_null($value);
+
+    }
+
+    public function __format(mixed $value): mixed
+    {
+
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+
+        return $value;
 
     }
 

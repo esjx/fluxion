@@ -21,19 +21,13 @@ trait DynamicChoices
         $i = 0;
         $extra = false;
 
-        $query = $this->_reference_model->query();
-        $field_id = $this->_reference_model->getFieldId();
+        $query = $this->getReferenceModel()->query();
+        $field_id = $this->getReferenceModel()->getFieldId();
         $field_id_name = $field_id->getName();
 
         # Ordenar
 
-        $query = $this->_reference_model->order($query);
-
-        # Filtrar
-
-        if (count($this->filters) > 0) {
-            $query = $query->filter(QuerySql::_and($this->filters));
-        }
+        $query = $this->getReferenceModel()->order($query);
 
         $field_color_name = '';
         foreach ($this->getReferenceModel()->getFields() as $f) {
@@ -66,6 +60,12 @@ trait DynamicChoices
 
             $query = $query->exclude($field_id_name, $this->_value);
 
+        }
+
+        # Filtrar
+
+        if (count($this->filters) > 0) {
+            $query = $query->filter(QuerySql::_and($this->filters));
         }
 
         if ($form_field->enabled) {

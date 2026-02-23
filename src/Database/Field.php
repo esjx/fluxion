@@ -124,9 +124,40 @@ abstract class Field
         return $value;
     }
 
+    public ?string $class_name = null;
+
+    /**
+     * @throws Exception
+     */
     public function getReferenceModel(): Model
     {
+
+        if (is_null($this->_reference_model)) {
+
+            $class_name = $this->class_name;
+
+            if ($class_name == get_class($this->_model)) {
+                $class = clone $this->_model;
+            }
+
+            else {
+
+                $class = new $class_name;
+
+                if (!$class instanceof Model) {
+                    throw new Exception(message: "Classe '$class_name' não é Model");
+                }
+
+            }
+
+            $this->_reference_model = $class;
+
+            $this->_type = $class->getFieldId()->getType();
+
+        }
+
         return $this->_reference_model;
+
     }
 
     public function update(): void
@@ -312,6 +343,7 @@ abstract class Field
             validator_type: $this->validator_type,
             text_transform: $this->text_transform,
             mask: $detail->mask,
+            mask_literal: $detail->mask_literal,
             maxlength: $detail->max_length ?? $this->max_length,
             readonly: $this->readonly,
             help: $detail->help,

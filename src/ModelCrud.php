@@ -163,6 +163,8 @@ trait ModelCrud
 
         if ($field instanceof Field\ChoicesField) {
 
+            $field->createChoices();
+
             foreach ((clone $query)->groupBy($key)->count($key)->select() as $item) {
 
                 $id = $item->$key;
@@ -244,6 +246,8 @@ trait ModelCrud
 
         elseif ($field instanceof Field\ManyChoicesField) {
 
+            $field->createChoices();
+
             $mn_model = $field->getManyChoicesModel();
             $mn_field_name = $mn_model->getRight();
 
@@ -319,6 +323,8 @@ trait ModelCrud
 
             if ($field instanceof Field\ChoicesField) {
 
+                $field->createChoices();
+
                 foreach ((clone $query)->groupBy($key)->select() as $item) {
 
                     $id = $item->$key;
@@ -376,12 +382,17 @@ trait ModelCrud
                 foreach ($field->getReferenceModel()::filter($field_id_name, (clone $query)->groupBy($key))
                              ->select() as $item) {
 
+                    $item->changeState(State::FILTER_PARAMS);
+
                     $labels[$item->$field_id_name] = (string) $item;
                     $colors[$item->$field_id_name] = Color::tryFrom($item->$field_color_name ?? '');
 
                 }
 
+                /** @var Model $item */
                 foreach ((clone $query)->groupBy($key)->select() as $item) {
+
+                    $item->changeState(State::FILTER_PARAMS);
 
                     $id = $item->$key ?? self::$empty_value;
 
@@ -426,7 +437,10 @@ trait ModelCrud
 
                 }
 
+                /** @var Model $item */
                 foreach ($list_right->select() as $item) {
+
+                    $item->changeState(State::FILTER_PARAMS);
 
                     $id = $item->$mn_field_name;
 
@@ -442,6 +456,8 @@ trait ModelCrud
             }
 
             elseif ($field instanceof Field\ManyChoicesField) {
+
+                $field->createChoices();
 
                 $mn_model = $field->getManyChoicesModel();
                 $mn_field_name = $mn_model->getRight();
