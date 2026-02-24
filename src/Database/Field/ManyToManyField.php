@@ -94,6 +94,7 @@ class ManyToManyField extends Field
                                 public ?bool   $required = false,
                                 public ?bool   $protected = false,
                                 public ?bool   $readonly = false,
+                                public ?string $typeahead = null,
                                 public ?bool   $enabled = true)
     {
 
@@ -117,6 +118,10 @@ class ManyToManyField extends Field
 
         if (!parent::validate($value)) {
             return false;
+        }
+
+        if (is_null($value)) {
+            $value = [];
         }
 
         return is_array($value);

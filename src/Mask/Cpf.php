@@ -10,6 +10,7 @@ class Cpf extends Mask
     public string $placeholder = '___.___.___-__';
     public string $label = 'CPF';
     public int $max_length = 11;
+    public string $pattern = '/^[0-9]{11}$/';
 
     public static function validate(string $value): bool
     {

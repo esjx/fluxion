@@ -278,6 +278,8 @@ class CrudController extends Controller
         /** @var Model $k */
         foreach ($query->select() as $k) {
 
+            $k->changeState(State::LIST);
+
             $k->setActiveOrder($order);
 
             $data[] = [
