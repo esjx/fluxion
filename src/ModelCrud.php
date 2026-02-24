@@ -844,6 +844,42 @@ trait ModelCrud
 
         $this->changeState(State::SAVE);
 
+        # Verificar se existe registro
+
+        if (!$this->isSaved()) {
+
+            $primary_keys = $this->getPrimaryKeys();
+
+            if (count($primary_keys) > 0) {
+
+                $query = self::query();
+
+                $titles = [];
+
+                foreach ($primary_keys as $key => $pk) {
+
+                    $detail = $this->getDetail($key);
+
+                    $titles[] = $detail->label ?? $key;
+
+                    $query = $query->filter($key, $this->$key);
+
+                }
+
+                $test = $query->first();
+
+                if (!is_null($test)) {
+
+                    $titles = implode("', '", $titles);
+
+                    throw new Exception("Já existe um registro para os valores informados no(s) campo(s) '$titles'!");
+
+                }
+
+            }
+
+        }
+
         $this->save();
 
         # Salva os inlines
