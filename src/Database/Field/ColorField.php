@@ -13,6 +13,7 @@ class ColorField extends Field
 
     public ?array $choices = null;
     public ?int $max_length = 15;
+    protected ?bool $_needs_audit = false;
 
     public function __construct(public ?bool $required = false,
                                 public ?bool $protected = false,

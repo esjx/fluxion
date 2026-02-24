@@ -119,4 +119,30 @@ trait StaticChoices
 
     }
 
+    /**
+     * @throws Exception
+     */
+    public function getAuditValue(mixed $value): string
+    {
+
+        if (empty($value)) {
+            return '<span class="text-pink"><i>(Vazio)</i></span>';
+        }
+
+        $this->createChoices();
+
+        $items = [];
+
+        if (!$this->multiple) {
+            return $this->choices[$value] ?? $value;
+        }
+
+        foreach ($value as $k) {
+            $items[] = $this->choices[$k] ?? $k;
+        }
+
+        return implode(', ', $items);
+
+    }
+
 }

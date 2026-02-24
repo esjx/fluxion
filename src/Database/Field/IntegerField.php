@@ -3,6 +3,7 @@ namespace Fluxion\Database\Field;
 
 use Attribute;
 use Fluxion\Database\Field;
+use Fluxion\TextFormatter;
 use Fluxion\Query\{QuerySql, QueryWhere};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -65,6 +66,17 @@ class IntegerField extends Field
         }
 
         return QuerySql::filter($this->_name, (int) $value);
+
+    }
+
+    public function getAuditValue(mixed $value): string
+    {
+
+        if (is_null($value)) {
+            return '<span class="text-pink"><i>(Vazio)</i></span>';
+        }
+
+        return TextFormatter::number($value, 0);
 
     }
 

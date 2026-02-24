@@ -2,13 +2,16 @@
 namespace Fluxion\Auth;
 
 use Fluxion\{Connector, Model};
-use Fluxion\Database\Field\{BooleanField, PasswordField, StringField};
+use Fluxion\Database\Field\{BooleanField, IntegerField, PasswordField, StringField};
 
 class UserModel extends Model
 {
 
     #[StringField(required: true)]
     public ?string $login;
+
+    #[IntegerField(required: true)]
+    public ?int $cost_center;
 
     #[PasswordField]
     public ?string $password;

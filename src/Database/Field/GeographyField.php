@@ -13,6 +13,7 @@ class GeographyField extends Field
     protected string $_type_target = 'string';
 
     public ?bool $required = false;
+    protected ?bool $_needs_audit = false;
 
     public function __construct(public ?bool $protected = false,
                                 public ?bool $fake = false)

@@ -75,7 +75,7 @@ class ManyToManyModel extends Model
             $type = 'CASCADE';
 
             if (get_class($models['a']) == get_class($models['b'])) {
-                $type = 'NO ACTION';
+                $type = 'NO_ACTION';
             }
 
             foreach (['a', 'b'] as $key) {

@@ -2,6 +2,7 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
+use Fluxion\TextFormatter;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class DecimalField extends FloatField

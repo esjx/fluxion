@@ -44,6 +44,7 @@ abstract class Field
     public ?bool $primary_key = false;
     public ?bool $identity = false;
     public ?bool $fake = false;
+    protected ?bool $_needs_audit = true;
     public ?bool $null_if_invalid = false;
     public ?bool $assistant_table = false;
     public ?int $max_length = null;
@@ -65,6 +66,11 @@ abstract class Field
     public function isChanged(): bool
     {
         return $this->_changed;
+    }
+
+    public function needsAudit(): bool
+    {
+        return ($this->_needs_audit && !$this->fake);
     }
 
     public function hasDefaultValue(): bool
@@ -103,6 +109,11 @@ abstract class Field
         $this->_type_property = $type_property;
     }
 
+    public function getTypeProperty(): string
+    {
+        return $this->_type_property;
+    }
+
     public function setModel(Model $model): void
     {
         $this->_model = $model;
@@ -111,7 +122,7 @@ abstract class Field
     public function validate(mixed &$value): bool
     {
 
-        if ($this->required && empty($value) && is_null($this->default)) {
+        if ($this->required && is_null($value) && is_null($this->default)) {
             return false;
         }
 
@@ -137,7 +148,7 @@ abstract class Field
             $class_name = $this->class_name;
 
             if ($class_name == get_class($this->_model)) {
-                $class = clone $this->_model;
+                $class = $this->_model;
             }
 
             else {
@@ -165,6 +176,11 @@ abstract class Field
 
     }
 
+    public function load(): void
+    {
+
+    }
+
     public function getValue($row = false): mixed
     {
 
@@ -177,11 +193,6 @@ abstract class Field
 
     }
 
-    public function load(): void
-    {
-
-    }
-
     public function getSavedValue($row = false): mixed
     {
 
@@ -190,6 +201,17 @@ abstract class Field
         }
 
         return $this->format($this->_saved_value);
+
+    }
+
+    public function getAuditValue(mixed $value): string
+    {
+
+        if (is_null($value) || $value == []) {
+            return '<span class="text-pink"><i>(Vazio)</i></span>';
+        }
+
+        return (string) $value;
 
     }
 
@@ -271,7 +293,9 @@ abstract class Field
 
         $class = get_class($this->_model);
 
-        if ($this->_type_property != 'mixed' && !str_contains($this->_type_property, '?')) {
+        if ($this->_type_property != 'mixed'
+            && !str_contains($this->_type_property, '?')
+            && !str_contains($this->_type_property, 'null')) {
             throw new Exception(message: "Campo '$class:$this->_name' deve permitir nulos");
         }
 

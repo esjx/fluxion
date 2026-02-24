@@ -224,7 +224,7 @@ class SQLServer extends Connector
 
         $sql = "SELECT f.name                                                     AS fk_name,
                        COL_NAME(fc.parent_object_id, fc.parent_column_id)         AS parent_column,
-                       SCHEMA_NAME(f.schema_id)                                   AS referenced_schema,
+                       SCHEMA_NAME(t.schema_id)                                   AS referenced_schema,
                        OBJECT_NAME(f.referenced_object_id)                        AS referenced_table,
                        COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS referenced_column,
                        f.delete_referential_action_desc                           AS delete_rule,
@@ -232,6 +232,8 @@ class SQLServer extends Connector
                 FROM sys.foreign_keys AS f
                          INNER JOIN sys.foreign_key_columns AS fc
                                     ON f.object_id = fc.constraint_object_id
+                         INNER JOIN sys.tables AS t
+                                    ON t.object_id = f.referenced_object_id
                 WHERE f.type = 'F'
                   AND f.parent_object_id = OBJECT_ID('$table->schema.$table->table')
                 ORDER BY fk_name;";

@@ -66,7 +66,7 @@ class StringField extends Field
             return false;
         }
 
-        if (empty($value)) {
+        if ($value === '' || is_null($value)) {
             $value = null;
             return true;
         }

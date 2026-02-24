@@ -5,6 +5,7 @@ namespace Fluxion;
 enum State
 {
 
+    case LOAD;
     case LIST;
     case LIST_CHOICE;
     case VIEW;

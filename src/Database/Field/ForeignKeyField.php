@@ -48,7 +48,7 @@ class ForeignKeyField extends Field
         $class_name = $this->class_name;
 
         if ($class_name == get_class($this->_model)) {
-            $class = clone $this->_model;
+            $class = $this->_model;
         }
 
         else {

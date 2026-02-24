@@ -4,6 +4,7 @@ namespace Fluxion\Database\Field;
 use Attribute;
 use Fluxion\Database\Field;
 use Fluxion\Database\FormField;
+use Fluxion\TextFormatter;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class FloatField extends Field
@@ -59,6 +60,17 @@ class FloatField extends Field
         $form_field->type = 'float';
 
         return $form_field;
+
+    }
+
+    public function getAuditValue(mixed $value): string
+    {
+
+        if (is_null($value)) {
+            return '<span class="text-pink"><i>(Vazio)</i></span>';
+        }
+
+        return TextFormatter::number($value);
 
     }
 

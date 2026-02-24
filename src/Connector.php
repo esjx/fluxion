@@ -246,6 +246,8 @@ abstract class Connector
 
         }
 
+        # Criar as tabelas MC
+
         foreach ($model->getManyChoices() as $key => $mn) {
 
             if ($mn->inverted) {
@@ -257,6 +259,16 @@ abstract class Connector
             # Criar a tabela de relacionamento
 
             $this->executeSync($mn->getManyChoicesModel());
+
+        }
+
+        # Criar a tabela de trilha de auditoria
+
+        $audit_trail = $model->getAuditTrail();
+
+        if (!is_null($audit_trail)) {
+
+            $this->executeSync($audit_trail->getAuditTrailModel());
 
         }
 
@@ -296,6 +308,10 @@ abstract class Connector
 
         foreach ($this->fetch($sql) as $result) {
 
+            foreach ($model->getFields() as $field) {
+                $field->clear();
+            }
+
             if (isset($result['total'])) {
                 $model->getField('total')->setValue($result['total'], true);
             }
@@ -309,6 +325,8 @@ abstract class Connector
                 $field->setValue($result[$field->column_name] ?? null, true);
 
             }
+
+            $model->changeState(State::LOAD);
 
             yield $model;
 

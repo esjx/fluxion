@@ -80,4 +80,15 @@ class DateField extends Field
 
     }
 
+    public function getAuditValue(mixed $value): string
+    {
+
+        if (empty($value)) {
+            return '<span class="text-pink"><i>(Vazio)</i></span>';
+        }
+
+        return Time::convert($value, 'd/m/Y');
+
+    }
+
 }

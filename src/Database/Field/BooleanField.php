@@ -3,6 +3,7 @@ namespace Fluxion\Database\Field;
 
 use Attribute;
 use Fluxion\Database\Field;
+use Fluxion\Time;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class BooleanField extends Field
@@ -47,6 +48,17 @@ class BooleanField extends Field
     public function format(mixed $value): bool
     {
         return !!$value;
+    }
+
+    public function getAuditValue(mixed $value): string
+    {
+
+        if (is_null($value)) {
+            return '<span class="text-pink"><i>(Vazio)</i></span>';
+        }
+
+        return ($value) ? '&#x26AB;' : '&#x26AA';
+
     }
 
 }

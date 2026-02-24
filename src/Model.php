@@ -2,7 +2,7 @@
 namespace Fluxion;
 
 use ReflectionClass;
-use Fluxion\Database\{Crud, Detail, Field, Table};
+use Fluxion\Database\{AuditTrail, Crud, Detail, Field, Table};
 use Fluxion\Database\Field\{FloatField};
 
 abstract class Model
@@ -46,6 +46,14 @@ abstract class Model
 
             }
 
+            elseif ($instance instanceof AuditTrail) {
+
+                $instance->initialize($this);
+
+                $this->_audit_trail = $instance;
+
+            }
+
         }
 
         # Carrega os atributos dos campos do modelo
@@ -71,6 +79,10 @@ abstract class Model
                 $instance = $attribute->newInstance();
 
                 if ($instance instanceof Field) {
+
+                    if (isset($this->_fields[$name])) {
+                        continue 2;
+                    }
 
                     $this->_fields[$name] = $instance;
 

@@ -12,6 +12,7 @@ class PasswordField extends Field
 {
 
     protected string $_type = self::TYPE_PASSWORD;
+    protected ?bool $_needs_audit = false;
 
     public function __construct(public ?bool $required = false,
                                 public ?bool $protected = false,

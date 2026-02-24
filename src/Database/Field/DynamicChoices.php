@@ -130,4 +130,17 @@ trait DynamicChoices
 
     }
 
+    public function getAuditValue(mixed $value): string
+    {
+
+        if (empty($value)) {
+            return '<span class="text-pink"><i>(Vazio)</i></span>';
+        }
+
+        #TODO
+
+        return 'ARRAY';
+
+    }
+
 }

@@ -2,9 +2,17 @@
 namespace Fluxion;
 
 use ReflectionException;
+use Fluxion\Database\{AuditTrail};
 
 trait ModelSave
 {
+
+    protected ?AuditTrail $_audit_trail = null;
+
+    public function getAuditTrail(): ?AuditTrail
+    {
+        return $this->_audit_trail;
+    }
 
     protected bool $saved = false;
 
@@ -37,6 +45,8 @@ trait ModelSave
         $this->changeState(State::SAVE);
 
         if ($this->onSave() && Config::getConnector()->save($this)) {
+
+            $this->getAuditTrail()?->register($this);
 
             $this->saved = true;
 
