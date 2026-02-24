@@ -130,6 +130,9 @@ trait DynamicChoices
 
     }
 
+    /**
+     * @throws Exception
+     */
     public function getAuditValue(mixed $value): string
     {
 
@@ -137,9 +140,19 @@ trait DynamicChoices
             return '<span class="text-pink"><i>(Vazio)</i></span>';
         }
 
-        #TODO
+        if (!$this->multiple) {
+            return (string) $this->getReferenceModel()::loadById($value);
+        }
 
-        return 'ARRAY';
+        $items = [];
+
+        $field_id = $this->getReferenceModel()->getFieldId()->getName();
+
+        foreach ($this->getReferenceModel()::filter($field_id, $value)->select() as $k) {
+            $items[] = (string) $k;
+        }
+
+        return implode(', ', $items);
 
     }
 

@@ -131,11 +131,11 @@ trait StaticChoices
 
         $this->createChoices();
 
-        $items = [];
-
         if (!$this->multiple) {
             return $this->choices[$value] ?? $value;
         }
+
+        $items = [];
 
         foreach ($value as $k) {
             $items[] = $this->choices[$k] ?? $k;
