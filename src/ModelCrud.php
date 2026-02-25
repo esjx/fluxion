@@ -694,6 +694,15 @@ trait ModelCrud
             return $query->filter(QuerySql::_or($searches));
         }
 
+        else { # Filtra por qualquer campo para "limpar" a busca
+
+            foreach ($this->getFields() as $key => $field) {
+                $query = $query->filter($key, '0');
+                break;
+            }
+
+        }
+
         return $query;
 
     }
