@@ -3,7 +3,7 @@ namespace Fluxion\Database;
 
 use Attribute;
 use ReflectionException;
-use Fluxion\{AuditTrailModel, Config, Exception, Model, Time};
+use Fluxion\{AuditTrailModel, Config, Exception, Model, State, Time};
 
 #[Attribute(Attribute::TARGET_CLASS)]
 class AuditTrail
@@ -13,7 +13,9 @@ class AuditTrail
     protected AuditTrailModel $_audit_model;
 
     public function __construct(protected string $user_class,
-                                protected string $cost_center_class)
+                                protected string $cost_center_class,
+                                protected ?string $title = null,
+                                protected ?string $model_class = null)
     {
 
     }
@@ -21,6 +23,11 @@ class AuditTrail
     public function initialize(Model $model): void
     {
         $this->_model = $model;
+    }
+
+    public function setTitle(string $title): void
+    {
+        $this->title = $title;
     }
 
     /**
@@ -31,7 +38,20 @@ class AuditTrail
 
         if (empty($this->_audit_model)) {
 
-            $this->_audit_model = new AuditTrailModel($this->_model, $this->user_class, $this->cost_center_class);
+            $auth = Config::getAuth();
+
+            if (!is_null($this->model_class)) {
+                $class = new $this->model_class;
+            }
+
+            else {
+                $class = $this->_model;
+            }
+
+            $this->_audit_model = new AuditTrailModel($class, $this->user_class, $this->cost_center_class);
+            $this->_audit_model->_user = $auth->getUser()->login;
+            $this->_audit_model->_cost_center = $auth->getUser()->cost_center;
+            $this->_audit_model->_insert = Time::NOW->value();
 
         }
 
@@ -41,15 +61,44 @@ class AuditTrail
 
     /**
      * @throws Exception
-     * @throws ReflectionException
      */
-    public function register(Model $model): void
+    public function getFieldId(Model $model): ?Field
     {
 
-        $audit_model = $this->getAuditTrailModel();
-        $auth = Config::getAuth();
+        # Verifica se o log é gravado no Model "pai"
 
-        $field_id = $model->getFieldId();
+        $class_name = get_class($model);
+
+        if (!is_null($this->model_class)
+            && $this->model_class != $class_name) {
+
+
+            foreach ($model->getForeignKeys() as $field) {
+
+                if ($field->class_name == $this->model_class) {
+
+                    return $field;
+
+                }
+
+            }
+
+            throw new Exception("Não foi possível achar o relacionamento entre '$class_name' e '$this->model_class'");
+
+        }
+
+        return $model->getFieldId();
+
+    }
+
+    /**
+     * @throws Exception
+     * @throws ReflectionException
+     */
+    public function registerUpdate(Model $model): void
+    {
+
+        # Busca as alterações nos campos
 
         $changes = [];
 
@@ -79,17 +128,40 @@ class AuditTrail
 
         }
 
+        # Registra a alteração se necessário
+
         if (count($changes) > 0) {
 
-            $audit_model->_user = $auth->getUser()->login;
-            $audit_model->_cost_center = $auth->getUser()->cost_center;
-            $audit_model->_insert = Time::NOW->value();
-            $audit_model->id = $field_id->getValue();
-            $audit_model->data = implode('<br>', $changes);
+            $this->_model->changeState(State::AUDIT_TRAIL);
+
+            $audit_model = $this->getAuditTrailModel();
+            $audit_model->id = $this->getFieldId($model)->getValue();
+
+            $audit_model->data = ($this->title) ? "<b class='text-black'>$this->title</b><br>" : '';
+            $audit_model->data .= implode('<br>', $changes);
 
             $audit_model->save();
 
         }
+
+    }
+
+    /**
+     * @throws Exception
+     * @throws ReflectionException
+     */
+    public function registerDelete(Model $model): void
+    {
+
+        $this->_model->changeState(State::AUDIT_TRAIL);
+
+        $audit_model = $this->getAuditTrailModel();
+        $audit_model->id = $this->getFieldId($model)->getValue();
+
+        $audit_model->data = ($this->title) ? "<b class='text-black'>$this->title</b><br>" : '';
+        $audit_model->data .= '<i class="text-red">Registro Apagado</i>';
+
+        $audit_model->save();
 
     }
 

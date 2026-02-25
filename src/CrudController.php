@@ -123,6 +123,7 @@ class CrudController extends Controller
             ['url' => '/fields', 'method' => 'POST', 'class' => $class, 'action' => 'fields'],
             ['url' => '/save', 'method' => 'POST', 'class' => $class, 'action' => 'save'],
             ['url' => '/action', 'method' => 'POST', 'class' => $class, 'action' => 'action'],
+            ['url' => '/action-fields', 'method' => 'POST', 'class' => $class, 'action' => 'actionFields'],
             ['url' => '/typeahead/{field:string}', 'method' => 'POST', 'class' => $class, 'action' => 'typeahead'],
         ];
 
@@ -368,12 +369,12 @@ class CrudController extends Controller
             'size' => $crud_details->form_size,
             'header' => $model->getFormHeader(),
             'footer' => $model->getFormFooter(),
-            'title' => $crud_details->title,
+            'title' => $model->getFormTitle(),
+            'subtitle' => $crud_details->subtitle,
             'fields' => $fields,
             'inlines' => $inlines,
             'html_title' => $crud_details->title,
             'save' => $save,
-            '$is' => $is,
         ];
 
         return ResponseFactory::fromJson($json);
@@ -427,6 +428,7 @@ class CrudController extends Controller
     /**
      * @throws PermissionDeniedException
      * @throws Exception
+     * @throws ReflectionException
      * @noinspection PhpUnused
      */
     #[Transaction]
@@ -436,6 +438,8 @@ class CrudController extends Controller
         $is = json_decode($request->getBody()->getContents());
 
         $id = $is->__id ?? null;
+        $action = Action::from($is->action ?? '')
+            ?? throw new Exception('Ação não identificada!');
 
         # Dados básicos
 
@@ -443,7 +447,7 @@ class CrudController extends Controller
 
         # Executa a ação
 
-        $model->executeAction(Action::from($is->action ?? ''));
+        $model->executeAction($action);
 
         # Retorna dados
 
@@ -451,6 +455,52 @@ class CrudController extends Controller
             'type' => 'refresh',
             'ok' => true,
             'id' => $model->id(),
+        ];
+
+        return ResponseFactory::fromJson($json);
+
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function actionFields(RequestInterface $request, Route $route): MessageInterface
+    {
+
+        $is = json_decode($request->getBody()->getContents());
+
+        $id = $is->__id ?? null;
+        $action = Action::from($is->action ?? '')
+            ?? throw new Exception('Ação não identificada!');
+
+        # Dados básicos
+
+        $model = $this->getModel($route->getModel(), $id);
+
+        $model->changeState(State::ACTION);
+
+        # Verificar se habilita o campo de salvar
+
+        $save = false;
+
+        # Campos
+
+        $fields = $model->getActionFields($save, $action);
+
+        $footer = $model->getFormFooter($action);
+
+        # Retorna dados
+
+        $json = [
+            'size' => $model->getActionFormSize($action),
+            'header' => $model->getFormHeader($action),
+            'footer' => $model->getFormFooter($action),
+            'title' => $model->getActionFormTitle($action),
+            'subtitle' => $model->getActionFormSubtitle($action),
+            'fields' => $fields,
+            'inlines' => [],
+            'html_title' => $model->getCrud()->plural_title,
+            'save' => $save,
         ];
 
         return ResponseFactory::fromJson($json);

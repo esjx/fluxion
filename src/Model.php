@@ -2,7 +2,7 @@
 namespace Fluxion;
 
 use ReflectionClass;
-use Fluxion\Database\{AuditTrail, Crud, Detail, Field, Table};
+use Fluxion\Database\{AuditTrail, Crud, Detail, Field, FormGroup, Table};
 use Fluxion\Database\Field\{FloatField};
 
 abstract class Model
@@ -102,6 +102,12 @@ abstract class Model
                     $this->_details[$name] = $instance;
 
                     $instance->setName($name);
+
+                }
+
+                elseif ($instance instanceof FormGroup) {
+
+                    $this->_form_groups[$name] = $instance;
 
                 }
 

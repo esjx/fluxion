@@ -65,6 +65,7 @@ enum Action: string
     case UNPUBLISH = 'unpublish';
     case SIGN = 'sign';
     case LOG = 'log';
+    case AUDIT = 'audit';
     case DOWNLOAD = 'download';
     case UPLOAD = 'upload';
     

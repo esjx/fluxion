@@ -5,6 +5,8 @@ namespace Fluxion;
 enum State
 {
 
+    case AUDIT_TRAIL;
+    case ACTION;
     case LOAD;
     case LIST;
     case LIST_CHOICE;

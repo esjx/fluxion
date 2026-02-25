@@ -36,6 +36,7 @@ class FormField
                                 public ?int    $minlength = null,
                                 public ?int    $maxlength = null,
                                 public bool    $readonly = false,
+                                public ?string $group_name = null,
                                 public ?string $help = null,
                                 public ?array  $help_conditions = null,
                                 public ?array  $choices_conditions = null,

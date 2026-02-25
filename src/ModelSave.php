@@ -46,7 +46,7 @@ trait ModelSave
 
         if ($this->onSave() && Config::getConnector()->save($this)) {
 
-            $this->getAuditTrail()?->register($this);
+            $this->getAuditTrail()?->registerUpdate($this);
 
             $this->saved = true;
 
@@ -59,6 +59,19 @@ trait ModelSave
         }
 
         return false;
+
+    }
+
+    /**
+     * @throws Exception
+     * @throws ReflectionException
+     */
+    public function delete(): void
+    {
+
+        $this::findById($this->id())->delete();
+
+        $this->getAuditTrail()?->registerDelete($this);
 
     }
 

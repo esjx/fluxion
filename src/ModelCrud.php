@@ -3,7 +3,7 @@ namespace Fluxion;
 
 use ReflectionException;
 use stdClass;
-use Fluxion\Database\{Crud, Detail, Field, FormInline, Inline};
+use Fluxion\Database\{Crud, Detail, Field, FormGroup, FormInline, Inline};
 use Fluxion\Query\QuerySql;
 use Fluxion\Exception\{PermissionDeniedException};
 
@@ -17,10 +17,19 @@ trait ModelCrud
     /** @var array<string, Detail> */
     protected array $_details = [];
 
+    /** @var array<string, FormGroup> */
+    protected array $_form_groups = [];
+
     /** @return array<string, Detail> */
     public function getDetails(): array
     {
         return $this->_details;
+    }
+
+    /** @return array<string, FormGroup> */
+    public function getFormGroups(): array
+    {
+        return $this->_form_groups;
     }
 
     /**
@@ -29,6 +38,11 @@ trait ModelCrud
     public function getDetail(string $key): Detail
     {
         return $this->_details[$key] ?? new Detail(label: ucfirst($key));
+    }
+
+    public function getFormGroup(string $key): ?FormGroup
+    {
+        return $this->_form_groups[$key] ?? null;
     }
 
     protected ?Crud $_crud = null;
@@ -635,6 +649,7 @@ trait ModelCrud
 
     /**
      * @throws Exception
+     * @throws ReflectionException
      */
     public function executeAction(Action $action): void
     {
@@ -647,7 +662,7 @@ trait ModelCrud
                 throw new PermissionDeniedException('Usuário sem acesso à apagar!');
             }
 
-            $this::findById($this->id())->delete();
+            $this->delete();
 
         }
 
@@ -782,6 +797,37 @@ trait ModelCrud
 
         return $fields;
 
+    }
+
+    public function getActionFields(bool &$save, Action $action): array
+    {
+        return [];
+    }
+
+    public function getFormTitle(): string
+    {
+
+        if (!empty($this->id())) {
+            return "$this";
+        }
+
+        return $this->getCrud()->title;
+
+    }
+
+    public function getActionFormTitle(Action $action): string
+    {
+        return $this->getFormTitle();
+    }
+
+    public function getActionFormSubtitle(Action $action): string
+    {
+        return $this->getCrud()->subtitle;
+    }
+
+    public function getActionFormSize(Action $action): string
+    {
+        return $this->getCrud()->form_size;
     }
 
     /**
@@ -925,7 +971,7 @@ trait ModelCrud
                             throw new PermissionDeniedException("Exclusão não permitida!");
                         }
 
-                        $inline->getInlineModel()::findById($data->__id)->delete();
+                        $inline->getInlineModel()::loadById($data->__id)->delete();
 
                         continue;
 

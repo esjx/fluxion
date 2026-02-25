@@ -381,6 +381,7 @@ abstract class Field
             mask_literal: $detail->mask_literal,
             maxlength: $detail->max_length ?? $this->max_length,
             readonly: $this->readonly,
+            group_name: $this->_model->getFormGroup($this->getName())?->label,
             help: $detail->help,
             help_conditions: $detail->help_conditions,
             choices_conditions: $detail->choices_conditions,
