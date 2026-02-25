@@ -1,6 +1,7 @@
 <?php
 namespace Fluxion;
 
+use Fluxion\Connector\TableIndex;
 use Fluxion\Auth\{UserModel, CostCenterModel};
 use Fluxion\Database\Field\{AutoIncrementField, DateTimeField, ForeignKeyField, IntegerField, StringField, TextField};
 
@@ -22,7 +23,7 @@ class AuditTrailModel extends Model
     #[StringField]
     public null|int|string $id;
 
-    #[TextField]
+    #[StringField(max_length: 4000)]
     public ?string $data;
 
     /**
@@ -99,6 +100,11 @@ class AuditTrailModel extends Model
 
         parent::__construct();
 
+    }
+
+    public function getIndexes(): array
+    {
+        return [new TableIndex(['id'])];
     }
 
     public function _query(): Query

@@ -268,6 +268,8 @@ abstract class Connector
 
         if (!is_null($audit_trail)) {
 
+            $this->comment("<b>Tabela Auditoria</b>", break_after: true);
+
             $this->executeSync($audit_trail->getAuditTrailModel());
 
         }
