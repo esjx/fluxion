@@ -272,10 +272,53 @@ abstract class Connector
 
         }
 
+        # Dados iniciais
+
+        $this->initialData($model);
+
     }
 
     protected function executeSync(Model $model): void
     {
+
+    }
+
+    /**
+     * @throws ReflectionException
+     * @throws Exception
+     */
+    public function initialData(Model $model): void
+    {
+
+        # Dados iniciais
+
+        $data = $model->getData();
+        $table = $model->getTable();
+
+        if (count($data) > 0) {
+
+            $this->comment("Atualizando dados iniciais na tabela '$table->schema.$table->table'", Color::GREEN, true, true);
+
+            $primary_keys = $model->getPrimaryKeys();
+
+            foreach ($data as $row) {
+
+                $id = [];
+                foreach ($primary_keys as $key => $pk) {
+                    $id[$key] = $row[$key] ?? null;
+                }
+
+                $test = $model::loadById($id);
+
+                foreach ($row as $key => $value) {
+                    $test->$key = $value;
+                }
+
+                $test->save();
+
+            }
+
+        }
 
     }
 

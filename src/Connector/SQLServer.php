@@ -384,7 +384,6 @@ class SQLServer extends Connector
     /**
      * @throws Exception
      * @throws RandomException
-     * @throws ReflectionException
      */
     protected function executeSync(Model $model): void
     {
@@ -682,35 +681,6 @@ class SQLServer extends Connector
 
             }
 
-            # Dados iniciais
-
-            $data = $model->getData();
-
-            if (count($data) > 0) {
-
-                $this->comment("Atualizando dados iniciais na tabela '$table->schema.$table->table'", Color::GREEN, true, true);
-
-                $primary_keys = $model->getPrimaryKeys();
-
-                foreach ($data as $row) {
-
-                    $id = [];
-                    foreach ($primary_keys as $key => $pk) {
-                        $id[$key] = $row[$key] ?? null;
-                    }
-
-                    $test = $model::loadById($id);
-
-                    foreach ($row as $key => $value) {
-                        $test->$key = $value;
-                    }
-
-                    $test->save();
-
-                }
-
-            }
-
         }
 
         # Criar a tabela se não existir
@@ -815,7 +785,7 @@ class SQLServer extends Connector
 
             # Dados iniciais
 
-            $data = $model->getData();
+            /*$data = $model->getData();
 
             if (count($data) > 0) {
 
@@ -827,7 +797,7 @@ class SQLServer extends Connector
 
                 $this->rowCountLog($count);
 
-            }
+            }*/
 
         }
 

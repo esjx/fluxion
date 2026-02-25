@@ -132,13 +132,33 @@ trait StaticChoices
         $this->createChoices();
 
         if (!$this->multiple) {
-            return $this->choices[$value] ?? $value;
+
+            $color = $this->choices_colors[$value]?->value ?? null;
+
+            $label = $this->choices[$value] ?? $value;
+
+            if (!is_null($color)) {
+                $label = "<span class=\"text-$color\">$label</span>";
+            }
+
+            return $label;
+
         }
 
         $items = [];
 
         foreach ($value as $k) {
-            $items[] = $this->choices[$k] ?? $k;
+
+            $color = $this->choices_colors[$k]?->value ?? null;
+
+            $label = $this->choices[$k] ?? $k;
+
+            if (!is_null($color)) {
+                $label = "<span class=\"text-$color\">$label</span>";
+            }
+
+            $items[] = $label;
+
         }
 
         return implode(', ', $items);

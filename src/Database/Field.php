@@ -253,6 +253,17 @@ abstract class Field
 
         if ($this->_type_target == 'array') {
 
+            if (is_null($new_value)) {
+                $new_value = [];
+            }
+
+            if (is_null($this->_value)) {
+                $this->_value = [];
+            }
+
+            sort($new_value);
+            sort($this->_value);
+
             if ($this->_value != $new_value) {
                 $this->_changed = ($new_value != $this->_saved_value);
                 $this->_value = $new_value;

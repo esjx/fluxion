@@ -140,8 +140,28 @@ trait DynamicChoices
             return '<span class="text-pink"><i>(Vazio)</i></span>';
         }
 
+        $field_color_name = null;
+        foreach ($this->getReferenceModel()->getFields() as $f) {
+            if ($f instanceof ColorField) {
+                $field_color_name = $f->getName();
+                break;
+            }
+        }
+
         if (!$this->multiple) {
-            return (string) $this->getReferenceModel()::loadById($value);
+
+            $k = $this->getReferenceModel()::loadById($value);
+
+            $k->changeState(State::LIST_CHOICE);
+
+            $label = (string) $k;
+
+            if (!is_null($field_color_name)) {
+                $label = "<span class=\"text-{$k->$field_color_name}\">$label</span>";
+            }
+
+            return $label;
+
         }
 
         $items = [];
@@ -149,7 +169,17 @@ trait DynamicChoices
         $field_id = $this->getReferenceModel()->getFieldId()->getName();
 
         foreach ($this->getReferenceModel()::filter($field_id, $value)->select() as $k) {
-            $items[] = (string) $k;
+
+            $k->changeState(State::LIST_CHOICE);
+
+            $label = (string) $k;
+
+            if (!is_null($field_color_name)) {
+                $label = "<span class=\"text-{$k->$field_color_name}\">$label</span>";
+            }
+
+            $items[] = $label;
+
         }
 
         return implode(', ', $items);

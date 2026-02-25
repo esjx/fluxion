@@ -24,6 +24,9 @@ class Development extends Auth
         }
 
         $this->_user = new UserModel();
+        $this->_user->login = $_ENV[$this->_env_login] ?? 'admin';
+        $this->_user->cost_center = 1;
+
         $this->_authenticated = true;
 
     }
