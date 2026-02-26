@@ -14,14 +14,14 @@ class ChoicesField extends Field
     /**
      * @throws Exception
      */
-    public function __construct(public ?bool   $required = false,
+    public function __construct(public ?string $class_name = null,
+                                public ?bool   $required = false,
                                 public ?bool   $primary_key = false,
                                 public ?bool   $protected = false,
                                 public ?bool   $readonly = false,
                                 public ?int    $max_length = null,
                                 public ?array  $choices = null,
                                 public ?array  $choices_colors = null,
-                                public ?string $class_name = null,
                                 public array   $filters = [],
                                 public bool    $radio = false,
                                 public bool    $inline = false,

@@ -31,5 +31,11 @@ enum Icon: string
     case COLLECTION_ITEM_7 = 'collection-item-7';
     case COLLECTION_ITEM_8 = 'collection-item-8';
     case COLLECTION_ITEM_9 = 'collection-item-9';
+    case REFRESH_SYNC_ALERT = 'refresh-sync-alert';
+    case REFRESH_SYNC_OFF = 'refresh-sync-off';
+    case REFRESH_SYNC = 'refresh-sync';
+    case CHECK = 'check';
+    case CHECK_ALL = 'check-all';
+    case BLOCK = 'block';
 
 }
