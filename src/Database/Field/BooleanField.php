@@ -37,7 +37,7 @@ class BooleanField extends Field
     public function validate(mixed &$value): bool
     {
 
-        if ($this->required && !$value) {
+        if ($this->required && is_null($value)) {
             return false;
         }
 

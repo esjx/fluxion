@@ -128,30 +128,30 @@ class FileManager
 
     }
 
-    public static function unzipFile($fileName, $sameDir = true, $deleteOriginal = true): string
+    public static function unzipFile(string $filename, bool $same_dir = true, $delete_original = true): string
     {
 
-        $fileName = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $fileName);
+        $filename = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $filename);
 
-        if (!file_exists($fileName))
+        if (!file_exists($filename))
             return false;
 
-        if ($sameDir)
-            $extractDir = preg_replace('/\/[A-Z0-9-._ =]+$/i', '', $fileName);
+        if ($same_dir)
+            $extractDir = preg_replace('/\/[A-Z0-9-._ =]+$/i', '', $filename);
         else
-            $extractDir = preg_replace('/.[A-Z0-9]+$/i', '/', $fileName);
+            $extractDir = preg_replace('/.[A-Z0-9]+$/i', '/', $filename);
 
         self::createDir($extractDir);
 
         $zip = new ZipArchive();
-        $zip->open($fileName);
+        $zip->open($filename);
         $zip->extractTo($extractDir);
         $zip->close();
 
         unset($zip);
 
-        if ($deleteOriginal)
-            unlink($fileName);
+        if ($delete_original)
+            unlink($filename);
 
         return $extractDir;
 
