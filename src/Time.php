@@ -9,7 +9,7 @@ enum Time: string
 {
 
     case LAST_YEAR = '-1 year|Y';
-    case THIS_YEAR = '|Y';
+    case YEAR = '|Y';
     case NEXT_YEAR = '+1 year|Y';
 
     case YESTERDAY = '-1 day|Y-m-d';
@@ -20,6 +20,9 @@ enum Time: string
     case ONE_HOUR_AGO = '-1 hour';
     case NOW = '';
     case ONE_HOUR_LATER = '+1 hour';
+
+    case DAY = '|d';
+    case MONTH = '|m';
 
     public function value(): ?string
     {
@@ -97,6 +100,8 @@ enum Time: string
     {
 
         $date = self::asValue($date);
+
+        $date = self::convert($date);
 
         $d = DateTime::createFromFormat('Y-m-d', $date);
 
@@ -290,6 +295,45 @@ enum Time: string
         }
 
         return $days * $multiply;
+
+    }
+
+    public static function daysBetween(null|string|self $from, null|string|self $to): ?int
+    {
+        return self::periodsBetween($from, $to, self::DAY);
+    }
+
+    public static function monthsBetween(null|string|self $from, null|string|self $to): ?int
+    {
+        return self::periodsBetween($from, $to, self::MONTH);
+    }
+
+    public static function yearsBetween(null|string|self $from, null|string|self $to): ?int
+    {
+        return self::periodsBetween($from, $to, self::YEAR);
+    }
+
+    public static function periodsBetween(null|string|self $from, null|string|self $to, self $period): ?int
+    {
+
+        $diff = date_diff(
+            date_create(self::convert(self::asValue($from))),
+            date_create(self::convert(self::asValue($to)))
+        );
+
+        if ($period == self::DAY) {
+            return $diff->days;
+        }
+
+        elseif ($period == self::MONTH) {
+            return $diff->y * 12 + $diff->m;
+        }
+
+        elseif ($period == self::YEAR) {
+            return $diff->y;
+        }
+
+        return null;
 
     }
 
