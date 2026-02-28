@@ -72,7 +72,7 @@ class DigitValidator
     public static function cnpj(string $value): bool
     {
 
-        $digits = substr($value, 0, 12);
+        $digits = strtoupper(substr($value, 0, 12));
 
         $new = self::calc($digits, 5);
 

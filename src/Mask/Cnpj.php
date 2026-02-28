@@ -10,7 +10,7 @@ class Cnpj extends Mask
     public string $placeholder = '__.___.___/____-__';
     public string $label = 'CNPJ';
     public int $max_length = 14;
-    public string $pattern = '/^[0-9]{14}$/';
+    public string $pattern = '/^[0-9A-Za-z]{12}[0-9]{2}$/';
 
     public static function validate(string $value): bool
     {
