@@ -124,4 +124,34 @@ enum Color: string
 
     }
 
+    /** @noinspection PhpUnused */
+    public function rgba(float $alpha = null): string
+    {
+        return self::hexToRgb($this->code(), $alpha);
+    }
+
+    public static function hexToRgb(string $hex, float $alpha = null): string
+    {
+
+        $hex = str_replace('#', '', $hex);
+        $length = strlen($hex);
+
+        $rgb = [];
+
+        $rgb[] = hexdec($length == 6 ? substr($hex, 0, 2) : ($length == 3 ? str_repeat(substr($hex, 0, 1), 2) : 0));
+        $rgb[] = hexdec($length == 6 ? substr($hex, 2, 2) : ($length == 3 ? str_repeat(substr($hex, 1, 1), 2) : 0));
+        $rgb[] = hexdec($length == 6 ? substr($hex, 4, 2) : ($length == 3 ? str_repeat(substr($hex, 2, 1), 2) : 0));
+
+        if ($alpha) {
+
+            $rgb[] = $alpha;
+
+            return 'rgba(' . implode(',', $rgb) . ')';
+
+        }
+
+        return 'rgb(' . implode(',', $rgb) . ')';
+
+    }
+
 }
