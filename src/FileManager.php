@@ -11,7 +11,7 @@ use ZipArchive;
 class FileManager
 {
 
-    public static function createDir($dir): void
+    public static function createDir(&$dir): void
     {
 
         $dir = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $dir);

@@ -23,7 +23,7 @@ abstract class Connector
 
     protected bool $_connected = false;
 
-    protected ?array $_structure = null;
+    protected array $_structure = [];
     protected ?string $_database = null;
 
     protected string $true_value = 'TRUE';

@@ -2,8 +2,7 @@
 namespace Fluxion\Connector;
 
 use PDO;
-use ReflectionException;
-use Random\RandomException;
+use Throwable;
 use Fluxion\Exception\{SqlException};
 use Fluxion\{Color, Connector, Database, Exception, Model, Query, Time};
 use Fluxion\Query\{QueryWhere};
@@ -26,18 +25,16 @@ class SQLServer extends Connector
     /**
      * @throws SqlException
      */
-    protected function updateStructure(): void
+    protected function updateStructure(string $database): void
     {
 
-        if (is_array($this->_structure)) return;
-
-        $this->_structure = [];
+        if (array_key_exists($database, $this->_structure)) return;
 
         # Buscando bancos de dados
 
         $sql = "SELECT name
                 FROM sys.databases
-                WHERE name NOT IN ('master', 'tempdb', 'model', 'msdb')
+                WHERE name = '$database'
                 ORDER BY name";
 
         foreach ($this->fetch($sql) as $result) {
@@ -45,6 +42,10 @@ class SQLServer extends Connector
             $this->_structure[$result['name']] = [];
 
         }
+
+        # Verificando se achou o resultado
+
+        if (!array_key_exists($database, $this->_structure)) return;
 
         # Buscando esquemas
 
@@ -54,7 +55,7 @@ class SQLServer extends Connector
                     AND name NOT LIKE 'db_%')
                 ORDER BY name;";
 
-        foreach ($this->_structure as $database => $value) {
+        //foreach ($this->_structure as $database => $value) {
 
             $this->exec("USE $database;");
 
@@ -67,7 +68,7 @@ class SQLServer extends Connector
 
             }
 
-        }
+        //}
 
     }
 
@@ -77,7 +78,7 @@ class SQLServer extends Connector
     protected function updateDatabase(Database\Table $table): void
     {
 
-        $this->updateStructure();
+        $this->updateStructure($table->database);
 
         if (!isset($this->_structure[$table->database])) {
 
@@ -383,7 +384,7 @@ class SQLServer extends Connector
 
     /**
      * @throws Exception
-     * @throws RandomException
+     * @throws Throwable
      */
     protected function executeSync(Model $model): void
     {

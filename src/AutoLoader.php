@@ -37,7 +37,10 @@ final class AutoLoader
 
         $namespace = trim($namespace, '\\') . '\\';
 
-        $base_dir = rtrim($base_dir, DIRECTORY_SEPARATOR) . '/';
+        $base_dir = str_replace('/', DIRECTORY_SEPARATOR, $base_dir);
+        $base_dir = str_replace('\\', DIRECTORY_SEPARATOR, $base_dir);
+
+        $base_dir = rtrim($base_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 
         if (isset($this->prefixes[$namespace]) === false) {
             $this->prefixes[$namespace] = [];
@@ -99,7 +102,7 @@ final class AutoLoader
 
             // replace the namespace prefix with the base directory, replace namespace separators with directory
             // separators in the relative class name, append with .php
-            $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
+            $file = $base_dir . str_replace('\\', DIRECTORY_SEPARATOR, $relative_class) . '.php';
 
             // if the mapped file exists, require it
             if ($this->requireFile($file)) {

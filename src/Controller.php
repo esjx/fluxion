@@ -62,9 +62,9 @@ class Controller
 
         $dir = dirname($ref_controller->getFileName());
 
-        if (is_dir("$dir/Models")) {
+        if (is_dir("$dir" . DIRECTORY_SEPARATOR . "Models")) {
 
-            foreach (FileManager::loadAllFiles("$dir/Models") as $file) {
+            foreach (FileManager::loadAllFiles("$dir" . DIRECTORY_SEPARATOR . "Models") as $file) {
 
                 $file = str_replace($dir, '', $file);
                 $file = preg_replace('/\.php$/i', '', $file);
