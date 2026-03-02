@@ -8,7 +8,7 @@
     ],
     "config": {
         "platform": {
-            "php" : "8.2"
+            "php" : "8.1"
         },
         "process-timeout": 600,
         "sort-packages": true,
@@ -28,7 +28,7 @@
     "scripts": {
     },
     "require": {
-        "php": "^8.2",
+        "php": "^8.1",
         "ext-calendar": "*",
         "ext-curl": "*",
         "ext-fileinfo": "*",

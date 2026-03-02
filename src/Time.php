@@ -23,6 +23,7 @@ enum Time: string
 
     case DAY = '|d';
     case MONTH = '|m';
+    case YEAR_MONTH = '|Y-m';
 
     public function value(): ?string
     {

@@ -1,8 +1,6 @@
 <?php
 namespace Fluxion;
 
-use Random\RandomException;
-
 enum Color: string
 {
 
@@ -112,7 +110,6 @@ enum Color: string
     }
 
     /**
-     * @throws RandomException
      * @noinspection PhpUnused
      */
     public static function random(): self
@@ -120,7 +117,7 @@ enum Color: string
 
         $colors = array_values(self::getColors());
 
-        return $colors[random_int(0, count($colors) - 1)];
+        return $colors[rand(0, count($colors) - 1)];
 
     }
 
