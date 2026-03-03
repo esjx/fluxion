@@ -2,11 +2,8 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
-use DateTime;
-use Fluxion\Database\Field;
-use Fluxion\Database\FormField;
-use Fluxion\Exception;
-use Fluxion\Time;
+use Fluxion\Database\{Field, FormField};
+use Fluxion\{Exception, Time};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class DateField extends Field
@@ -19,6 +16,7 @@ class DateField extends Field
     public function __construct(public ?bool           $required = false,
                                 public ?bool           $protected = false,
                                 public ?bool           $readonly = false,
+                                public ?bool           $primary_key = false,
                                 public null|int|string $min_value = null,
                                 public null|int|string $max_value = null,
                                 public mixed           $default = null,
