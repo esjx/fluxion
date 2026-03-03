@@ -50,7 +50,8 @@ abstract class Field
     public ?int $max_length = null;
     public ?array $choices = null;
     public ?array $choices_colors = null;
-    public ?int $decimal_places = 2;
+    public ?int $precision = 18;
+    public ?int $scale = 2;
     public mixed $default = null;
     public bool $default_literal = false;
     public null|int|string $min_value = null;

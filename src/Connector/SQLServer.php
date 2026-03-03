@@ -342,7 +342,7 @@ class SQLServer extends Connector
         }
 
         elseif ($type == 'numeric') {
-            $command .= "(18,$value->decimal_places)";
+            $command .= "($value->precision,$value->scale)";
         }
 
         # Valores nulos
