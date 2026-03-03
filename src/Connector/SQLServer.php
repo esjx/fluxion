@@ -656,13 +656,21 @@ class SQLServer extends Connector
 
                         $foreign_key_type = str_replace('_', ' ', $foreign_key_type);
 
-                        $sql = "ALTER TABLE $table->schema.$table->table\n"
-                            . "\tADD CONSTRAINT $foreign_key_name "
-                            . "FOREIGN KEY ([$field->column_name]) "
-                            . "REFERENCES $reference->schema.$reference->table ([$reference_field->column_name]) "
-                            . "ON UPDATE $foreign_key_type ON DELETE $foreign_key_type";
+                        if ($reference->database != $table->database) {
+                            $this->comment("<b>ALERTA</b>: Não é possível a inclusão de chave estrangeira de outro banco de dados (campo '$key').", Color::ORANGE, break_after: true);
+                        }
 
-                        $this->execute($sql, true);
+                        else {
+
+                            $sql = "ALTER TABLE $table->schema.$table->table\n"
+                                . "\tADD CONSTRAINT $foreign_key_name "
+                                . "FOREIGN KEY ([$field->column_name]) "
+                                . "REFERENCES $reference->schema.$reference->table ([$reference_field->column_name]) "
+                                . "ON UPDATE $foreign_key_type ON DELETE $foreign_key_type";
+
+                            $this->execute($sql, true);
+
+                        }
 
                     }
 
@@ -740,7 +748,7 @@ class SQLServer extends Connector
                     $reference = $foreign_key->getReferenceModel()->getTable();
 
                     if ($reference->database != $table->database) {
-                        $this->comment("<b>ERRO</b>: Não é possível a inclusão de chave estrangeira de outro banco de dados (campo '$key').", Color::RED);
+                        $this->comment("<b>ALERTA</b>: Não é possível a inclusão de chave estrangeira de outro banco de dados (campo '$key').", Color::ORANGE, break_after: true);
                     }
 
                     else {
