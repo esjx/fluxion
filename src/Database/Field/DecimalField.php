@@ -23,7 +23,19 @@ class DecimalField extends FloatField
                                 public ?bool           $fake = false,
                                 public ?bool           $enabled = true)
     {
-        parent::__construct();
+
+        parent::__construct(
+            required: $required,
+            protected: $protected,
+            readonly: $readonly,
+            min_value: $min_value,
+            max_value: $max_value,
+            default: $default,
+            default_literal: $default_literal,
+            fake: $fake,
+            enabled: $enabled
+        );
+
     }
 
 }
