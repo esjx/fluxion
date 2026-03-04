@@ -247,6 +247,11 @@ trait Format
 
     }
 
+    public static function slug(string $str, string $separator = '-'): string
+    {
+        return self::sanitize(strtolower(str_replace(' ', $separator, $str)));
+    }
+
     public static function onlyNumbers($str): string
     {
 
