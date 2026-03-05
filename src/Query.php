@@ -90,7 +90,14 @@ class Query
     {
 
         $this->clearFields();
-        $this->addField($field);
+
+        if (is_string($field)) {
+            $field = explode(',', $field);
+        }
+
+        foreach ($field as $item) {
+            $this->addField(trim($item));
+        }
 
         return $this;
 
