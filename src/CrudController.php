@@ -239,6 +239,8 @@ class CrudController extends Controller
 
         $query = $this->permissionFilter($model::query(), $auth);
 
+        $query = $model->preFilter($query);
+
         $model->changeState(State::FILTER);
 
         // Executa busca

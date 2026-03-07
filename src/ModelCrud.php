@@ -707,6 +707,11 @@ trait ModelCrud
 
     }
 
+    public function preFilter(Query $query): Query
+    {
+        return $query;
+    }
+
     /**
      * @throws Exception
      * @throws ReflectionException
