@@ -2,7 +2,7 @@
 namespace Fluxion\Database;
 
 use stdClass;
-use Fluxion\{Config, Exception, Model, Permission, State};
+use Fluxion\{Config, Exception, Model, Permission, Query\QuerySql, State};
 
 class FormInline
 {
@@ -47,7 +47,13 @@ class FormInline
 
         if (!is_null($model->$field_id)) {
 
-            foreach ($il_model::filter($il_field_ref, $model->$field_id)->select() as $item) {
+            $il_query = $il_model::query();
+
+            if (count($inline->filters) > 0) {
+                $il_query = $il_query->filter(QuerySql::_and($inline->filters));
+            }
+
+            foreach ($il_query->filter($il_field_ref, $model->$field_id)->select() as $item) {
 
                 $item->changeState(State::INLINE_VIEW, $inline->args);
 
