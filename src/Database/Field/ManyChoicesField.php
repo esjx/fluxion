@@ -16,7 +16,6 @@ class ManyChoicesField extends Field
 
     public ?bool $assistant_table = true;
     public ?bool $multiple = true;
-    public bool $radio = false;
     public bool $inline = false;
 
     protected string $_type_target = 'array';

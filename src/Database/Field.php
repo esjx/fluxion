@@ -52,6 +52,7 @@ abstract class Field
     public ?array $choices_colors = null;
     public ?int $precision = 18;
     public ?int $scale = 2;
+    public bool $radio = false;
     public mixed $default = null;
     public bool $default_literal = false;
     public null|int|string $min_value = null;
