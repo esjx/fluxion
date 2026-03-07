@@ -264,7 +264,7 @@ class CrudController extends Controller
 
         }
 
-        $filters = $model->getFilters($model::query(), $filters);
+        $filters = $model->getFilters($model->preFilter($model::query()), $filters);
 
         $query = $model->order($query, $order);
 
