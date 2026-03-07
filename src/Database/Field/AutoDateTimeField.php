@@ -9,6 +9,7 @@ class AutoDateTimeField extends DateTimeField
 {
 
     protected string $_type = self::TYPE_DATETIME;
+    protected ?bool $_needs_audit = false;
 
     /**
      * @throws Exception

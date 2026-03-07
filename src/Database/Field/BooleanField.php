@@ -18,9 +18,14 @@ class BooleanField extends Field
                                 public mixed $default = null,
                                 public bool  $default_literal = false,
                                 public ?bool $fake = false,
-                                public ?bool $enabled = true)
+                                public ?bool $enabled = true,
+                                bool $needs_audit = true)
     {
+
+        $this->_needs_audit = $needs_audit;
+
         parent::__construct();
+
     }
 
     public function translate(mixed $value): ?bool

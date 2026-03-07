@@ -105,8 +105,11 @@ class ManyChoicesField extends Field
                                 public ?bool   $protected = false,
                                 public ?bool   $readonly = false,
                                 public ?bool   $fake = false,
-                                public ?bool   $enabled = true)
+                                public ?bool   $enabled = true,
+                                bool $needs_audit = true)
     {
+
+        $this->_needs_audit = $needs_audit;
 
         $this->choices = $choices;
 

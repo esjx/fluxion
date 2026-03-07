@@ -23,8 +23,11 @@ class StringField extends Field
                                 ?string        $text_transform = null,
                                 protected bool $trim = true,
                                 public ?bool   $fake = false,
-                                public ?bool   $enabled = true)
+                                public ?bool   $enabled = true,
+                                bool $needs_audit = true)
     {
+
+        $this->_needs_audit = $needs_audit;
 
         if (!is_null($max_length)) {
             $this->max_length = $max_length;
