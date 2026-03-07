@@ -9,6 +9,7 @@ class MapField extends StringField
 {
 
     protected string $_type = self::TYPE_TEXT;
+    protected ?bool $_needs_audit = false;
 
     public function getFormField(array $extras = [], ?string $route = null): FormField
     {

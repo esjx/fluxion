@@ -21,4 +21,15 @@ class HtmlField extends StringField
 
     }
 
+    public function getAuditValue(mixed $value): string
+    {
+
+        if (empty($value)) {
+            return '<span class="text-pink"><i>(Vazio)</i></span>';
+        }
+
+        return strip_tags($value);
+
+    }
+
 }
