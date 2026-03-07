@@ -93,7 +93,7 @@ class CrudController extends Controller
 
         $class = get_called_class();
 
-        $base_url = $controller->getBaseRoute() . $base_url;
+        //$base_url = $controller->getBaseRoute() . $base_url;
         $crud_details = $model->getCrud();
 
         $visible = false;
