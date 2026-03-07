@@ -1,7 +1,8 @@
 <?php
 namespace Fluxion\Query;
 
-use Fluxion\Time;
+use BackedEnum;
+use Fluxion\{Time};
 
 class QueryWhere {
 
@@ -10,6 +11,10 @@ class QueryWhere {
 
         if ($value instanceof Time) {
             $this->value = $value->value();
+        }
+
+        if ($value instanceof BackedEnum) {
+            $this->value = $value->value;
         }
 
     }

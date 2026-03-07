@@ -1,16 +1,16 @@
 <?php
 namespace Fluxion;
 
-use Fluxion\Database\Field\ManyChoicesField;
-use Fluxion\Database\Field\ManyToManyField;
+use BackedEnum;
 use Generator;
 use PDO;
 use PDOException;
 use PDOStatement;
 use ReflectionException;
+use Fluxion\Database\Field\{ManyChoicesField, ManyToManyField};
 use Fluxion\Query\{QueryWhere};
-use Fluxion\Exception\SqlException;
-use Psr\Http\Message\StreamInterface;
+use Fluxion\Exception\{SqlException};
+use Psr\Http\Message\{StreamInterface};
 
 abstract class Connector
 {
@@ -126,8 +126,12 @@ abstract class Connector
 
     }
 
-    public function escape($value): string
+    public function escape(null|string|float|bool|array|BackedEnum $value): string|array
     {
+
+        if ($value instanceof BackedEnum) {
+            $value = $value->value;
+        }
 
         if (is_string($value)) {
 
