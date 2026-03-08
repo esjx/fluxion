@@ -1,7 +1,7 @@
 <?php
 namespace Fluxion\Database;
 
-use Fluxion\{Exception, Model};
+use Fluxion\{Database\Field\ForeignKeyField, Exception, Model};
 
 class Inline
 {
@@ -24,15 +24,26 @@ class Inline
         $class_name = get_class($model);
         $il_class_name = get_class($il_model);
 
+        $class_name_fk = null;
+
+        $field_id = $model->getFieldId();
+
+        if ($field_id instanceof ForeignKeyField) {
+            $class_name_fk = get_class($field_id->getReferenceModel());
+        }
+
         # Identifica o campo de referência
 
         $il_field_ref = null;
 
         foreach ($il_model->getForeignKeys() as $key => $fk) {
 
-            if (get_class($fk->getReferenceModel()) == $class_name) {
+            if (get_class($fk->getReferenceModel()) == $class_name
+                || get_class($fk->getReferenceModel()) == $class_name_fk) {
+
                 $il_field_ref = $key;
                 break;
+
             }
 
         }

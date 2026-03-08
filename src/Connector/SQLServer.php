@@ -1209,7 +1209,7 @@ class SQLServer extends Connector
                 }
 
                 if ($f->required && is_null($value) && is_null($f->default)) {
-                    throw new Exception("Campo '$key' não pode ser nulo <pre>" . json_encode($f, JSON_PRETTY_PRINT) . '</pre>');
+                    throw new Exception("Campo '$key' não pode ser nulo");
                 }
 
                 if ($f->identity) {
