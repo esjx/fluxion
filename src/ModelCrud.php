@@ -441,7 +441,7 @@ trait ModelCrud
                 $labels = [];
                 $colors = [];
 
-                $list_right = $mn_model->_query()->groupBy($mn_field_name)->orderBy($mn_field_name);
+                $list_right = $mn_model->_query()->groupBy($mn_field_name);
 
                 foreach ($field->getReferenceModel()::filter($field_id_name, $list_right)
                              ->select() as $item) {
@@ -452,7 +452,7 @@ trait ModelCrud
                 }
 
                 /** @var Model $item */
-                foreach ($list_right->select() as $item) {
+                foreach ($list_right->orderBy($mn_field_name)->select() as $item) {
 
                     $item->changeState(State::FILTER_PARAMS);
 
