@@ -3,7 +3,7 @@ namespace Fluxion\Database\Field;
 
 use Attribute;
 use ReflectionException;
-use Fluxion\{Exception, ManyToManyModel, Model};
+use Fluxion\{FluxionException, ManyToManyModel, Model};
 use Fluxion\Database\{Field};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -25,7 +25,7 @@ class ManyToManyField extends Field
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @throws ReflectionException
      */
     public function getManyToManyModel(): ManyToManyModel
@@ -44,7 +44,7 @@ class ManyToManyField extends Field
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @throws ReflectionException
      */
     public function getValue($row = false): mixed
@@ -64,7 +64,7 @@ class ManyToManyField extends Field
 
     /**
      * @throws ReflectionException
-     * @throws Exception
+     * @throws FluxionException
      */
     public function load(): void
     {
@@ -131,7 +131,7 @@ class ManyToManyField extends Field
 
     }
 
-    /** @throws Exception */
+    /** @throws FluxionException */
     public function __initialize(): void
     {
 
@@ -146,7 +146,7 @@ class ManyToManyField extends Field
             $class = new $class_name;
 
             if (!$class instanceof Model) {
-                throw new Exception(message: "Classe '$class_name' não é Model");
+                throw new FluxionException(message: "Classe '$class_name' não é Model");
             }
 
         }

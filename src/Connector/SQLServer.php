@@ -3,8 +3,8 @@ namespace Fluxion\Connector;
 
 use PDO;
 use Throwable;
-use Fluxion\Exception\{SqlException};
-use Fluxion\{Color, Connector, Database, Exception, Model, Query, Time};
+use Fluxion\Exception\{SqlFluxionException};
+use Fluxion\{Color, Connector, Database, FluxionException, Model, Query, Time};
 use Fluxion\Query\{QueryWhere};
 
 class SQLServer extends Connector
@@ -23,7 +23,7 @@ class SQLServer extends Connector
     ];
 
     /**
-     * @throws SqlException
+     * @throws SqlFluxionException
      */
     protected function updateStructure(string $database): void
     {
@@ -73,7 +73,7 @@ class SQLServer extends Connector
     }
 
     /**
-     * @throws SqlException
+     * @throws SqlFluxionException
      */
     protected function updateDatabase(Database\Table $table): void
     {
@@ -115,7 +115,7 @@ class SQLServer extends Connector
     }
 
     /**
-     * @throws SqlException
+     * @throws SqlFluxionException
      */
     public function getTableInfo(Database\Table $table): TableInfo
     {
@@ -300,7 +300,7 @@ class SQLServer extends Connector
 
     }
 
-    /** @throws Exception */
+    /** @throws FluxionException */
     protected function getDatabaseType(Database\Field $value): string
     {
 
@@ -314,12 +314,12 @@ class SQLServer extends Connector
             'float' => 'float',
             'decimal', 'numeric' => "numeric",
             'geography' => 'geography',
-            default => throw new Exception("Tipo {$value->getType()} não implementado"),
+            default => throw new FluxionException("Tipo {$value->getType()} não implementado"),
         };
 
     }
 
-    /** @throws Exception */
+    /** @throws FluxionException */
     protected function getColumnCommand(Database\Field $value): string
     {
 
@@ -383,7 +383,7 @@ class SQLServer extends Connector
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @throws Throwable
      */
     protected function executeSync(Model $model): void
@@ -891,7 +891,7 @@ class SQLServer extends Connector
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function filter(QueryWhere $filter, Query $query, ?string $id): string
     {
@@ -933,7 +933,7 @@ class SQLServer extends Connector
                 if ($_field[$i] == 'json') {
 
                     $json_name = $_field[$i + 1]
-                        ?? throw new Exception("Utilizar padrão 'campo__json__variavel'");
+                        ?? throw new FluxionException("Utilizar padrão 'campo__json__variavel'");
 
                     $field = "JSON_VALUE({$txt_id}[$field], '$.$json_name')";
 
@@ -991,7 +991,7 @@ class SQLServer extends Connector
                 && $escaped_value
                 && !is_numeric($escaped_value)
                 && !is_bool($escaped_value)) {
-                throw new Exception("O valor <b>$filter->value</b> não é numérico!");
+                throw new FluxionException("O valor <b>$filter->value</b> não é numérico!");
             }
 
             if ($type == 'LIKE') {
@@ -1033,7 +1033,7 @@ class SQLServer extends Connector
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function sql_select(Query $query, bool $inline = false): string
     {
@@ -1160,7 +1160,7 @@ class SQLServer extends Connector
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function sql_insert(Model $model, array $data = []): string
     {
@@ -1209,7 +1209,7 @@ class SQLServer extends Connector
                 }
 
                 if ($f->required && is_null($value) && is_null($f->default)) {
-                    throw new Exception("Campo '$key' não pode ser nulo");
+                    throw new FluxionException("Campo '$key' não pode ser nulo");
                 }
 
                 if ($f->identity) {
@@ -1320,11 +1320,11 @@ class SQLServer extends Connector
         }
 
         if (count($fields_sql) == 0) {
-            throw new Exception("Nenhum campo alterado para incluir");
+            throw new FluxionException("Nenhum campo alterado para incluir");
         }
 
         if (count($inserts_sql) == 0) {
-            throw new Exception("Nenhum registro para incluir");
+            throw new FluxionException("Nenhum registro para incluir");
         }
 
         $sql = "INSERT INTO $table->database.$table->schema.$table->table";
@@ -1350,7 +1350,7 @@ class SQLServer extends Connector
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function sql_update(Model $model, Query $query): ?string
     {

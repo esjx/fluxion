@@ -138,7 +138,7 @@ trait ModelQuery
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public static function limit($limit, $offset = 0): Query
     {
@@ -151,7 +151,7 @@ trait ModelQuery
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public static function select(): Generator
     {
@@ -164,7 +164,7 @@ trait ModelQuery
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public static function loadById(mixed $id): self
     {
@@ -201,7 +201,7 @@ trait ModelQuery
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public static function findById(mixed $id): Query
     {
@@ -214,7 +214,7 @@ trait ModelQuery
         $primary_keys = $obj->getPrimaryKeys();
 
         if (count($primary_keys) == 0) {
-            throw new Exception("Model '$class' não possui chave primária definida");
+            throw new FluxionException("Model '$class' não possui chave primária definida");
         }
 
         if (!is_array($id) && count($primary_keys) == 1) {
@@ -236,7 +236,7 @@ trait ModelQuery
         foreach ($primary_keys as $key => $primary_key) {
 
             $value = $id[$key]
-                ?? throw new Exception("Valor para o campo '$class:$key' não informado");
+                ?? throw new FluxionException("Valor para o campo '$class:$key' não informado");
 
             $query = $query->filter($key, $value);
 

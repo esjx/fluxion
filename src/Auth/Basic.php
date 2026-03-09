@@ -1,8 +1,8 @@
 <?php
 namespace Fluxion\Auth;
 
-use Fluxion\{Auth, Exception};
-use Fluxion\Exception\AuthException;
+use Fluxion\{Auth, FluxionException};
+use Fluxion\Exception\AuthFluxionException;
 use Fluxion\Database\Field\PasswordField;
 use Psr\Http\Message\{RequestInterface};
 
@@ -10,7 +10,7 @@ class Basic extends Auth
 {
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function __construct(RequestInterface $request)
     {
@@ -34,14 +34,14 @@ class Basic extends Auth
             $user = $model::loadById($login);
 
             if (is_null($user->login)) {
-                throw new AuthException("Usuário '$login' não encontrado!");
+                throw new AuthFluxionException("Usuário '$login' não encontrado!");
             }
 
             /** @var PasswordField $password_field */
             $password_field = $user->getField('password');
 
             if (!$password_field->validadePassword($password)) {
-                throw new AuthException('Senha incorreta!');
+                throw new AuthFluxionException('Senha incorreta!');
             }
 
             $this->_user = $user;

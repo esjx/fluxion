@@ -1,10 +1,10 @@
 <?php
 namespace Fluxion\Exception;
 
-use Fluxion\Exception;
+use Fluxion\FluxionException;
 use Psr\Log\LogLevel;
 
-class SqlException extends Exception
+class SqlFluxionException extends FluxionException
 {
 
     private string $_sql;

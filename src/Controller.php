@@ -34,7 +34,7 @@ class Controller
 
     /**
      * @throws ReflectionException
-     * @throws Exception
+     * @throws FluxionException
      * @noinspection PhpUnused
      */
     #[Route(route: '/setup', methods: 'GET')]
@@ -191,7 +191,7 @@ class Controller
 
     /**
      * @throws ReflectionException
-     * @throws Exception
+     * @throws FluxionException
      * @noinspection PhpUnusedParameterInspection
      */
     public function __construct(RequestInterface $request)

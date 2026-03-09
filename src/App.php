@@ -6,7 +6,7 @@ use ReflectionMethod;
 use ReflectionClass;
 use stdClass;
 use Exception as _Exception;
-use Fluxion\Exception\{PageNotFoundException, SqlException};
+use Fluxion\Exception\{PageNotFoundFluxionException, SqlFluxionException};
 use GuzzleHttp\Psr7\{Response, ServerRequest};
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use Micheh\Cache\CacheUtil;
@@ -52,7 +52,7 @@ class App
             Config::getAuth($request);
 
             if (!$this->dispatch($request, $this::$routes)) {
-                throw new PageNotFoundException($request->getUri()->getPath());
+                throw new PageNotFoundFluxionException($request->getUri()->getPath());
             }
 
         }
@@ -67,7 +67,7 @@ class App
 
     /**
      * @param Route[] $routes
-     * @throws Exception
+     * @throws FluxionException
      * @throws ReflectionException
      */
     public function dispatch(RequestInterface $request, array $routes, array $args = []): bool
@@ -192,14 +192,14 @@ class App
         try {
 
             if (!class_exists($controller)) {
-                throw new Exception("Classe $controller não encontrada!");
+                throw new FluxionException("Classe $controller não encontrada!");
             }
 
             /** @var Controller $control */
             $control = new $controller(ServerRequest::fromGlobals());
 
             if (!$control instanceof Controller) {
-                throw new Exception("Classe $controller não é um Controller!");
+                throw new FluxionException("Classe $controller não é um Controller!");
             }
 
             $this->controllers[] = $controller;
@@ -245,11 +245,11 @@ class App
         $detail = '';
         $sql = '';
 
-        if ($e instanceof PageNotFoundException) {
+        if ($e instanceof PageNotFoundFluxionException) {
             $code = 404;
         }
 
-        elseif ($e instanceof SqlException) {
+        elseif ($e instanceof SqlFluxionException) {
 
             $original_message = str_replace("\n", "\n--        ", $e->getOriginalMessage());
 
@@ -262,7 +262,7 @@ class App
 
         }
 
-        elseif ($e instanceof Exception) {
+        elseif ($e instanceof FluxionException) {
 
             $detail .= "<br><br><pre>$trace</pre>";
 
@@ -326,13 +326,13 @@ class App
         try {
 
             if (!class_exists($class)) {
-                throw new Exception("Classe '$class' não existe!");
+                throw new FluxionException("Classe '$class' não existe!");
             }
 
             $obj = new $class();
 
             if (!$obj instanceof View) {
-                throw new Exception("Classe '$class' não é uma View!");
+                throw new FluxionException("Classe '$class' não é uma View!");
             }
 
             self::$error_view = $class;

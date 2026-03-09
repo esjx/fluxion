@@ -1,7 +1,7 @@
 <?php
 namespace Fluxion\Database\Field;
 
-use Fluxion\{Color, Exception, Model, State};
+use Fluxion\{Color, FluxionException, Model, State};
 use Fluxion\Query\{QuerySql};
 use Fluxion\Database\{FormField};
 
@@ -9,7 +9,7 @@ trait DynamicChoices
 {
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function getFormField(array $extras = [], ?string $route = null): FormField
     {
@@ -131,7 +131,7 @@ trait DynamicChoices
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function getAuditValue(mixed $value): string
     {

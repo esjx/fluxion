@@ -2,7 +2,7 @@
 namespace Fluxion\Database;
 
 use Attribute;
-use Fluxion\{Exception, Icon, Mask};
+use Fluxion\{FluxionException, Icon, Mask};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class Detail
@@ -40,7 +40,7 @@ class Detail
      * @param Condition[]|null $enabled_conditions
      * @param Condition[]|null $label_conditions
      * @param Condition[]|null $help_conditions
-     * @throws Exception
+     * @throws FluxionException
      */
     public function __construct(public ?string $label = null,
                                 public ?string $mask_class = null,
@@ -64,25 +64,25 @@ class Detail
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function initialize(): void
     {
 
         if (!in_array($this->size, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])) {
-            throw new Exception(message: "Tamanho do campo inválido: '$this->size'");
+            throw new FluxionException(message: "Tamanho do campo inválido: '$this->size'");
         }
 
         if (!is_null($this->mask_class)) {
 
             if (!class_exists($this->mask_class)) {
-                throw new Exception(message: "Mascára '$this->mask_class' não encontrada");
+                throw new FluxionException(message: "Mascára '$this->mask_class' não encontrada");
             }
 
             $mask = new $this->mask_class;
 
             if (!is_subclass_of($mask, Mask::class)) {
-                throw new Exception(message: "Classe '$this->mask_class' não herda 'Mask'");
+                throw new FluxionException(message: "Classe '$this->mask_class' não herda 'Mask'");
             }
 
             $this->mask = $mask->mask;

@@ -3,7 +3,7 @@ namespace Fluxion\Database\Field;
 
 use Attribute;
 use ReflectionException;
-use Fluxion\{Exception, ManyChoicesModel, Model};
+use Fluxion\{FluxionException, ManyChoicesModel, Model};
 use Fluxion\Database\{Field};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -26,7 +26,7 @@ class ManyChoicesField extends Field
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @throws ReflectionException
      */
     public function getManyChoicesModel(): ManyChoicesModel
@@ -45,7 +45,7 @@ class ManyChoicesField extends Field
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @throws ReflectionException
      */
     public function getValue($row = false): mixed
@@ -65,7 +65,7 @@ class ManyChoicesField extends Field
 
     /**
      * @throws ReflectionException
-     * @throws Exception
+     * @throws FluxionException
      */
     public function load(): void
     {
@@ -91,7 +91,7 @@ class ManyChoicesField extends Field
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function __construct(?array         $choices = null,
                                 public ?array  $choices_colors = null,
@@ -113,7 +113,7 @@ class ManyChoicesField extends Field
         $this->choices = $choices;
 
         if (!in_array($choices_type, [self::TYPE_STRING, self::TYPE_INTEGER])) {
-            throw new Exception("Tipo de opções '$choices_type' inválido!");
+            throw new FluxionException("Tipo de opções '$choices_type' inválido!");
         }
 
         $this->_type = $choices_type;
@@ -155,7 +155,7 @@ class ManyChoicesField extends Field
 
     }
 
-    /** @throws Exception */
+    /** @throws FluxionException */
     public function initialize(): void
     {
 

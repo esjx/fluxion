@@ -17,7 +17,7 @@ class Finance
     const SAC_NORMAL = 2;
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public static function primeiraOcorrenciaMes(string $data, int $mes, int $dif_minima = 0, int $periodicidade = self::ANUAL): string
     {
@@ -40,9 +40,9 @@ class Finance
 
             }
 
-            $diferenca = Time::date_diff(Time::TODAY, $data);
+            $diferenca = Time::daysBetween(Time::TODAY, $data);
 
-            if ($diferenca['days'] < $dif_minima) {
+            if ($diferenca < $dif_minima) {
 
                 $data = (new DateTime($data))
                     ->modify("+$periodicidade months")
@@ -54,7 +54,7 @@ class Finance
 
         catch (_Exception $e) {
 
-            throw new Exception($e->getMessage());
+            throw new FluxionException($e->getMessage());
 
         }
 
@@ -63,7 +63,7 @@ class Finance
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public static function parcelas(string $data_vencimento, string $data_limite, int $primeiro_ano, float $valor_financiado, float $taxa = 0, int $periodicidade = self::ANUAL, int $regra = self::SAC_INVERTIDO, int $carencia = 0): array
     {
@@ -144,11 +144,11 @@ class Finance
 
             foreach ($parcelas as $ano => $parcela) {
 
-                $diferenca = Time::date_diff($data_anterior, $parcela['data']);
+                $diferenca = Time::daysBetween($data_anterior, $parcela['data']);
 
-                $parcelas[$ano]['dias'] = $diferenca['days'];
+                $parcelas[$ano]['dias'] = $diferenca;
 
-                $juros_periodo = $saldo_teorico * (((1 + $juros_diario) ** $diferenca['days']) - 1);
+                $juros_periodo = $saldo_teorico * (((1 + $juros_diario) ** $diferenca) - 1);
 
                 $parcelas[$ano]['juros_periodo'] = $juros_periodo;
 
@@ -180,7 +180,7 @@ class Finance
 
                     else {
 
-                        throw new Exception('Regra de amortização inválida!');
+                        throw new FluxionException('Regra de amortização inválida!');
 
                     }
 
@@ -201,7 +201,7 @@ class Finance
 
         catch (_Exception $e) {
 
-            throw new Exception($e->getMessage());
+            throw new FluxionException($e->getMessage());
 
         }
 

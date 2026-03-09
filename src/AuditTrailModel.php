@@ -27,7 +27,7 @@ class AuditTrailModel extends Model
     public ?string $data;
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function __construct(protected Model  $model,
                                 protected string $user_class,
@@ -41,7 +41,7 @@ class AuditTrailModel extends Model
         $user_model = new $this->user_class;
 
         if (!$user_model instanceof UserModel) {
-            throw new Exception("Classe '$user_class' não estende UserModel");
+            throw new FluxionException("Classe '$user_class' não estende UserModel");
         }
 
         $id_user = $user_model->getFieldId();
@@ -49,7 +49,7 @@ class AuditTrailModel extends Model
         $cost_center_model = new $this->cost_center_class;
 
         if (!$cost_center_model instanceof CostCenterModel) {
-            throw new Exception("Classe '$cost_center_model' não estende CostCenterModel");
+            throw new FluxionException("Classe '$cost_center_model' não estende CostCenterModel");
         }
 
         $id_cost_center = $cost_center_model->getFieldId();

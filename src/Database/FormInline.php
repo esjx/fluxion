@@ -2,7 +2,7 @@
 namespace Fluxion\Database;
 
 use stdClass;
-use Fluxion\{Config, Exception, Model, Permission, Query\QuerySql, State};
+use Fluxion\{Config, FluxionException, Model, Permission, Query\QuerySql, State};
 
 class FormInline
 {
@@ -19,7 +19,7 @@ class FormInline
     public array $items;
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function __construct(Model $model, Inline $inline, ?bool $save = null, ?string $route = null)
     {

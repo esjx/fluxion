@@ -23,7 +23,7 @@ trait ModelMany
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function load($id): array
     {

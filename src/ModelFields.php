@@ -63,7 +63,7 @@ trait ModelFields
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function getField($name): ?Field
     {
@@ -73,11 +73,11 @@ trait ModelFields
         }
 
         return $this->_fields[$name]
-            ?? throw new Exception("Campo '$name' não encontrado no modelo");
+            ?? throw new FluxionException("Campo '$name' não encontrado no modelo");
 
     }
 
-    /** @throws Exception */
+    /** @throws FluxionException */
     public function getFieldId(): Field
     {
 
@@ -88,7 +88,7 @@ trait ModelFields
         foreach ($this->getPrimaryKeys() as $key => $primary_key) {
 
             if (!is_null($field)) {
-                throw new Exception(message: "Classe '$class_name' possui mais de uma chave primária");
+                throw new FluxionException(message: "Classe '$class_name' possui mais de uma chave primária");
             }
 
             $field = $this->_fields[$key];
@@ -96,7 +96,7 @@ trait ModelFields
         }
 
         if (is_null($field)) {
-            throw new Exception(message: "Classe '$class_name' não possui chave primária");
+            throw new FluxionException(message: "Classe '$class_name' não possui chave primária");
         }
 
         return $field;

@@ -1,23 +1,21 @@
 <?php
 namespace Fluxion;
 
-use AllowDynamicProperties;
-use Fluxion\Exception\{FileNotExistException};
+use Fluxion\Exception\{FileNotExistFluxionException};
 
-#[AllowDynamicProperties]
 abstract class View
 {
 
     use Format;
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     function __construct(protected string $filename)
     {
 
         if (!file_exists($filename)) {
-            throw new FileNotExistException($this->filename);
+            throw new FileNotExistFluxionException($this->filename);
         }
 
     }

@@ -10,7 +10,7 @@ class ManyChoicesModel extends Model
 
     use ModelMany;
 
-    /** @throws Exception
+    /** @throws FluxionException
      * @throws ReflectionException
      */
     public function __construct(protected ?Model  $model = null,
@@ -22,7 +22,7 @@ class ManyChoicesModel extends Model
             $reflection = new ReflectionProperty($this->model, $field);
 
             if (strval($reflection->getType()) != '?array') {
-                throw new Exception("Campo $this->model:$field deve ser um array e permitir nulos!");
+                throw new FluxionException("Campo $this->model:$field deve ser um array e permitir nulos!");
             }
 
             $this->comment = get_class($model) . " MN[$field]";

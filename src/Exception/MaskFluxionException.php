@@ -1,10 +1,10 @@
 <?php
 namespace Fluxion\Exception;
 
-use Fluxion\Exception;
+use Fluxion\FluxionException;
 use Psr\Log\LogLevel;
 
-class MaskException extends Exception
+class MaskFluxionException extends FluxionException
 {
 
     public function __construct(string $label, string $value, string $message, string $log_level = LogLevel::NOTICE)

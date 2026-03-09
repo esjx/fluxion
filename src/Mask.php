@@ -1,7 +1,7 @@
 <?php
 namespace Fluxion;
 
-use Fluxion\Exception\MaskException;
+use Fluxion\Exception\MaskFluxionException;
 
 abstract class Mask
 {
@@ -68,7 +68,7 @@ abstract class Mask
     }
 
     /**
-     * @throws MaskException
+     * @throws MaskFluxionException
      */
     public static function explode(string $value): array
     {
@@ -80,7 +80,7 @@ abstract class Mask
 
         if (!preg_match($obj->pattern, $value, $data)) {
 
-            throw new MaskException(
+            throw new MaskFluxionException(
                 label: $obj->label,
                 value: $value,
                 message: $obj->pattern_message ?? htmlspecialchars($obj->pattern)

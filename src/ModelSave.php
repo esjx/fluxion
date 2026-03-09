@@ -35,7 +35,7 @@ trait ModelSave
 
     /**
      * @throws ReflectionException
-     * @throws Exception
+     * @throws FluxionException
      */
     public function save(): bool
     {
@@ -63,7 +63,7 @@ trait ModelSave
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @throws ReflectionException
      */
     public function delete(): void

@@ -12,7 +12,7 @@ class Route
     private ?Model $model = null;
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function __construct(public string       $route,
                                 public array|string $methods = 'GET',
@@ -27,7 +27,7 @@ class Route
         foreach ($this->methods as $method) {
 
             if (!in_array($method, ['GET', 'POST', 'PUT', 'DELETE'])) {
-                throw new Exception("Método HTTP '$method' não suportado!");
+                throw new FluxionException("Método HTTP '$method' não suportado!");
             }
 
         }
@@ -45,13 +45,13 @@ class Route
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function setClassMethod(string $class, string $method): void
     {
 
         if (!method_exists($class, $method)) {
-            throw new Exception("Método '$class:$method()' não existe!");
+            throw new FluxionException("Método '$class:$method()' não existe!");
         }
 
         $this->class = $class;

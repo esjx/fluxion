@@ -2,7 +2,7 @@
 namespace Fluxion;
 
 use Fluxion\Auth\UserModel;
-use Fluxion\Exception\{AuthException};
+use Fluxion\Exception\{AuthFluxionException};
 use Psr\Http\Message\{RequestInterface};
 
 abstract class Auth
@@ -11,13 +11,13 @@ abstract class Auth
     protected string $_env_model = 'AUTH_USER_MODEL';
 
     /**
-     * @throws AuthException
+     * @throws AuthFluxionException
      */
     public function __construct(?RequestInterface $request)
     {
 
         if (empty($_ENV[$this->_env_model])) {
-            throw new AuthException("Variável '$this->_env_model' não encontrada!");
+            throw new AuthFluxionException("Variável '$this->_env_model' não encontrada!");
         }
 
     }

@@ -2,7 +2,7 @@
 namespace Fluxion\Database\Field;
 
 use BackedEnum;
-use Fluxion\{Color, Exception};
+use Fluxion\{Color, FluxionException};
 use Fluxion\Database\{FormField};
 
 trait StaticChoices
@@ -11,7 +11,7 @@ trait StaticChoices
     protected bool $created = false;
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function createChoices(): void
     {
@@ -33,7 +33,7 @@ trait StaticChoices
         if (!is_null($class_name)) {
 
             if (!enum_exists($class_name)) {
-                throw new Exception("Classe '$class_name' não existe ou não é um Enum!");
+                throw new FluxionException("Classe '$class_name' não existe ou não é um Enum!");
             }
 
             /** @var BackedEnum $class_name */
@@ -70,7 +70,7 @@ trait StaticChoices
                     $cor = $case->color();
 
                     if (!is_null($cor) && !$cor instanceof Color) {
-                        throw new Exception("Valor '$cor' não é Color!");
+                        throw new FluxionException("Valor '$cor' não é Color!");
                     }
 
                     $this->choices_colors[$case->value] = $cor;
@@ -120,7 +120,7 @@ trait StaticChoices
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function getAuditValue(mixed $value): string
     {

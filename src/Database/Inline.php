@@ -1,7 +1,7 @@
 <?php
 namespace Fluxion\Database;
 
-use Fluxion\{Database\Field\ForeignKeyField, Exception, Model};
+use Fluxion\{Database\Field\ForeignKeyField, FluxionException, Model};
 
 class Inline
 {
@@ -14,7 +14,7 @@ class Inline
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function getInlineField(Model $model): string
     {
@@ -49,11 +49,11 @@ class Inline
         }
 
         if (is_null($il_field_ref)) {
-            throw new Exception(message: "Classe '$il_class_name' não possui referência à classe '$class_name'");
+            throw new FluxionException(message: "Classe '$il_class_name' não possui referência à classe '$class_name'");
         }
 
         if (in_array($il_field_ref, $this->fields)) {
-            throw new Exception("Campo '$il_class_name:$il_field_ref' é a chave primária de '$class_name'");
+            throw new FluxionException("Campo '$il_class_name:$il_field_ref' é a chave primária de '$class_name'");
         }
 
         return $il_field_ref;
@@ -61,7 +61,7 @@ class Inline
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function __construct(public string  $class_name,
                                 public array   $fields,
@@ -76,18 +76,18 @@ class Inline
     {
 
         if (!class_exists($class_name)) {
-            throw new Exception("Classe $class_name não encontrada");
+            throw new FluxionException("Classe $class_name não encontrada");
         }
 
         $this->_inline_model = new $class_name;
 
         if (count($fields) == 0) {
-            throw new Exception("É necessário informar pelo menos um campo");
+            throw new FluxionException("É necessário informar pelo menos um campo");
         }
 
         foreach ($fields as $field) {
             if (!property_exists($this->_inline_model, $field)) {
-                throw new Exception("Campo $class_name:$field não exite");
+                throw new FluxionException("Campo $class_name:$field não exite");
             }
         }
 

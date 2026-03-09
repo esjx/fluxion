@@ -1,9 +1,10 @@
 <?php
 namespace Fluxion;
 
+use Exception;
 use Psr\Log\{LogLevel};
 
-class Exception extends \Exception
+class FluxionException extends Exception
 {
 
     private string $_log_level;

@@ -1,13 +1,13 @@
 <?php
 namespace Fluxion;
 
-use Fluxion\Exception\{FileNotExistException};
+use Fluxion\Exception\{FileNotExistFluxionException};
 
 class Environment
 {
 
     /**
-     * @throws FileNotExistException
+     * @throws FileNotExistFluxionException
      */
     public static function load(string $filename): void
     {
@@ -15,7 +15,7 @@ class Environment
         # Load environment variables
 
         if (!file_exists($filename)) {
-            throw new FileNotExistException($filename);
+            throw new FileNotExistFluxionException($filename);
         }
 
         $parsed = parse_ini_file($filename, true);

@@ -2,7 +2,7 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
-use Fluxion\Exception;
+use Fluxion\FluxionException;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class AutoDateTimeField extends DateTimeField
@@ -12,7 +12,7 @@ class AutoDateTimeField extends DateTimeField
     protected ?bool $_needs_audit = false;
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function update(): void
     {

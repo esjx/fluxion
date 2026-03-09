@@ -1,7 +1,7 @@
 <?php
 namespace Fluxion\Database;
 
-use Fluxion\{Exception, Model};
+use Fluxion\{FluxionException, Model};
 use Fluxion\Query\{QueryWhere};
 
 abstract class Field
@@ -140,7 +140,7 @@ abstract class Field
     public ?string $class_name = null;
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function getReferenceModel(): Model
     {
@@ -158,7 +158,7 @@ abstract class Field
                 $class = new $class_name;
 
                 if (!$class instanceof Model) {
-                    throw new Exception(message: "Classe '$class_name' não é Model");
+                    throw new FluxionException(message: "Classe '$class_name' não é Model");
                 }
 
             }
@@ -235,7 +235,7 @@ abstract class Field
         $this->_changed = false;
     }
 
-    /** @throws Exception */
+    /** @throws FluxionException */
     public function setValue(mixed $value, bool $database = false): void
     {
 
@@ -245,7 +245,7 @@ abstract class Field
                 $value = json_encode($value);
             }
 
-            throw new Exception(message: "Valor '$value' inválido para o campo '$this->_name'");
+            throw new FluxionException(message: "Valor '$value' inválido para o campo '$this->_name'");
 
         }
 
@@ -300,7 +300,7 @@ abstract class Field
 
     }
 
-    /** @throws Exception */
+    /** @throws FluxionException */
     public function initialize(): void
     {
 
@@ -309,7 +309,7 @@ abstract class Field
         if ($this->_type_property != 'mixed'
             && !str_contains($this->_type_property, '?')
             && !str_contains($this->_type_property, 'null')) {
-            throw new Exception(message: "Campo '$class:$this->_name' deve permitir nulos");
+            throw new FluxionException(message: "Campo '$class:$this->_name' deve permitir nulos");
         }
 
         if (is_null($this->max_length) && in_array($this->_type, [self::TYPE_STRING, self::TYPE_PASSWORD])) {
@@ -348,7 +348,7 @@ abstract class Field
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function getFormField(array $extras = [], ?string $route = null): FormField
     {

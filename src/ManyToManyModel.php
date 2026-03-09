@@ -11,7 +11,7 @@ class ManyToManyModel extends Model
     use ModelMany;
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @throws ReflectionException
      */
     public function __construct(protected ?Model  $model = null,
@@ -24,7 +24,7 @@ class ManyToManyModel extends Model
             $reflection = new ReflectionProperty($this->model, $field);
 
             if (strval($reflection->getType()) != '?array') {
-                throw new Exception("Campo $this->model:$field deve ser um array e permitir nulos!");
+                throw new FluxionException("Campo $this->model:$field deve ser um array e permitir nulos!");
             }
 
             $this->comment = get_class($model) . " MN[$field]";
@@ -60,7 +60,7 @@ class ManyToManyModel extends Model
                 }
 
                 if (!isset($field_name)) {
-                    throw new Exception("Referência original não encontrada.");
+                    throw new FluxionException("Referência original não encontrada.");
                 }
 
                 $this->left = 'b';

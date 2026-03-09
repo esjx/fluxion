@@ -5,7 +5,7 @@ use ReflectionException;
 use stdClass;
 use Fluxion\Database\{Crud, Detail, Field, FormGroup, FormInline, Inline};
 use Fluxion\Query\QuerySql;
-use Fluxion\Exception\{PermissionDeniedException};
+use Fluxion\Exception\{PermissionDeniedFluxionException};
 
 trait ModelCrud
 {
@@ -33,7 +33,7 @@ trait ModelCrud
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function getDetail(string $key): Detail
     {
@@ -153,7 +153,7 @@ trait ModelCrud
 
     /**
      * @return array<string, Connector\TableTab>
-     * @throws Exception
+     * @throws FluxionException
      * @throws ReflectionException
      */
     public function getTabs(Query $query): array
@@ -297,7 +297,7 @@ trait ModelCrud
 
     /**
      * @return array<string, Connector\TableFilter>
-     * @throws Exception
+     * @throws FluxionException
      * @throws ReflectionException
      */
     public function getFilters(Query $query, stdClass $filters): array
@@ -520,7 +520,7 @@ trait ModelCrud
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @throws ReflectionException
      */
     public function tab(Query $query, null|string|int &$tab, null|string|int $default_tab): Query
@@ -622,7 +622,7 @@ trait ModelCrud
 
     /**
      * @return Connector\TableAction[]
-     * @throws Exception
+     * @throws FluxionException
      */
     public function getActions(): array
     {
@@ -648,7 +648,7 @@ trait ModelCrud
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @throws ReflectionException
      */
     public function executeAction(Action $action): void
@@ -659,7 +659,7 @@ trait ModelCrud
         if ($action == Action::DELETE) {
 
             if (!$auth->hasPermission($this, Permission::DELETE)) {
-                throw new PermissionDeniedException('Usuário sem acesso à apagar!');
+                throw new PermissionDeniedFluxionException('Usuário sem acesso à apagar!');
             }
 
             $this->delete();
@@ -669,7 +669,7 @@ trait ModelCrud
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function search(Query $query, string $search): Query
     {
@@ -713,7 +713,7 @@ trait ModelCrud
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @throws ReflectionException
      */
     public function filterItens(Query $query, stdClass $filters): Query
@@ -786,7 +786,7 @@ trait ModelCrud
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function getFormFields(bool $save = true, ?string $route = null): array
     {
@@ -854,7 +854,7 @@ trait ModelCrud
 
     /**
      * @return FormInline[]
-     * @throws Exception
+     * @throws FluxionException
      */
     public function getFormInlines(bool $save = true, ?string $route = null): array
     {
@@ -874,7 +874,7 @@ trait ModelCrud
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @throws ReflectionException
      */
     public function saveFromForm(stdClass $is): void
@@ -932,7 +932,7 @@ trait ModelCrud
 
                     $titles = implode("', '", $titles);
 
-                    throw new Exception("Já existe um registro para os valores informados no(s) campo(s) '$titles'!");
+                    throw new FluxionException("Já existe um registro para os valores informados no(s) campo(s) '$titles'!");
 
                 }
 
@@ -982,7 +982,7 @@ trait ModelCrud
 
                         if (!$inline->delete
                             && !$auth->hasPermission($inline->getInlineModel(), Permission::DELETE)) {
-                            throw new PermissionDeniedException("Exclusão não permitida!");
+                            throw new PermissionDeniedFluxionException("Exclusão não permitida!");
                         }
 
                         $inline->getInlineModel()::loadById($data->__id)->delete();

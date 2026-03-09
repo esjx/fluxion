@@ -95,7 +95,7 @@ enum Time: string
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public static function modify(null|string|self $date, $modifier): string
     {
@@ -107,7 +107,7 @@ enum Time: string
         $d = DateTime::createFromFormat('Y-m-d', $date);
 
         if ($d === false) {
-            throw new Exception("Data $date inválida!");
+            throw new FluxionException("Data $date inválida!");
         }
 
         return $d->modify($modifier)->format('Y-m-d');
@@ -166,7 +166,7 @@ enum Time: string
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public static function workDay(null|string|self $date = null): ?bool
     {
@@ -176,7 +176,7 @@ enum Time: string
         $d = DateTime::createFromFormat('Y-m-d', $date);
 
         if ($d === false) {
-            throw new Exception("Data $date inválida!");
+            throw new FluxionException("Data $date inválida!");
         }
 
         return (
@@ -192,7 +192,7 @@ enum Time: string
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @noinspection PhpUnused
      */
     public static function nextWorkDay(null|string|self $date = null): string
@@ -207,7 +207,7 @@ enum Time: string
             $date = self::modify($date, '+1 day');
 
             if ($i++ >= 10) {
-                throw new Exception("Algo deu errado!");
+                throw new FluxionException("Algo deu errado!");
             }
 
         }
@@ -217,7 +217,7 @@ enum Time: string
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @noinspection PhpUnused
      */
     public static function lastWorkDay(null|string|self $date = null): string
@@ -232,7 +232,7 @@ enum Time: string
             $date = self::modify($date, '-1 day');
 
             if ($i++ >= 10) {
-                throw new Exception("Algo deu errado!");
+                throw new FluxionException("Algo deu errado!");
             }
 
         }
@@ -242,7 +242,7 @@ enum Time: string
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @noinspection PhpUnused
      */
     public static function workDaysBetween(null|string|self $date1, null|string|self $date2): int
@@ -254,13 +254,13 @@ enum Time: string
         $d1 = DateTime::createFromFormat('Y-m-d', $date1);
 
         if ($d1 === false) {
-            throw new Exception("Data $date1 inválida!");
+            throw new FluxionException("Data $date1 inválida!");
         }
 
         $d2 = DateTime::createFromFormat('Y-m-d', $date2);
 
         if ($d2 === false) {
-            throw new Exception("Data $date2 inválida!");
+            throw new FluxionException("Data $date2 inválida!");
         }
 
         $date1 = $d1->format('Y-m-d');

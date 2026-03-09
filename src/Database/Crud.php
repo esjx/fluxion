@@ -3,7 +3,7 @@ namespace Fluxion\Database;
 
 use Attribute;
 use BackedEnum;
-use Fluxion\{Exception, Model};
+use Fluxion\{FluxionException, Model};
 
 #[Attribute(Attribute::TARGET_CLASS)]
 class Crud
@@ -43,13 +43,13 @@ class Crud
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function initialize(Model $model): void
     {
 
         if (!is_null($this->field_tab) && !property_exists($model, $this->field_tab)) {
-            throw new Exception("Campo '$model:$this->field_tab' não existe!");
+            throw new FluxionException("Campo '$model:$this->field_tab' não existe!");
         }
 
     }

@@ -1,13 +1,13 @@
 <?php
 namespace Fluxion\Database;
 
-use Fluxion\Exception;
+use Fluxion\FluxionException;
 
 class Condition
 {
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function __construct(public string  $field,
                                 public mixed   $value,
@@ -19,7 +19,7 @@ class Condition
     {
 
         if (!in_array($type, ['ne', '!=', '<>', 'e', '=', 'equal', '<', 'lt', '>', 'gt', '<=', 'lte', '>=', 'gte', 'has', 'in'])) {
-            throw new Exception("Tipo '$type' inválido!");
+            throw new FluxionException("Tipo '$type' inválido!");
         }
 
     }

@@ -16,7 +16,7 @@ abstract class Model
     #[FloatField(protected: true, fake: true)]
     public ?float $total = null;
 
-    /** @throws Exception */
+    /** @throws FluxionException */
     public function __construct()
     {
 
@@ -69,7 +69,7 @@ abstract class Model
             $name = $property->getName();
 
             if (in_array($name, ['__id', '__deleted', '__created', '__inlines'])) {
-                throw new Exception("Nome de campo '$name' é reservado!");
+                throw new FluxionException("Nome de campo '$name' é reservado!");
             }
 
             $attributes = $property->getAttributes();
@@ -124,7 +124,7 @@ abstract class Model
         return isset($this->_fields[$name]);
     }
 
-    /** @throws Exception */
+    /** @throws FluxionException */
     public function __set($name, $value)
     {
 

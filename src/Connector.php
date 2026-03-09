@@ -9,7 +9,7 @@ use PDOStatement;
 use ReflectionException;
 use Fluxion\Database\Field\{ManyChoicesField, ManyToManyField};
 use Fluxion\Query\{QueryWhere};
-use Fluxion\Exception\{SqlException};
+use Fluxion\Exception\{SqlFluxionException};
 use Psr\Http\Message\{StreamInterface};
 
 abstract class Connector
@@ -115,7 +115,7 @@ abstract class Connector
 
         }
 
-        catch (PDOException|SqlException $e) {
+        catch (PDOException|SqlFluxionException $e) {
 
             $erro = $e->getMessage();
             $this->comment("<b>ERRO</b>: $erro", Color::RED);
@@ -191,7 +191,7 @@ abstract class Connector
 
     }
 
-    /** @throws SqlException */
+    /** @throws SqlFluxionException */
     public function fetch(string $sql): Generator
     {
 
@@ -217,7 +217,7 @@ abstract class Connector
         return "T" . $this::$table_id++;
     }
 
-    /** @throws Exception
+    /** @throws FluxionException
      * @throws ReflectionException
      */
     public function sync(string $class_name): void
@@ -291,7 +291,7 @@ abstract class Connector
 
     /**
      * @throws ReflectionException
-     * @throws Exception
+     * @throws FluxionException
      */
     public function initialData(Model $model): void
     {
@@ -334,7 +334,7 @@ abstract class Connector
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function select(Query $query): ?Generator
     {
@@ -394,7 +394,7 @@ abstract class Connector
     }
 
     /**
-     * @throws SqlException
+     * @throws SqlFluxionException
      */
     public function insert(Model $model, array $data = []): void
     {
@@ -403,7 +403,7 @@ abstract class Connector
     }
 
     /**
-     * @throws SqlException
+     * @throws SqlFluxionException
      */
     public function prepare(string $sql): false|PDOStatement
     {
@@ -413,13 +413,13 @@ abstract class Connector
         }
 
         catch (PDOException $e) {
-            throw new SqlException($e->getMessage(), $sql);
+            throw new SqlFluxionException($e->getMessage(), $sql);
         }
 
     }
 
     /**
-     * @throws SqlException
+     * @throws SqlFluxionException
      */
     public function query(string $sql): false|PDOStatement
     {
@@ -429,13 +429,13 @@ abstract class Connector
         }
 
         catch (PDOException $e) {
-            throw new SqlException($e->getMessage(), $sql);
+            throw new SqlFluxionException($e->getMessage(), $sql);
         }
 
     }
 
     /**
-     * @throws SqlException
+     * @throws SqlFluxionException
      */
     public function exec(string $sql): false|int
     {
@@ -445,13 +445,13 @@ abstract class Connector
         }
 
         catch (PDOException $e) {
-            throw new SqlException($e->getMessage(), $sql);
+            throw new SqlFluxionException($e->getMessage(), $sql);
         }
 
     }
 
     /**
-     * @throws SqlException|Exception
+     * @throws SqlFluxionException|FluxionException
      */
     public function execute_insert(Model $model, array $data = []): void
     {
@@ -484,7 +484,7 @@ abstract class Connector
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function execute_update(Model $model): void
     {
@@ -495,7 +495,7 @@ abstract class Connector
         $primary_keys = $model->getPrimaryKeys();
 
         if (count($primary_keys) == 0) {
-            throw new Exception("Model '$class_name' não possui chave primária definida");
+            throw new FluxionException("Model '$class_name' não possui chave primária definida");
         }
 
         foreach ($primary_keys as $key => $pk) {
@@ -523,7 +523,7 @@ abstract class Connector
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @throws ReflectionException
      */
     public function save(Model $model): bool
@@ -538,7 +538,7 @@ abstract class Connector
             $primary_keys = $model->getPrimaryKeys();
 
             if (count($primary_keys) == 0) {
-                throw new Exception("Model '$class_name' já salvo e não possui chave primária definida");
+                throw new FluxionException("Model '$class_name' já salvo e não possui chave primária definida");
             }
 
             $this->execute_insert($model);
@@ -610,7 +610,7 @@ abstract class Connector
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function delete(Query $query): bool
     {
@@ -632,7 +632,7 @@ abstract class Connector
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function sql_delete(Query $query): string
     {
@@ -648,7 +648,7 @@ abstract class Connector
         }
 
         if (count($where) == 0) {
-            throw new Exception("Nenhum filtro para exclusão");
+            throw new FluxionException("Nenhum filtro para exclusão");
         }
 
         $sql = "DELETE FROM $table->database.$table->schema.$table->table"

@@ -8,7 +8,7 @@ class Config
 
     private static ?Connector $connector = null;
 
-    /** @throws Exception */
+    /** @throws FluxionException */
     public static function getConnector(): Connector
     {
 
@@ -19,7 +19,7 @@ class Config
             }
 
             else {
-                throw new Exception('Dados de conexão não encontrados.');
+                throw new FluxionException('Dados de conexão não encontrados.');
             }
 
         }
@@ -30,7 +30,7 @@ class Config
 
     private static ?Auth $auth = null;
 
-    /** @throws Exception */
+    /** @throws FluxionException */
     public static function getAuth(?RequestInterface $request = null): Auth
     {
 
@@ -41,7 +41,7 @@ class Config
                 $class = $_ENV['AUTH_CLASS'];
 
                 if (!class_exists($class)) {
-                    throw new Exception("Classe '$class' não encontrada!");
+                    throw new FluxionException("Classe '$class' não encontrada!");
                 }
 
                 self::$auth = new $class($request);
@@ -49,7 +49,7 @@ class Config
             }
 
             else {
-                throw new Exception('Dados de conexão não encontrados.');
+                throw new FluxionException('Dados de conexão não encontrados.');
             }
 
         }
@@ -72,20 +72,20 @@ class Config
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @noinspection PhpUnused
      */
     public static function setPermissionModel(string $class): void
     {
 
         if (!class_exists($class)) {
-            throw new Exception("Classe '$class' não existe!");
+            throw new FluxionException("Classe '$class' não existe!");
         }
 
         $obj = new $class();
 
         if (!$obj instanceof Model) {
-            throw new Exception("Classe '$class' não é um Model!");
+            throw new FluxionException("Classe '$class' não é um Model!");
         }
 
         self::$permission_class = $class;

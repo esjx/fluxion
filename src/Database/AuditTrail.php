@@ -3,7 +3,7 @@ namespace Fluxion\Database;
 
 use Attribute;
 use ReflectionException;
-use Fluxion\{AuditTrailModel, Config, Exception, Model, State, Time};
+use Fluxion\{AuditTrailModel, Config, FluxionException, Model, State, Time};
 
 #[Attribute(Attribute::TARGET_CLASS)]
 class AuditTrail
@@ -31,7 +31,7 @@ class AuditTrail
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function getAuditTrailModel(): AuditTrailModel
     {
@@ -60,7 +60,7 @@ class AuditTrail
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function getFieldId(Model $model): ?Field
     {
@@ -83,7 +83,7 @@ class AuditTrail
 
             }
 
-            throw new Exception("Não foi possível achar o relacionamento entre '$class_name' e '$this->model_class'");
+            throw new FluxionException("Não foi possível achar o relacionamento entre '$class_name' e '$this->model_class'");
 
         }
 
@@ -92,7 +92,7 @@ class AuditTrail
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @throws ReflectionException
      */
     public function registerUpdate(Model $model): void
@@ -147,7 +147,7 @@ class AuditTrail
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @throws ReflectionException
      */
     public function registerDelete(Model $model): void

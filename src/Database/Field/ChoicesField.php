@@ -3,7 +3,7 @@ namespace Fluxion\Database\Field;
 
 use Attribute;
 use Fluxion\Database\Field;
-use Fluxion\Exception;
+use Fluxion\FluxionException;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class ChoicesField extends Field
@@ -12,7 +12,7 @@ class ChoicesField extends Field
     use StaticChoices;
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function __construct(public ?string $class_name = null,
                                 public ?bool   $required = false,
@@ -40,7 +40,7 @@ class ChoicesField extends Field
 
     }
 
-    /** @throws Exception */
+    /** @throws FluxionException */
     public function initialize(): void
     {
 
@@ -63,7 +63,7 @@ class ChoicesField extends Field
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function validate(mixed &$value): bool
     {

@@ -6,15 +6,15 @@ use stdClass;
 use ReflectionException;
 use Fluxion\Menu\{MenuGroup};
 use Fluxion\Query\{QuerySql};
-use Fluxion\Exception\{PermissionDeniedException};
+use Fluxion\Exception\{PermissionDeniedFluxionException};
 use Psr\Http\Message\{MessageInterface, RequestInterface};
 
 class CrudController extends Controller
 {
 
     /**
-     * @throws PermissionDeniedException
-     * @throws Exception
+     * @throws PermissionDeniedFluxionException
+     * @throws FluxionException
      */
     protected function getModel(Model $model, string $id): Model
     {
@@ -28,7 +28,7 @@ class CrudController extends Controller
         if ($id == 'add') {
 
             if (!$auth->hasPermission($model, Permission::INSERT)) {
-                throw new PermissionDeniedException('Usuário sem acesso à inclusão!');
+                throw new PermissionDeniedFluxionException('Usuário sem acesso à inclusão!');
             }
 
         }
@@ -36,13 +36,13 @@ class CrudController extends Controller
         else {
 
             if (!$auth->hasPermission($model, Permission::VIEW)) {
-                throw new PermissionDeniedException('Usuário sem acesso à visualização!');
+                throw new PermissionDeniedFluxionException('Usuário sem acesso à visualização!');
             }
 
             $model = $model::loadById($id);
 
             if (!$model->isSaved()) {
-                throw new Exception("Dados não encontrados para o ID '$id'!");
+                throw new FluxionException("Dados não encontrados para o ID '$id'!");
             }
 
         }
@@ -63,8 +63,8 @@ class CrudController extends Controller
     /**
      * @noinspection PhpUnused
      * @noinspection PhpUnusedParameterInspection
-     * @throws PermissionDeniedException
-     * @throws Exception
+     * @throws PermissionDeniedFluxionException
+     * @throws FluxionException
      */
     public function edit(RequestInterface $request, Route $route, stdClass $args): MessageInterface
     {
@@ -81,7 +81,7 @@ class CrudController extends Controller
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @noinspection PhpUnused
      */
     public function createRoutes(string $base_url,
@@ -176,7 +176,7 @@ class CrudController extends Controller
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      * @throws ReflectionException
      */
     public function data(RequestInterface $request, Route $route): MessageInterface
@@ -208,7 +208,7 @@ class CrudController extends Controller
             && !$auth->hasPermission($model, Permission::LIST_UNDER)
             && !$auth->hasPermission($model, Permission::LIST_ALL)) {
 
-            throw new PermissionDeniedException('Usuário sem acesso à visualização!');
+            throw new PermissionDeniedFluxionException('Usuário sem acesso à visualização!');
 
         }
 
@@ -327,7 +327,7 @@ class CrudController extends Controller
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function fields(RequestInterface $request, Route $route): MessageInterface
     {
@@ -384,8 +384,8 @@ class CrudController extends Controller
     }
 
     /**
-     * @throws PermissionDeniedException
-     * @throws Exception
+     * @throws PermissionDeniedFluxionException
+     * @throws FluxionException
      * @throws ReflectionException
      */
     #[Transaction]
@@ -408,7 +408,7 @@ class CrudController extends Controller
             : $auth->hasPermission($model, Permission::UPDATE);
 
         if (!$save) {
-            throw new PermissionDeniedException('Usuário sem acesso à salvar os dados!');
+            throw new PermissionDeniedFluxionException('Usuário sem acesso à salvar os dados!');
         }
 
         # Salva os dados
@@ -428,8 +428,8 @@ class CrudController extends Controller
     }
 
     /**
-     * @throws PermissionDeniedException
-     * @throws Exception
+     * @throws PermissionDeniedFluxionException
+     * @throws FluxionException
      * @throws ReflectionException
      * @noinspection PhpUnused
      */
@@ -441,7 +441,7 @@ class CrudController extends Controller
 
         $id = $is->__id ?? null;
         $action = Action::from($is->action ?? '')
-            ?? throw new Exception('Ação não identificada!');
+            ?? throw new FluxionException('Ação não identificada!');
 
         # Dados básicos
 
@@ -464,7 +464,7 @@ class CrudController extends Controller
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function actionFields(RequestInterface $request, Route $route): MessageInterface
     {
@@ -473,7 +473,7 @@ class CrudController extends Controller
 
         $id = $is->__id ?? null;
         $action = Action::from($is->action ?? '')
-            ?? throw new Exception('Ação não identificada!');
+            ?? throw new FluxionException('Ação não identificada!');
 
         # Dados básicos
 
@@ -510,8 +510,8 @@ class CrudController extends Controller
     }
 
     /**
-     * @throws PermissionDeniedException
-     * @throws Exception
+     * @throws PermissionDeniedFluxionException
+     * @throws FluxionException
      * @noinspection PhpUnused
      */
     public function typeahead(RequestInterface $request, Route $route, stdClass $args): MessageInterface
@@ -528,7 +528,7 @@ class CrudController extends Controller
         $field = $model->getField($args->field);
 
         if (!$field->isForeignKey() && !$field->isManyToMany()) {
-            throw new Exception("Campo '$args->field' não possui fonte de dados!");
+            throw new FluxionException("Campo '$args->field' não possui fonte de dados!");
         }
 
         $ref_model = $field->getReferenceModel();

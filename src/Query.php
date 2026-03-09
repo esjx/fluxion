@@ -314,7 +314,7 @@ class Query
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function limit($limit, $offset = 0): self
     {
@@ -335,7 +335,7 @@ class Query
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function select(): Generator
     {
@@ -343,7 +343,7 @@ class Query
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function paginate(int &$page, int &$pages, int $items): self
     {
@@ -363,7 +363,7 @@ class Query
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function first(): ?Model
     {
@@ -377,7 +377,7 @@ class Query
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function firstOrNew(): Model
     {
@@ -385,7 +385,7 @@ class Query
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function sql(): string
     {
@@ -393,7 +393,7 @@ class Query
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function delete(): bool
     {
@@ -401,7 +401,7 @@ class Query
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function toArray(): array
     {
@@ -409,11 +409,11 @@ class Query
         $out = [];
 
         if (count($this->fields) == 0) {
-            throw new Exception('Nenhum campo informado encontrado.');
+            throw new FluxionException('Nenhum campo informado encontrado.');
         }
 
         if (count($this->fields) > 1) {
-            throw new Exception('Mais de um campo informado encontrado.');
+            throw new FluxionException('Mais de um campo informado encontrado.');
         }
 
         $field = $this->fields[0]->field;

@@ -1,10 +1,10 @@
 <?php
 namespace Fluxion\Exception;
 
-use Fluxion\Exception;
+use Fluxion\FluxionException;
 use Psr\Log\LogLevel;
 
-class PageNotFoundException extends Exception
+class PageNotFoundFluxionException extends FluxionException
 {
 
     public function __construct(string $page, string $log_level = LogLevel::WARNING)

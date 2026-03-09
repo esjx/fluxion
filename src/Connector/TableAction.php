@@ -3,7 +3,7 @@ namespace Fluxion\Connector;
 
 use Fluxion\Action;
 use Fluxion\Color;
-use Fluxion\Exception;
+use Fluxion\FluxionException;
 
 class TableAction
 {
@@ -11,7 +11,7 @@ class TableAction
     public ?string $id = null;
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function __construct(public string  $label,
                                 Action         $action,
@@ -29,7 +29,7 @@ class TableAction
         }
 
         if (!in_array($type, ['action', 'link', 'route', 'form'])) {
-            throw new Exception("Tipo de ação '$this->type' inválida!");
+            throw new FluxionException("Tipo de ação '$this->type' inválida!");
         }
 
     }

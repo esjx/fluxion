@@ -3,7 +3,7 @@ namespace Fluxion\Database\Field;
 
 use Attribute;
 use Fluxion\Database\{Field, FormField};
-use Fluxion\{Exception, Time};
+use Fluxion\{FluxionException, Time};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class DateField extends Field
@@ -34,7 +34,7 @@ class DateField extends Field
     }
 
     /**
-     * @throws Exception
+     * @throws FluxionException
      */
     public function validate(mixed &$value): bool
     {
@@ -56,7 +56,7 @@ class DateField extends Field
             $new_value = Time::convert($value, $this->date_format);
 
             if (is_null($new_value) && !$this->null_if_invalid) {
-                throw new Exception("Valor '$value' inválido para o campo '$this->_name'");
+                throw new FluxionException("Valor '$value' inválido para o campo '$this->_name'");
             }
 
             else {
