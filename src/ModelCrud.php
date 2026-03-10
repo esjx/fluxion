@@ -179,7 +179,7 @@ trait ModelCrud
 
             $field->createChoices();
 
-            foreach ((clone $query)->groupBy($key)->count($key)->select() as $item) {
+            foreach ((clone $query)->groupBy($key)->orderBy($key)->count($key)->select() as $item) {
 
                 $id = $item->$key;
                 $label = $field->choices[$id] ?? (string) $id;
@@ -192,7 +192,7 @@ trait ModelCrud
 
         elseif ($field instanceof Field\BooleanField) {
 
-            foreach ((clone $query)->groupBy($key)->count($key)->select() as $item) {
+            foreach ((clone $query)->groupBy($key)->orderBy($key)->count($key)->select() as $item) {
 
                 $id = $item->$key;
                 $label = ($id) ? 'Sim' : 'Não';
@@ -217,7 +217,7 @@ trait ModelCrud
 
             }
 
-            foreach ((clone $query)->groupBy($key)->count($key)->select() as $item) {
+            foreach ((clone $query)->groupBy($key)->orderBy($key)->count($key)->select() as $item) {
 
                 $id = $item->$key;
                 $label = $labels[$id] ?? (string) $id;
@@ -247,7 +247,7 @@ trait ModelCrud
 
             }
 
-            foreach ($list_right->count($mn_field_name)->select() as $item) {
+            foreach ($list_right->orderBy($mn_field_name)->count($mn_field_name)->select() as $item) {
 
                 $id = $item->$mn_field_name;
                 $label = $labels[$id] ?? (string) $id;
@@ -267,7 +267,7 @@ trait ModelCrud
 
             $list_right = $mn_model->_query()->groupBy($mn_field_name);
 
-            foreach ($list_right->count($mn_field_name)->select() as $item) {
+            foreach ($list_right->orderBy($mn_field_name)->count($mn_field_name)->select() as $item) {
 
                 $id = $item->$mn_field_name;
                 $label = $field->choices[$id] ?? (string) $id;
@@ -280,7 +280,7 @@ trait ModelCrud
 
         else {
 
-            foreach ((clone $query)->groupBy($key)->count($key)->select() as $item) {
+            foreach ((clone $query)->groupBy($key)->orderBy($key)->count($key)->select() as $item) {
 
                 $id = $item->$key;
                 $label = (string) $id;
