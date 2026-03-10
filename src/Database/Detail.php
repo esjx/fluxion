@@ -10,7 +10,6 @@ class Detail
 
     protected string $_name;
     public ?string $mask = null;
-    public string $placeholder = '';
     public ?string $pattern = null;
 
     function setName(string $name): void
@@ -27,13 +26,16 @@ class Detail
     /**
      * @param string|null $label
      * @param string|null $mask_class
+     * @param bool $mask_literal
      * @param bool $searchable
      * @param bool $filterable
      * @param Icon|null $filter_icon
      * @param string|null $typeahead
+     * @param string $placeholder
      * @param string|null $help
      * @param int|null $max_length
      * @param int|null $size
+     * @param bool $zip_code
      * @param Condition[]|null $visible_conditions
      * @param Condition[]|null $required_conditions
      * @param Condition[]|null $choices_conditions
@@ -49,6 +51,7 @@ class Detail
                                 public bool    $filterable = false,
                                 public ?Icon   $filter_icon = null,
                                 public ?string $typeahead = null,
+                                public string  $placeholder = '',
                                 public ?string $help = null,
                                 public ?int    $max_length = null,
                                 public ?int    $size = 12,

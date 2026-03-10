@@ -16,6 +16,7 @@ class GeographyField extends Field
     protected ?bool $_needs_audit = false;
 
     public function __construct(public ?bool $protected = false,
+                                public ?bool $enabled = true,
                                 public ?bool $fake = false)
     {
         parent::__construct();

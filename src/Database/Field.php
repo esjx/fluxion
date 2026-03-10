@@ -96,6 +96,11 @@ abstract class Field
         return $this->_name;
     }
 
+    public function getModel(): Model
+    {
+        return $this->_model;
+    }
+
     public function setName(string $name): void
     {
         $this->_name = $name;

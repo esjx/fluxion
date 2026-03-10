@@ -11,6 +11,22 @@ trait DynamicChoices
     /**
      * @throws FluxionException
      */
+    protected function changeState(Model $item): void
+    {
+
+        if (empty($this->change_state)) {
+            return;
+        }
+
+        if (method_exists($this->getModel(), $this->change_state)) {
+            $this->getModel()->{$this->change_state}($item);
+        }
+
+    }
+
+    /**
+     * @throws FluxionException
+     */
     public function getFormField(array $extras = [], ?string $route = null): FormField
     {
 
@@ -40,6 +56,8 @@ trait DynamicChoices
         if (!empty($this->_value)) {
 
             foreach ((clone $query)->filter($field_id_name, $this->_value)->select() as $row) {
+
+                $this->changeState($row);
 
                 /** @var Model $row */
                 $row->changeState(State::LIST_CHOICE);
@@ -72,6 +90,8 @@ trait DynamicChoices
 
             foreach ((clone $query)->limit($pre + 1)->select() as $row) {
 
+                $this->changeState($row);
+
                 /** @var Model $row */
                 $row->changeState(State::LIST_CHOICE);
 
@@ -99,6 +119,8 @@ trait DynamicChoices
         if (count($extras) > 0) {
 
             foreach ((clone $query)->filter($field_id_name, $extras)->select() as $row) {
+
+                $this->changeState($row);
 
                 /** @var Model $row */
                 $row->changeState(State::LIST_CHOICE);

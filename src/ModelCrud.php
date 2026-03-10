@@ -339,7 +339,7 @@ trait ModelCrud
 
                 $field->createChoices();
 
-                foreach ((clone $query)->groupBy($key)->select() as $item) {
+                foreach ((clone $query)->groupBy($key)->orderBy($key)->select() as $item) {
 
                     $id = $item->$key;
                     $label = $field->choices[$id] ?? (string) $id;
@@ -476,9 +476,9 @@ trait ModelCrud
                 $mn_model = $field->getManyChoicesModel();
                 $mn_field_name = $mn_model->getRight();
 
-                $list_right = $mn_model->_query()->groupBy($mn_field_name)->orderBy($mn_field_name);
+                $list_right = $mn_model->_query()->groupBy($mn_field_name);
 
-                foreach ($list_right->select() as $item) {
+                foreach ($list_right->orderBy($mn_field_name)->select() as $item) {
 
                     $id = $item->$mn_field_name;
                     $label = $field->choices[$id] ?? (string) $id;

@@ -96,6 +96,7 @@ class ManyToManyField extends Field
                                 public ?bool   $readonly = false,
                                 public ?string $typeahead = null,
                                 public ?bool   $enabled = true,
+                                public ?string $change_state = null,
                                 bool $needs_audit = true)
     {
 

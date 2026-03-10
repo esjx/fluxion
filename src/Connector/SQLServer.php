@@ -1217,7 +1217,7 @@ class SQLServer extends Connector
                 }
 
                 if ($f instanceof Database\Field\GeographyField && !is_null($value)) {
-                    $values_sql[] = "geography::STMPolyFromText('$value', 4326)";
+                    $values_sql[] = "geography::STMPolyFromText('$value', 4674)";
                 }
 
                 elseif ($f->required && is_null($value) && !is_null($f->default)) {

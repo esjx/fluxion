@@ -35,6 +35,7 @@ class ForeignKeyField extends Field
                                 public ?string $column_name = null,
                                 public ?string $typeahead = null,
                                 public ?bool   $enabled = true,
+                                public ?string $change_state = null,
                                 bool $needs_audit = true)
     {
 
