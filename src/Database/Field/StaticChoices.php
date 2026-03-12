@@ -41,11 +41,11 @@ trait StaticChoices
 
                 $test = false;
 
-                if ($this->multiple && is_array($this->_value) && !in_array($case->value, $this->_value)) {
+                if ($this->multiple && is_array($this->_value) && !in_array($case->value, $this->_value, true)) {
                     $test = true;
                 }
 
-                if (!$this->multiple && $case->value != $this->_value) {
+                if (!$this->multiple && $case->value !== $this->_value) {
                     $test = true;
                 }
 
