@@ -661,7 +661,7 @@ class CrudController extends Controller
      * @noinspection PhpUnused
      * @noinspection PhpUnusedParameterInspection
      */
-    public function download(RequestInterface $request, Route $route, stdClass $args): MessageInterface
+    public function download(RequestInterface $request, Route $route, stdClass $args)
     {
         throw new FluxionException("Implementar");
     }

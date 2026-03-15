@@ -128,6 +128,60 @@ class FileManager
 
     }
 
+    public static function zipFile($fileName, $localName = '', $deleteOriginal = true): ?string
+    {
+
+        if (!file_exists($fileName)) {
+
+            return false;
+
+        }
+
+        $localName = iconv("UTF-8", "CP850", $localName);
+
+        $zip_name = preg_replace('/\.[A-Z0-9]+$/i', '', $fileName) . ".zip";
+
+        $fileName = str_replace('\\', '/', $fileName);
+
+        if ($localName == '') {
+
+            $x = explode('/', $fileName);
+
+            $localName = $x[count($x)-1];
+
+        }
+
+        if (file_exists($zip_name)) {
+
+            unlink($zip_name);
+
+        }
+
+        $zip = new ZipArchive();
+        $zip->open($zip_name, ZIPARCHIVE::CREATE);
+        $zip->addFile($fileName, $localName);
+        $zip->close();
+
+        unset($zip);
+
+        chmod($zip_name, 0777);
+
+        if ($deleteOriginal) {
+
+            unlink($fileName);
+
+        }
+
+        if (!file_exists($zip_name)) {
+
+            return false;
+
+        }
+
+        return $zip_name;
+
+    }
+
     public static function unzipFile(string $filename, bool $same_dir = true, $delete_original = true): string
     {
 
