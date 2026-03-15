@@ -4,6 +4,9 @@ namespace Fluxion;
 use Generator;
 use DirectoryIterator;
 use FilesystemIterator;
+use GuzzleHttp\Psr7\HttpFactory;
+use GuzzleHttp\Psr7\Response;
+use Psr\Http\Message\MessageInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ZipArchive;
@@ -208,6 +211,42 @@ class FileManager
             unlink($filename);
 
         return $extractDir;
+
+    }
+
+    public static function downloadFile(string $file_name, ?string $title = null): MessageInterface
+    {
+
+        $fileName = $title ?? basename($file_name);
+        $fileSize = filesize($file_name);
+        $mimeType = mime_content_type($file_name);
+
+        $streamFactory = new HttpFactory();
+
+        $stream = $streamFactory->createStreamFromFile($file_name);
+
+        $response = new Response();
+
+        return $response->withBody($stream)
+            ->withHeader('Content-Type', $mimeType)
+            ->withHeader('Content-Length', (string) $fileSize)
+            ->withHeader('Content-Disposition', 'attachment; filename="' . $fileName . '"')
+            ->withHeader('Cache-Control', 'must-revalidate');
+
+    }
+
+    public static function downloadFileAndDelete(string $file_name, ?string $title = null): void
+    {
+
+        $fileName = $title ?? basename($file_name);
+        $fileSize = filesize($file_name);
+        $mimeType = mime_content_type($file_name);
+
+        header('Content-Type: ' . $mimeType);
+        header('Content-Length: ' . $fileSize);
+        header('Content-Disposition: attachment; filename="'.$fileName.'"');
+        readfile($file_name);
+        unlink($file_name);
 
     }
 

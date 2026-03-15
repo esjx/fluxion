@@ -658,12 +658,91 @@ class CrudController extends Controller
 
     /**
      * @throws FluxionException
-     * @noinspection PhpUnused
-     * @noinspection PhpUnusedParameterInspection
+     * @throws ReflectionException
      */
-    public function download(RequestInterface $request, Route $route, stdClass $args)
+    public function download(RequestInterface $request, Route $route, stdClass $args): void
     {
-        throw new FluxionException("Implementar");
+
+        $auth = Config::getAuth();
+
+        $dir = $_ENV['LOCAL_UPLOAD'] ?? '';
+
+        $dir .= '/temp/downloads/';
+
+        FileManager::createDir($dir);
+
+        $uid = bin2hex(random_bytes(10));
+
+        $file_name = $auth->getUser()->login . '_' . $uid . '.csv';
+
+        $model = $route->getModel();
+
+        $model->changeState(State::DOWNLOAD);
+
+        $fields = $model->getFields();
+
+        $file = fopen($dir . $file_name, 'w');
+
+        # Cabeçalho
+
+        $itens = [];
+
+        foreach ($fields as $key => $field) {
+
+            $detail = $model->getDetail($key);
+
+            if ($field->protected) {
+                continue;
+            }
+
+            $itens[] = $detail->label;
+
+        }
+
+        fputcsv($file, $itens, ';');
+
+        # Dados
+
+        $query = $model->query();
+
+        if (!empty($args->d)) {
+            $query = $model->filterItens($query, json_decode(base64_decode($args->d))->filters);
+        }
+
+        foreach ($query->select() as $row) {
+
+            $itens = [];
+
+            foreach ($fields as $key => $field) {
+
+                if ($field->protected) {
+                    continue;
+                }
+
+                $value = $row->$key;
+
+                if (is_null($value) || $value === '' || $value === []) {
+                    $itens[] = '';
+                }
+
+                else {
+                    $itens[] = strip_tags($field->getAuditValue($value));
+                }
+
+            }
+
+            fputcsv($file, $itens, ';');
+
+        }
+
+        fclose($file);
+
+        $title = $model->getCrud()->plural_title;
+
+        $zip_file = FileManager::zipFile($dir . $file_name, $title . '.csv');
+
+        FileManager::downloadFileAndDelete($zip_file, $title . '.zip');
+
     }
 
 }
