@@ -13,6 +13,7 @@ enum State
     case VIEW;
     case EDIT;
     case DOWNLOAD;
+    case UPLOAD;
     case FIELDS;
     case SYNC;
     case BEFORE_SAVE;

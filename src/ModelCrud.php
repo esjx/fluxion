@@ -818,6 +818,11 @@ trait ModelCrud
         return [];
     }
 
+    public function upload(string $file_name): void
+    {
+
+    }
+
     public function getFormTitle(): string
     {
 

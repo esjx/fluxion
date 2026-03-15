@@ -1,14 +1,19 @@
 <?php
 namespace Fluxion;
 
-use Fluxion\Database\Field\ColorField;
 use stdClass;
 use ReflectionException;
+use RuntimeException;
+use InvalidArgumentException;
 use Fluxion\Menu\{MenuGroup};
 use Fluxion\Query\{QuerySql};
 use Fluxion\Exception\{PermissionDeniedFluxionException};
-use Psr\Http\Message\{MessageInterface, RequestInterface};
+use Fluxion\Database\Field\ColorField;
+use Psr\Http\Message\{MessageInterface, RequestInterface, UploadedFileInterface};
 
+/**
+ * @noinspection PhpUnused
+ */
 class CrudController extends Controller
 {
 
@@ -93,7 +98,6 @@ class CrudController extends Controller
 
         $class = get_called_class();
 
-        //$base_url = $controller->getBaseRoute() . $base_url;
         $crud_details = $model->getCrud();
 
         $visible = false;
@@ -125,6 +129,9 @@ class CrudController extends Controller
             ['url' => '/action', 'method' => 'POST', 'class' => $class, 'action' => 'action'],
             ['url' => '/action-fields', 'method' => 'POST', 'class' => $class, 'action' => 'actionFields'],
             ['url' => '/typeahead/{field:string}', 'method' => 'POST', 'class' => $class, 'action' => 'typeahead'],
+            ['url' => '/download', 'method' => 'GET', 'class' => $class, 'action' => 'download'],
+            ['url' => '/upload', 'method' => 'POST', 'class' => $class, 'action' => 'upload'],
+            ['url' => '/download/?d={filter:string}', 'method' => 'GET', 'class' => $class, 'action' => 'download'],
         ];
 
         $keys = [];
@@ -214,6 +221,7 @@ class CrudController extends Controller
 
         $permissions = [];
 
+        $permissions['upload'] = $auth->hasPermission($model, Permission::UPLOAD);
         $permissions['download'] = $auth->hasPermission($model, Permission::DOWNLOAD);
         $permissions['insert'] = $auth->hasPermission($model, Permission::INSERT);
         $permissions['delete'] = $auth->hasPermission($model, Permission::DELETE);
@@ -384,6 +392,75 @@ class CrudController extends Controller
     }
 
     /**
+     * @throws FluxionException
+     */
+    public function upload(RequestInterface $request, Route $route): MessageInterface
+    {
+
+        # Dados básicos
+
+        set_time_limit(-1);
+
+        $model = $route->getModel();
+
+        $model->changeState(State::UPLOAD);
+
+        # Upload
+
+        $uploadedFiles = $request->getUploadedFiles();
+
+        if (!array_key_exists('file', $uploadedFiles)) {
+            throw new FluxionException("Arquivo não identificado.");
+        }
+
+        /* @var $file UploadedFileInterface */
+        $file = $uploadedFiles['file'];
+
+        if ($file->getError() !== UPLOAD_ERR_OK) {
+            throw new FluxionException("File upload failed with error code: " . $file->getError());
+        }
+
+        $uploadDirectory = $_ENV['LOCAL_UPLOAD'] ?? '';
+
+        $uploadDirectory .= '/temp/';
+
+        FileManager::createDir($uploadDirectory);
+
+        $clientFilename = $file->getClientFilename();
+        //$clientMediaType = $file->getClientMediaType();
+
+        try {
+
+            $targetPath = $uploadDirectory . basename($clientFilename);
+            $file->moveTo($targetPath);
+
+            $model->upload($targetPath);
+
+            if (file_exists($targetPath)) {
+                unlink($targetPath);
+            }
+
+        }
+
+        catch (InvalidArgumentException $e) {
+            throw new FluxionException("Invalid target path: " . $e->getMessage());
+        }
+
+        catch (RuntimeException $e) {
+            throw new FluxionException("Failed to move uploaded file: " . $e->getMessage());
+        }
+
+        # Retorna dados
+
+        $json = [
+            'ok' => true,
+        ];
+
+        return ResponseFactory::fromJson($json);
+
+    }
+
+    /**
      * @throws PermissionDeniedFluxionException
      * @throws FluxionException
      * @throws ReflectionException
@@ -465,6 +542,7 @@ class CrudController extends Controller
 
     /**
      * @throws FluxionException
+     * @noinspection PhpUnused
      */
     public function actionFields(RequestInterface $request, Route $route): MessageInterface
     {
@@ -488,8 +566,6 @@ class CrudController extends Controller
         # Campos
 
         $fields = $model->getActionFields($save, $action);
-
-        $footer = $model->getFormFooter($action);
 
         # Retorna dados
 
@@ -578,6 +654,16 @@ class CrudController extends Controller
 
         return ResponseFactory::fromJson($json);
 
+    }
+
+    /**
+     * @throws FluxionException
+     * @noinspection PhpUnused
+     * @noinspection PhpUnusedParameterInspection
+     */
+    public function download(RequestInterface $request, Route $route, stdClass $args): MessageInterface
+    {
+        throw new FluxionException("Implementar");
     }
 
 }

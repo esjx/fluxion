@@ -12,5 +12,6 @@ enum Permission
     case UPDATE;
     case DELETE;
     case DOWNLOAD;
+    case UPLOAD;
 
 }
