@@ -711,6 +711,8 @@ class CrudController extends Controller
 
         foreach ($query->select() as $row) {
 
+            $row->changeState(State::DOWNLOAD);
+
             $itens = [];
 
             foreach ($fields as $key => $field) {
