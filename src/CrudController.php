@@ -665,6 +665,8 @@ class CrudController extends Controller
 
         $auth = Config::getAuth();
 
+        $encoding = $_ENV['EXPORT_CSV_ENCODING'] ?? 'UTF-8';
+
         $dir = $_ENV['LOCAL_UPLOAD'] ?? '';
 
         $dir .= '/temp/downloads/';
@@ -695,7 +697,13 @@ class CrudController extends Controller
                 continue;
             }
 
-            $itens[] = $detail->label;
+            $label = $detail->label;
+
+            if ($encoding != 'UTF-8') {
+                $label = iconv('UTF-8', $encoding, $label);
+            }
+
+            $itens[] = $label;
 
         }
 
@@ -728,7 +736,15 @@ class CrudController extends Controller
                 }
 
                 else {
-                    $itens[] = strip_tags($field->getAuditValue($value));
+
+                    $value = strip_tags($field->getAuditValue($value));
+
+                    if ($encoding != 'UTF-8') {
+                        $value = iconv('UTF-8', $encoding, $value);
+                    }
+
+                    $itens[] = $value;
+
                 }
 
             }
