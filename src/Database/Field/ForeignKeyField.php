@@ -112,7 +112,7 @@ class ForeignKeyField extends Field
 
     }
 
-    public function getSearch(string $value): null|QueryWhere|QuerySql
+    public function getSearch(string $value): ?QueryWhere
     {
 
         $field = match ($this->_type) {

@@ -358,7 +358,7 @@ abstract class Field
         return $this->_type_target;
     }
 
-    public function getSearch(string $value): null|QueryWhere|QuerySql
+    public function getSearch(string $value): ?QueryWhere
     {
         return null;
     }

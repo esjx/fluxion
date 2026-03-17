@@ -105,22 +105,22 @@ class DateField extends Field
 
     }
 
-    public function getSearch(string $value): null|QueryWhere|QuerySql
+    public function getSearch(string $value): ?QueryWhere
     {
 
         if (preg_match('/^\d{4}$/', $value)) {
-            return QuerySql::filter($this->_name . '__year', (int) $value);
+            return new QueryWhere($this->_name . '__year', (int) $value);
         }
 
         elseif (preg_match('/^(?P<month>\d{2})\/(?P<year>\d{4})$/', $value, $matches)) {
-            return QuerySql::_and([
+            return new QueryWhere(QuerySql::_and([
                 QuerySql::filter($this->_name . '__year', (int) $matches['year']),
                 QuerySql::filter($this->_name . '__month', (int) $matches['month']),
-            ]);
+            ]));
         }
 
         elseif ($value = Time::convert($value)) {
-            return QuerySql::filter($this->_name, $value);
+            return new QueryWhere($this->_name, $value);
         }
 
         return null;

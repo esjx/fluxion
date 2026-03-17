@@ -63,7 +63,7 @@ class IntegerField extends Field
 
     }
 
-    public function getSearch(string $value): null|QueryWhere|QuerySql
+    public function getSearch(string $value): ?QueryWhere
     {
 
         if (!is_numeric($value) || strlen($value) > 15) {

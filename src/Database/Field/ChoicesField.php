@@ -77,7 +77,7 @@ class ChoicesField extends Field
 
     }
 
-    public function getSearch(string $value): null|QueryWhere|QuerySql
+    public function getSearch(string $value): ?QueryWhere
     {
 
         return match ($this->_type) {
