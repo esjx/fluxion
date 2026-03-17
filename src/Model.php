@@ -16,7 +16,9 @@ abstract class Model
     #[FloatField(protected: true, fake: true)]
     public ?float $total = null;
 
-    /** @throws FluxionException */
+    /**
+     * @throws FluxionException
+     */
     public function __construct()
     {
 

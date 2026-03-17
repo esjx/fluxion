@@ -2,7 +2,7 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
-use Fluxion\Database\FormField;
+use Fluxion\Database\{FormField};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class HtmlField extends StringField
@@ -26,6 +26,17 @@ class HtmlField extends StringField
 
         if (empty($value)) {
             return '<span class="text-pink"><i>(Vazio)</i></span>';
+        }
+
+        return strip_tags($value);
+
+    }
+
+    public function getExportValue(mixed $value): string
+    {
+
+        if (empty($value)) {
+            return '';
         }
 
         return strip_tags($value);

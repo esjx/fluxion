@@ -222,6 +222,17 @@ abstract class Field
 
     }
 
+    public function getExportValue(mixed $value): string
+    {
+
+        if (is_null($value) || $value == []) {
+            return '';
+        }
+
+        return (string) $value;
+
+    }
+
     public function translate(mixed $value): mixed
     {
 

@@ -2,13 +2,12 @@
 namespace Fluxion;
 
 use stdClass;
-use ReflectionException;
 use RuntimeException;
 use InvalidArgumentException;
 use Fluxion\Menu\{MenuGroup};
 use Fluxion\Query\{QuerySql};
 use Fluxion\Exception\{PermissionDeniedFluxionException};
-use Fluxion\Database\Field\ColorField;
+use Fluxion\Database\Field\{ForeignKeyField, ManyToManyField, ColorField};
 use Psr\Http\Message\{MessageInterface, RequestInterface, UploadedFileInterface};
 
 /**
@@ -184,7 +183,6 @@ class CrudController extends Controller
 
     /**
      * @throws FluxionException
-     * @throws ReflectionException
      */
     public function data(RequestInterface $request, Route $route): MessageInterface
     {
@@ -463,7 +461,6 @@ class CrudController extends Controller
     /**
      * @throws PermissionDeniedFluxionException
      * @throws FluxionException
-     * @throws ReflectionException
      */
     #[Transaction]
     public function save(RequestInterface $request, Route $route): MessageInterface
@@ -507,7 +504,6 @@ class CrudController extends Controller
     /**
      * @throws PermissionDeniedFluxionException
      * @throws FluxionException
-     * @throws ReflectionException
      * @noinspection PhpUnused
      */
     #[Transaction]
@@ -656,9 +652,23 @@ class CrudController extends Controller
 
     }
 
+    private function encode(string $string): string
+    {
+
+        $encoding = $_ENV['EXPORT_CSV_ENCODING'] ?? 'UTF-8';
+
+        if ($encoding != 'UTF-8') {
+            $string = iconv('UTF-8', $encoding, $string);
+        }
+
+        return $string;
+
+    }
+
+    protected int $export_limit = 10000;
+
     /**
      * @throws FluxionException
-     * @throws ReflectionException
      */
     public function download(RequestInterface $request, Route $route, stdClass $args): void
     {
@@ -667,11 +677,7 @@ class CrudController extends Controller
 
         $auth = Config::getAuth();
 
-        $encoding = $_ENV['EXPORT_CSV_ENCODING'] ?? 'UTF-8';
-
-        $dir = $_ENV['LOCAL_UPLOAD'] ?? '';
-
-        $dir .= '/temp/downloads/';
+        $dir = $_ENV['LOCAL_TEMP'] ?? 'temp';
 
         FileManager::createDir($dir);
 
@@ -687,9 +693,29 @@ class CrudController extends Controller
 
         $file = fopen($dir . $file_name, 'w');
 
+        # Consultas
+
+        $query = $model->query();
+
+        if (!empty($args->d)) {
+            $query = $model->filterItens($query, json_decode(base64_decode($args->d))->filters);
+        }
+
+        $quantity = (clone $query)->count()->firstOrNew()->total;
+
+        if ($quantity == 0) {
+            fputcsv($file, ['Nenhum registro encontrado!'], ';');
+        }
+
+        elseif ($quantity > $this->export_limit) {
+            fputcsv($file, ["Quantidade de registros limitada a $this->export_limit!"], ';');
+            $query = $query->limit($this->export_limit);
+        }
+
         # Cabeçalho
 
         $itens = [];
+        $cache = [];
 
         foreach ($fields as $key => $field) {
 
@@ -699,25 +725,50 @@ class CrudController extends Controller
                 continue;
             }
 
-            $label = $detail->label;
+            if ($field instanceof ForeignKeyField) {
 
-            if ($encoding != 'UTF-8') {
-                $label = iconv('UTF-8', $encoding, $label);
+                $cache[$key] = [];
+
+                $mn_field_id = $field->getReferenceModel()->getFieldId()->getName();
+
+                foreach ($field->getReferenceModel()::query()
+                             ->filter($mn_field_id, (clone $query)->only($key))->select() as $row) {
+
+                    $cache[$key][$row->$mn_field_id] = $this->encode((string) $row);
+
+                }
+
             }
 
-            $itens[] = $label;
+            elseif ($field instanceof ManyToManyField) {
+
+                $cache[$key] = [];
+
+                $field_id = $model->getFieldId()->getName();
+                $mn_field_id = $field->getReferenceModel()->getFieldId()->getName();
+
+                $mn_model = $field->getManyToManyModel();
+
+                $list_right = $mn_model->_query()
+                    ->filter($mn_model->getLeft(), (clone $query)->only($field_id))
+                    ->groupBy($mn_model->getRight());
+
+                foreach ($field->getReferenceModel()::filter($mn_field_id, $list_right)
+                             ->select() as $row) {
+
+                    $cache[$key][$row->$mn_field_id] = $this->encode((string) $row);
+
+                }
+
+            }
+
+            $itens[] = $this->encode($detail->label);
 
         }
 
         fputcsv($file, $itens, ';');
 
         # Dados
-
-        $query = $model->query();
-
-        if (!empty($args->d)) {
-            $query = $model->filterItens($query, json_decode(base64_decode($args->d))->filters);
-        }
 
         foreach ($query->select() as $row) {
 
@@ -737,16 +788,24 @@ class CrudController extends Controller
                     $itens[] = '';
                 }
 
-                else {
+                elseif ($field instanceof ForeignKeyField) {
+                    $itens[] = $cache[$key][$value] ?? $value;
+                }
 
-                    $value = strip_tags($field->getAuditValue($value));
+                elseif ($field instanceof ManyToManyField) {
 
-                    if ($encoding != 'UTF-8') {
-                        $value = iconv('UTF-8', $encoding, $value);
+                    $list = [];
+
+                    foreach ($value as $v) {
+                        $list[] = $cache[$key][$v] ?? $v;
                     }
 
-                    $itens[] = $value;
+                    $itens[] = implode(', ', $list);
 
+                }
+
+                else {
+                    $itens[] = $this->encode($field->getExportValue($value));
                 }
 
             }

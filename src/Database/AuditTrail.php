@@ -2,7 +2,6 @@
 namespace Fluxion\Database;
 
 use Attribute;
-use ReflectionException;
 use Fluxion\{AuditTrailModel, Config, FluxionException, Model, State, Time};
 
 #[Attribute(Attribute::TARGET_CLASS)]
@@ -93,7 +92,6 @@ class AuditTrail
 
     /**
      * @throws FluxionException
-     * @throws ReflectionException
      */
     public function registerUpdate(Model $model): void
     {
@@ -148,7 +146,6 @@ class AuditTrail
 
     /**
      * @throws FluxionException
-     * @throws ReflectionException
      */
     public function registerDelete(Model $model): void
     {

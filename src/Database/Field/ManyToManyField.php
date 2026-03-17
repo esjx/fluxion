@@ -2,7 +2,6 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
-use ReflectionException;
 use Fluxion\{FluxionException, ManyToManyModel, Model};
 use Fluxion\Database\{Field};
 
@@ -26,7 +25,6 @@ class ManyToManyField extends Field
 
     /**
      * @throws FluxionException
-     * @throws ReflectionException
      */
     public function getManyToManyModel(): ManyToManyModel
     {
@@ -45,7 +43,6 @@ class ManyToManyField extends Field
 
     /**
      * @throws FluxionException
-     * @throws ReflectionException
      */
     public function getValue($row = false): mixed
     {
@@ -63,7 +60,6 @@ class ManyToManyField extends Field
     }
 
     /**
-     * @throws ReflectionException
      * @throws FluxionException
      */
     public function load(): void

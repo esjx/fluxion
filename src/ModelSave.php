@@ -1,7 +1,6 @@
 <?php
 namespace Fluxion;
 
-use ReflectionException;
 use Fluxion\Database\{AuditTrail};
 
 trait ModelSave
@@ -34,7 +33,6 @@ trait ModelSave
     public function onSaved(): void {}
 
     /**
-     * @throws ReflectionException
      * @throws FluxionException
      */
     public function save(): bool
@@ -64,7 +62,6 @@ trait ModelSave
 
     /**
      * @throws FluxionException
-     * @throws ReflectionException
      */
     public function delete(): void
     {

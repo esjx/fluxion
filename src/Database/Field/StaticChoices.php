@@ -165,4 +165,30 @@ trait StaticChoices
 
     }
 
+    /**
+     * @throws FluxionException
+     */
+    public function getExportValue(mixed $value): string
+    {
+
+        if (empty($value)) {
+            return '';
+        }
+
+        $this->createChoices();
+
+        if (!$this->multiple) {
+            return $this->choices[$value] ?? $value;
+        }
+
+        $items = [];
+
+        foreach ($value as $k) {
+            $items[] = $this->choices[$k] ?? $k;
+        }
+
+        return implode(', ', $items);
+
+    }
+
 }

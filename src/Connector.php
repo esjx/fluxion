@@ -6,7 +6,6 @@ use Generator;
 use PDO;
 use PDOException;
 use PDOStatement;
-use ReflectionException;
 use Fluxion\Database\Field\{ManyChoicesField, ManyToManyField};
 use Fluxion\Query\{QueryWhere};
 use Fluxion\Exception\{SqlFluxionException};
@@ -218,7 +217,6 @@ abstract class Connector
     }
 
     /** @throws FluxionException
-     * @throws ReflectionException
      */
     public function sync(string $class_name): void
     {
@@ -290,7 +288,6 @@ abstract class Connector
     }
 
     /**
-     * @throws ReflectionException
      * @throws FluxionException
      */
     public function initialData(Model $model): void
@@ -524,7 +521,6 @@ abstract class Connector
 
     /**
      * @throws FluxionException
-     * @throws ReflectionException
      */
     public function save(Model $model): bool
     {

@@ -208,4 +208,30 @@ trait DynamicChoices
 
     }
 
+    /**
+     * @throws FluxionException
+     */
+    public function getExportValue(mixed $value): string
+    {
+
+        if (empty($value)) {
+            return '';
+        }
+
+        if (!$this->multiple) {
+            return (string) $this->getReferenceModel()::loadById($value);
+        }
+
+        $items = [];
+
+        $field_id = $this->getReferenceModel()->getFieldId()->getName();
+
+        foreach ($this->getReferenceModel()::filter($field_id, $value)->select() as $k) {
+            $items[] = (string) $k;
+        }
+
+        return implode(', ', $items);
+
+    }
+
 }

@@ -2,7 +2,6 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
-use ReflectionException;
 use Fluxion\{FluxionException, ManyChoicesModel, Model};
 use Fluxion\Database\{Field};
 
@@ -27,7 +26,6 @@ class ManyChoicesField extends Field
 
     /**
      * @throws FluxionException
-     * @throws ReflectionException
      */
     public function getManyChoicesModel(): ManyChoicesModel
     {
@@ -46,7 +44,6 @@ class ManyChoicesField extends Field
 
     /**
      * @throws FluxionException
-     * @throws ReflectionException
      */
     public function getValue($row = false): mixed
     {
@@ -64,7 +61,6 @@ class ManyChoicesField extends Field
     }
 
     /**
-     * @throws ReflectionException
      * @throws FluxionException
      */
     public function load(): void

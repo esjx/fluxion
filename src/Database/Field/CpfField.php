@@ -23,4 +23,15 @@ class CpfField extends StringField
 
     }
 
+    public function getExportValue(mixed $value): string
+    {
+
+        if (empty($value)) {
+            return '';
+        }
+
+        return Cpf::mask($value);
+
+    }
+
 }

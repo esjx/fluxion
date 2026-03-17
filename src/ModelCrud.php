@@ -1,7 +1,6 @@
 <?php
 namespace Fluxion;
 
-use ReflectionException;
 use stdClass;
 use Fluxion\Database\{Crud, Detail, Field, FormGroup, FormInline, Inline};
 use Fluxion\Query\QuerySql;
@@ -154,7 +153,6 @@ trait ModelCrud
     /**
      * @return array<string, Connector\TableTab>
      * @throws FluxionException
-     * @throws ReflectionException
      */
     public function getTabs(Query $query): array
     {
@@ -298,7 +296,6 @@ trait ModelCrud
     /**
      * @return array<string, Connector\TableFilter>
      * @throws FluxionException
-     * @throws ReflectionException
      */
     public function getFilters(Query $query, stdClass $filters): array
     {
@@ -521,7 +518,6 @@ trait ModelCrud
 
     /**
      * @throws FluxionException
-     * @throws ReflectionException
      */
     public function tab(Query $query, null|string|int &$tab, null|string|int $default_tab): Query
     {
@@ -649,7 +645,6 @@ trait ModelCrud
 
     /**
      * @throws FluxionException
-     * @throws ReflectionException
      */
     public function executeAction(Action $action): void
     {
@@ -714,7 +709,6 @@ trait ModelCrud
 
     /**
      * @throws FluxionException
-     * @throws ReflectionException
      */
     public function filterItens(Query $query, stdClass $filters): Query
     {
@@ -880,7 +874,6 @@ trait ModelCrud
 
     /**
      * @throws FluxionException
-     * @throws ReflectionException
      */
     public function saveFromForm(stdClass $is): void
     {

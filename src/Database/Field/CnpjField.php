@@ -23,4 +23,15 @@ class CnpjField extends StringField
 
     }
 
+    public function getExportValue(mixed $value): string
+    {
+
+        if (empty($value)) {
+            return '';
+        }
+
+        return Cnpj::mask($value);
+
+    }
+
 }

@@ -94,4 +94,15 @@ class DateField extends Field
 
     }
 
+    public function getExportValue(mixed $value): string
+    {
+
+        if (empty($value)) {
+            return '';
+        }
+
+        return Time::convert($value, 'd/m/Y');
+
+    }
+
 }

@@ -2,8 +2,7 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
-use Fluxion\Database\Field;
-use Fluxion\Time;
+use Fluxion\Database\{Field};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class BooleanField extends Field
@@ -63,6 +62,17 @@ class BooleanField extends Field
         }
 
         return ($value) ? '&#x26AB;' : '&#x26AA';
+
+    }
+
+    public function getExportValue(mixed $value): string
+    {
+
+        if (is_null($value)) {
+            return '';
+        }
+
+        return ($value) ? 'S' : 'N';
 
     }
 

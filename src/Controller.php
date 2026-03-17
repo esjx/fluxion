@@ -33,7 +33,6 @@ class Controller
     }
 
     /**
-     * @throws ReflectionException
      * @throws FluxionException
      * @noinspection PhpUnused
      */
@@ -58,7 +57,11 @@ class Controller
 
         $list = [];
 
-        $ref_controller = new ReflectionClass($class_name);
+        try {
+            $ref_controller = new ReflectionClass($class_name);
+        } catch (ReflectionException $e) {
+            throw new FluxionException($e->getMessage());
+        }
 
         $dir = dirname($ref_controller->getFileName());
 
@@ -72,7 +75,11 @@ class Controller
 
                 $class = $ref_controller->getNamespaceName() . $file;
 
-                $ref_model = new ReflectionClass($class);
+                try {
+                    $ref_model = new ReflectionClass($class);
+                } catch (ReflectionException $e) {
+                    throw new FluxionException($e->getMessage());
+                }
 
                 if ($ref_model->isSubclassOf(Model::class) && !$ref_model->isAbstract()) {
                     if (!(new $class())->getTable()->view) {
@@ -190,7 +197,6 @@ class Controller
     }
 
     /**
-     * @throws ReflectionException
      * @throws FluxionException
      * @noinspection PhpUnusedParameterInspection
      */
@@ -199,7 +205,11 @@ class Controller
 
         $class_name = get_called_class();
 
-        $reflection = new ReflectionClass($class_name);
+        try {
+            $reflection = new ReflectionClass($class_name);
+        } catch (ReflectionException $e) {
+            throw new FluxionException($e->getMessage());
+        }
 
         # Busca as rotas do Controller
 

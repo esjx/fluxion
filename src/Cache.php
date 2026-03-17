@@ -4,7 +4,7 @@ namespace Fluxion;
 class Cache
 {
 
-    public const CACHE_LIMIT = 100;
+    public const CACHE_LIMIT = 500;
 
     private static array $_data = [];
 

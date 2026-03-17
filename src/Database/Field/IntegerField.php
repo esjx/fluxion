@@ -2,8 +2,8 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
-use Fluxion\Database\Field;
-use Fluxion\TextFormatter;
+use Fluxion\{TextFormatter};
+use Fluxion\Database\{Field};
 use Fluxion\Query\{QuerySql, QueryWhere};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -79,6 +79,17 @@ class IntegerField extends Field
 
         if (is_null($value)) {
             return '<span class="text-pink"><i>(Vazio)</i></span>';
+        }
+
+        return TextFormatter::number($value, 0);
+
+    }
+
+    public function getExportValue(mixed $value): string
+    {
+
+        if (empty($value)) {
+            return '';
         }
 
         return TextFormatter::number($value, 0);

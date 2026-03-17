@@ -68,7 +68,6 @@ class App
     /**
      * @param Route[] $routes
      * @throws FluxionException
-     * @throws ReflectionException
      */
     public function dispatch(RequestInterface $request, array $routes, array $args = []): bool
     {
@@ -84,7 +83,11 @@ class App
 
                 if ($route->getClass() && $route->getMethod()) {
 
-                    $reflection = new ReflectionMethod($route->getClass(), $route->getMethod());
+                    try {
+                        $reflection = new ReflectionMethod($route->getClass(), $route->getMethod());
+                    } catch (ReflectionException $e) {
+                        throw new FluxionException($e->getMessage());
+                    }
 
                     $parameters = $reflection->getParameters();
 
@@ -415,7 +418,11 @@ class App
 
             foreach ($this->controllers as $controller) {
 
-                $reflection = new ReflectionClass($controller);
+                try {
+                    $reflection = new ReflectionClass($controller);
+                } catch (ReflectionException $e) {
+                    throw new FluxionException($e->getMessage());
+                }
 
                 $methods = $reflection->getMethods(ReflectionMethod::IS_PUBLIC);
 

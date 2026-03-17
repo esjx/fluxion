@@ -2,7 +2,6 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
-use ReflectionException;
 use Fluxion\Database\Field;
 use Fluxion\Database\FormField;
 use Fluxion\FluxionException;
@@ -22,8 +21,8 @@ class PasswordField extends Field
         parent::__construct();
     }
 
-    /** @throws FluxionException
-     * @throws ReflectionException
+    /**
+     * @throws FluxionException
      */
     public function validadePassword($password): bool
     {
