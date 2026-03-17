@@ -49,7 +49,7 @@ class StringField extends Field
 
     }
 
-    public function getSearch(string $value): ?QueryWhere
+    public function getSearch(string $value): null|QueryWhere|QuerySql
     {
         #TODO: fulltext search
         return QuerySql::filter("{$this->_name}__like", "$value%");

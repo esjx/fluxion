@@ -3,7 +3,7 @@ namespace Fluxion\Database\Field;
 
 use Attribute;
 use Fluxion\Database\{Field, FormField};
-use Fluxion\{FluxionException, Time};
+use Fluxion\{FluxionException, Query\QuerySql, Query\QueryWhere, Time};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class DateField extends Field
@@ -102,6 +102,28 @@ class DateField extends Field
         }
 
         return Time::convert($value, 'd/m/Y');
+
+    }
+
+    public function getSearch(string $value): null|QueryWhere|QuerySql
+    {
+
+        if (preg_match('/^\d{4}$/', $value)) {
+            return QuerySql::filter($this->_name . '__year', (int) $value);
+        }
+
+        elseif (preg_match('/^(?P<month>\d{2})\/(?P<year>\d{4})$/', $value, $matches)) {
+            return QuerySql::_and([
+                QuerySql::filter($this->_name . '__year', (int) $matches['year']),
+                QuerySql::filter($this->_name . '__month', (int) $matches['month']),
+            ]);
+        }
+
+        elseif ($value = Time::convert($value)) {
+            return QuerySql::filter($this->_name, $value);
+        }
+
+        return null;
 
     }
 

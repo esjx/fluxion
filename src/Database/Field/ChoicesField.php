@@ -4,6 +4,8 @@ namespace Fluxion\Database\Field;
 use Attribute;
 use Fluxion\Database\Field;
 use Fluxion\FluxionException;
+use Fluxion\Query\QuerySql;
+use Fluxion\Query\QueryWhere;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class ChoicesField extends Field
@@ -71,6 +73,17 @@ class ChoicesField extends Field
         return match ($this->_type) {
             'integer' => (new IntegerField(null_if_invalid: $this->null_if_invalid))->validate($value),
             default => (new StringField())->validate($value),
+        };
+
+    }
+
+    public function getSearch(string $value): null|QueryWhere|QuerySql
+    {
+
+        return match ($this->_type) {
+            'integer' => (new IntegerField())->getSearch($value),
+            'string' => (new StringField())->getSearch($value),
+            default => parent::getSearch($value),
         };
 
     }

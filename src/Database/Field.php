@@ -2,7 +2,7 @@
 namespace Fluxion\Database;
 
 use Fluxion\{FluxionException, Model};
-use Fluxion\Query\{QueryWhere};
+use Fluxion\Query\{QuerySql, QueryWhere};
 
 abstract class Field
 {
@@ -358,7 +358,7 @@ abstract class Field
         return $this->_type_target;
     }
 
-    public function getSearch(string $value): ?QueryWhere
+    public function getSearch(string $value): null|QueryWhere|QuerySql
     {
         return null;
     }

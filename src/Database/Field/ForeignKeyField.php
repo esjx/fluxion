@@ -2,7 +2,7 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
-use Fluxion\{FluxionException, Model};
+use Fluxion\{FluxionException, Model, Query\QuerySql, Query\QueryWhere};
 use Fluxion\Database\{Field};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -109,6 +109,27 @@ class ForeignKeyField extends Field
             'datetime' => (new DateTimeField())->validate($value),
             default => (new StringField())->validate($value),
         };
+
+    }
+
+    public function getSearch(string $value): null|QueryWhere|QuerySql
+    {
+
+        $field = match ($this->_type) {
+            'integer' => (new IntegerField()),
+            'string' => (new StringField()),
+            'float' => (new FloatField()),
+            'date' => (new DateField()),
+            'datetime' => (new DateTimeField()),
+            default => null,
+        };
+
+        if ($field) {
+            $field->setName($this->_name);
+            return $field->getSearch($value);
+        }
+
+        return null;
 
     }
 
