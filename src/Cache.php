@@ -4,13 +4,21 @@ namespace Fluxion;
 class Cache
 {
 
+    public const CACHE_LIMIT = 100;
+
     private static array $_data = [];
 
     private function __construct() {}
 
     public static function setValue($key, $value): void
     {
+
+        if (count(self::$_data) >= self::CACHE_LIMIT) {
+            array_shift(self::$_data);
+        }
+
         self::$_data[$key] = $value;
+
     }
 
     public static function getValue($key): mixed

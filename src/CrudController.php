@@ -663,6 +663,8 @@ class CrudController extends Controller
     public function download(RequestInterface $request, Route $route, stdClass $args): void
     {
 
+        set_time_limit(-1);
+
         $auth = Config::getAuth();
 
         $encoding = $_ENV['EXPORT_CSV_ENCODING'] ?? 'UTF-8';
