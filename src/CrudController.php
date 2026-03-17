@@ -770,6 +770,10 @@ class CrudController extends Controller
 
         # Dados
 
+        if (!empty($args->d)) {
+            $query = $model->order($query, json_decode(base64_decode($args->d))->order);
+        }
+
         foreach ($query->select() as $row) {
 
             $row->changeState(State::DOWNLOAD);
