@@ -697,8 +697,18 @@ class CrudController extends Controller
 
         $query = $model->query();
 
+        $obj = new stdClass();
+
         if (!empty($args->d)) {
-            $query = $model->filterItens($query, json_decode(base64_decode($args->d))->filters);
+            $obj = json_decode(base64_decode($args->d));
+        }
+
+        if (!empty($obj->search)) {
+            $query = $model->search($query, $obj->search);
+        }
+
+        elseif (!empty($obj->filters)) {
+            $query = $model->filterItens($query, $obj->filters);
         }
 
         $quantity = (clone $query)->count()->firstOrNew()->total;
@@ -770,8 +780,8 @@ class CrudController extends Controller
 
         # Dados
 
-        if (!empty($args->d)) {
-            $query = $model->order($query, json_decode(base64_decode($args->d))->order);
+        if (!empty($obj->order)) {
+            $query = $model->order($query, $obj->order);
         }
 
         foreach ($query->select() as $row) {

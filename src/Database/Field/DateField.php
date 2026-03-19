@@ -108,11 +108,11 @@ class DateField extends Field
     public function getSearch(string $value): ?QueryWhere
     {
 
-        if (preg_match('/^\d{4}$/', $value)) {
+        if (preg_match('/^[19|20]\d{2}$/', $value)) {
             return new QueryWhere($this->_name . '__year', (int) $value);
         }
 
-        elseif (preg_match('/^(?P<month>\d{2})\/(?P<year>\d{4})$/', $value, $matches)) {
+        elseif (preg_match('/^(?P<month>[0-3]\d)\/(?P<year>[19|20]\d{2})$/', $value, $matches)) {
             return new QueryWhere(QuerySql::_and([
                 QuerySql::filter($this->_name . '__year', (int) $matches['year']),
                 QuerySql::filter($this->_name . '__month', (int) $matches['month']),
