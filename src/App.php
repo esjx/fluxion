@@ -9,7 +9,6 @@ use Exception as _Exception;
 use Fluxion\Exception\{PageNotFoundFluxionException, SqlFluxionException};
 use GuzzleHttp\Psr7\{Response, ServerRequest};
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
-use Micheh\Cache\CacheUtil;
 use Psr\Log\{LoggerInterface, LogLevel, NullLogger};
 use Psr\Http\Message\{RequestInterface, ResponseInterface};
 
@@ -155,14 +154,19 @@ class App
 
                         catch (_Exception $e) {
                             Config::getConnector()->getPDO()->rollBack();
-                            throw $e;
+                            throw new FluxionException($e->getMessage());
                         }
 
                     }
 
                     else {
 
-                        $out = $reflection->invokeArgs(new $control_name($request), $invoke_parameters);
+                        try {
+                            $out = $reflection->invokeArgs(new $control_name($request), $invoke_parameters);
+                        }
+                        catch (_Exception $e) {
+                            throw new FluxionException($e->getMessage());
+                        }
 
                     }
 
@@ -308,7 +312,7 @@ class App
 
         }
 
-        $util = new CacheUtil();
+        $util = new ResponseCache();
 
         $response = $util->withCachePrevention($response);
 

@@ -2,7 +2,6 @@
 namespace Fluxion;
 
 use GuzzleHttp\Psr7\{Response, Utils};
-use Micheh\Cache\CacheUtil;
 use Psr\Http\Message\{MessageInterface, RequestInterface};
 use ReflectionClass;
 use ReflectionException;
@@ -188,7 +187,7 @@ class Controller
 
         $response = new Response();
 
-        $util = new CacheUtil();
+        $util = new ResponseCache();
 
         $response = $util->withCachePrevention($response);
 

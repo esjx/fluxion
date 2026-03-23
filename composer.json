@@ -40,7 +40,6 @@
         "ext-zip": "*",
         "guzzlehttp/guzzle": "^7.10",
         "laminas/laminas-httphandlerrunner": "^2.13",
-        "micheh/psr7-cache": "^0.5.0",
         "psr/log": "^3.0",
         "psr/simple-cache": "^3.0"
     },

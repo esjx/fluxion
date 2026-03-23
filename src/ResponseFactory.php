@@ -3,48 +3,77 @@ namespace Fluxion;
 
 use stdClass;
 use Psr\Http\Message\{MessageInterface};
-use Micheh\Cache\{CacheUtil};
 use GuzzleHttp\Psr7\{Utils, Response};
 
 class ResponseFactory
 {
 
-    public static function fromView(View $view, int $code = 200): ?MessageInterface
+    public static function fromView(View $view, int $code = 200, ?int $max_age = null): ?MessageInterface
     {
-
-        $response = new Response();
 
         $stream = Utils::streamFor();
 
         $stream->write($view->load());
 
+        $response = new Response();
+
+        $util = new ResponseCache();
+
+        if (!$max_age) {
+            $response = $util->withCachePrevention($response);
+        }
+
+        else {
+            $response = $util->withCache($response, $max_age);
+        }
+
         return $response->withStatus($code)
             ->withBody($stream);
 
     }
 
-    public static function fromText(string $text, int $code = 200): ?MessageInterface
+    public static function fromText(string $text, int $code = 200, ?int $max_age = null): ?MessageInterface
     {
-
-        $response = new Response();
 
         $stream = Utils::streamFor();
 
         $stream->write($text);
 
+        $response = new Response();
+
+        $util = new ResponseCache();
+
+        if (!$max_age) {
+            $response = $util->withCachePrevention($response);
+        }
+
+        else {
+            $response = $util->withCache($response, $max_age);
+        }
+
         return $response->withStatus($code)
             ->withBody($stream);
 
     }
 
-    public static function fromJson(array|stdClass $json, int $code = 200): MessageInterface
+    public static function fromJson(array|stdClass $json, int $code = 200, ?int $max_age = null): MessageInterface
     {
-
-        $response = new Response();
 
         $stream = Utils::streamFor();
 
         $stream->write(json_encode($json, JSON_PRETTY_PRINT));
+
+        $response = new Response();
+
+        $util = new ResponseCache();
+
+        if (!$max_age) {
+            $response = $util->withCachePrevention($response);
+        }
+
+        else {
+            $response = $util->withCache($response, $max_age);
+        }
 
         return $response->withStatus($code)
             ->withBody($stream)
@@ -52,7 +81,7 @@ class ResponseFactory
 
     }
 
-    public static function fromFile(string $file, int $code = 200, bool $cache = false): MessageInterface
+    public static function fromFile(string $file, int $code = 200, ?int $max_age = null): MessageInterface
     {
 
         if (!file_exists($file)) {
@@ -69,14 +98,14 @@ class ResponseFactory
 
         $response = new Response();
 
-        $util = new CacheUtil();
+        $util = new ResponseCache();
 
-        if ($cache) {
+        if (!$max_age) {
             $response = $util->withCachePrevention($response);
         }
 
         else {
-            $response = $util->withCache($response);
+            $response = $util->withCache($response, $max_age);
         }
 
         return $response->withStatus($code)
