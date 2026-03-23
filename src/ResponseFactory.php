@@ -3,6 +3,7 @@ namespace Fluxion;
 
 use stdClass;
 use Psr\Http\Message\{MessageInterface};
+use Micheh\Cache\{CacheUtil};
 use GuzzleHttp\Psr7\{Utils, Response};
 
 class ResponseFactory
@@ -51,14 +52,12 @@ class ResponseFactory
 
     }
 
-    public static function fromFile(string $file, int $code = 200): MessageInterface
+    public static function fromFile(string $file, int $code = 200, bool $cache = false): MessageInterface
     {
 
         if (!file_exists($file)) {
             return self::fromText('File not found', 404);
         }
-
-        $response = new Response();
 
         $fileResource = fopen($file, 'r');
 
@@ -67,6 +66,18 @@ class ResponseFactory
         $mime_type = mime_content_type($file);
 
         $file_size = filesize($file);
+
+        $response = new Response();
+
+        $util = new CacheUtil();
+
+        if ($cache) {
+            $response = $util->withCachePrevention($response);
+        }
+
+        else {
+            $response = $util->withCache($response);
+        }
 
         return $response->withStatus($code)
             ->withBody($stream)
