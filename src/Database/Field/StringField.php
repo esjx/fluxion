@@ -55,7 +55,7 @@ class StringField extends Field
 
         #TODO: fulltext search
 
-        if (!$this->like) {
+        if ($this->like) {
             return QuerySql::filter("{$this->_name}__like", "$value%");
         }
 
