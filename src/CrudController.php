@@ -377,7 +377,7 @@ class CrudController extends Controller
             'size' => $crud_details->form_size,
             'header' => $model->getFormHeader(),
             'footer' => $model->getFormFooter(),
-            'title' => $model->getFormTitle(),
+            'title' => strip_tags($model->getFormTitle()),
             'subtitle' => $crud_details->subtitle,
             'fields' => $fields,
             'inlines' => $inlines,
