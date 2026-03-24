@@ -35,6 +35,7 @@ class ForeignKeyField extends Field
                                 public ?string $column_name = null,
                                 public ?string $typeahead = null,
                                 public ?bool   $enabled = true,
+                                public ?bool   $like = false,
                                 public ?string $change_state = null,
                                 bool $needs_audit = true)
     {
@@ -117,7 +118,7 @@ class ForeignKeyField extends Field
 
         $field = match ($this->_type) {
             'integer' => (new IntegerField()),
-            'string' => (new StringField()),
+            'string' => (new StringField(like: $this->like)),
             'float' => (new FloatField()),
             'date' => (new DateField()),
             'datetime' => (new DateTimeField()),

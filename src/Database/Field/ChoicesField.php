@@ -33,6 +33,7 @@ class ChoicesField extends Field
                                 public ?bool   $fake = false,
                                 public ?bool   $null_if_invalid = false,
                                 public ?bool   $enabled = true,
+                                public ?bool   $like = false,
                                 bool $needs_audit = true)
     {
 
@@ -80,11 +81,18 @@ class ChoicesField extends Field
     public function getSearch(string $value): ?QueryWhere
     {
 
-        return match ($this->_type) {
-            'integer' => (new IntegerField())->getSearch($value),
-            'string' => (new StringField())->getSearch($value),
-            default => parent::getSearch($value),
+        $field = match ($this->_type) {
+            'integer' => (new IntegerField()),
+            'string' => (new StringField(like: $this->like)),
+            default => null,
         };
+
+        if ($field) {
+            $field->setName($this->_name);
+            return $field->getSearch($value);
+        }
+
+        return null;
 
     }
 

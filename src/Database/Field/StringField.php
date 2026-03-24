@@ -24,6 +24,7 @@ class StringField extends Field
                                 protected bool $trim = true,
                                 public ?bool   $fake = false,
                                 public ?bool   $enabled = true,
+                                public ?bool   $like = false,
                                 bool $needs_audit = true)
     {
 
@@ -51,8 +52,15 @@ class StringField extends Field
 
     public function getSearch(string $value): ?QueryWhere
     {
+
         #TODO: fulltext search
-        return QuerySql::filter("{$this->_name}__like", "$value%");
+
+        if (!$this->like) {
+            return QuerySql::filter("{$this->_name}__like", "$value%");
+        }
+
+        return QuerySql::filter($this->_name, $value);
+
     }
 
     /**
