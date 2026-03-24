@@ -1009,4 +1009,9 @@ trait ModelCrud
 
     }
 
+    public function link(): ?string
+    {
+        return null;
+    }
+
 }

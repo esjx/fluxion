@@ -38,7 +38,7 @@ abstract class Auth
     }
 
     /** @noinspection PhpUnusedParameterInspection */
-    public function hasPermission(Model $model, Permission $permission): bool
+    public function hasPermission(Model|string $model, Permission $permission): bool
     {
         return true;
     }

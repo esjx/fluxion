@@ -164,7 +164,7 @@ class App
                         try {
                             $out = $reflection->invokeArgs(new $control_name($request), $invoke_parameters);
                         }
-                        catch (_Exception $e) {
+                        catch (ReflectionException $e) {
                             throw new FluxionException($e->getMessage());
                         }
 
