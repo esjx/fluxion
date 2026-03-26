@@ -249,7 +249,7 @@ trait Format
 
     public static function slug(string $str, string $separator = '-'): string
     {
-        return self::sanitize(strtolower(str_replace(' ', $separator, $str)));
+        return strtolower(str_replace(' ', $separator, self::sanitize($str)));
     }
 
     public static function onlyNumbers($str): string
