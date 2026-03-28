@@ -189,6 +189,32 @@ class FormFieldFactory
 
     }
 
+    public static function boolean(string  $name,
+                                  ?string $label = null,
+                                  bool    $visible = true,
+                                  bool    $enabled = true,
+                                  int     $size = 12,
+                                  bool    $required = false,
+                                  ?string $group_name = null,
+                                  ?string $help = null,
+                                  ?int     $value = null): FormField
+    {
+
+        return new FormField(
+            name: $name,
+            label: $label,
+            visible: $visible,
+            enabled: $enabled,
+            type: 'boolean',
+            size: $size,
+            required: $required,
+            group_name: $group_name,
+            help: $help,
+            value: $value
+        );
+
+    }
+
     /**
      * @throws FluxionException
      */
