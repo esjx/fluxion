@@ -28,13 +28,20 @@ enum Time: string
     public function value(): ?string
     {
 
+        $parts = explode('|', $this->value);
+
+        return self::create($parts[0], $parts[1] ?? 'Y-m-d H:i:s');
+
+    }
+
+    public function create(string $value, string $format = 'Y-m-d H:i:s'): ?string
+    {
+
         try {
 
-            $parts = explode('|', $this->value);
+            $date = new DateTime($value);
 
-            $date = new DateTime($parts[0]);
-
-            return $date->format($parts[1] ?? 'Y-m-d H:i:s');
+            return $date->format($format);
 
         } catch (_Exception) {
             return null;

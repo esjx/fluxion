@@ -18,7 +18,7 @@ class SQLServer extends Connector
 
     protected array $pdo_options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::SQLSRV_ATTR_QUERY_TIMEOUT => 15,
+        PDO::SQLSRV_ATTR_QUERY_TIMEOUT => 60,
         PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_UTF8,
     ];
 
@@ -995,7 +995,7 @@ class SQLServer extends Connector
             }
 
             if ($type == 'LIKE') {
-                return "$field {$not}LIKE {$this->escape($filter->value)}";
+                return "$field COLLATE Latin1_General_CI_AI {$not}LIKE {$this->escape($filter->value)}";
             }
 
             return "$not$field $type " . $this->escape($filter->value);

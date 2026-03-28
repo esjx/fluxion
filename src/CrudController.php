@@ -695,7 +695,7 @@ class CrudController extends Controller
 
         # Consultas
 
-        $query = $model->query();
+        $query = $this->permissionFilter($model::query(), $auth);
 
         $obj = new stdClass();
 
