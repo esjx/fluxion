@@ -36,7 +36,7 @@ class Controller
      * @noinspection PhpUnused
      */
     #[Route(route: '/setup', methods: 'GET')]
-    public static function setup(): MessageInterface
+    public function setup(): MessageInterface
     {
 
         $start_time = microtime(true);

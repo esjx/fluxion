@@ -11,14 +11,16 @@ class BooleanField extends Field
     protected string $_type = self::TYPE_BOOLEAN;
     protected string $_type_target = 'bool';
 
-    public function __construct(public ?bool $required = false,
-                                public ?bool $protected = false,
-                                public ?bool $readonly = false,
-                                public mixed $default = null,
-                                public bool  $default_literal = false,
-                                public ?bool $fake = false,
-                                public ?bool $enabled = true,
-                                bool $needs_audit = true)
+    public function __construct(public ?bool  $required = false,
+                                public ?bool  $protected = false,
+                                public ?bool  $readonly = false,
+                                public mixed  $default = null,
+                                public bool   $default_literal = false,
+                                public ?bool  $fake = false,
+                                public ?bool  $enabled = true,
+                                public string $true_title = 'Sim',
+                                public string $false_title = 'Não',
+                                bool          $needs_audit = true)
     {
 
         $this->_needs_audit = $needs_audit;

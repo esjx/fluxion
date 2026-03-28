@@ -21,6 +21,7 @@ class Crud
                                 public string          $update_title = 'Atualizado em',
                                 public string          $update_format = 'dd/MM/y HH:mm',
                                 public ?string         $field_tab = null,
+                                public ?bool           $tab_all = true,
                                 FormSize               $form_size = FormSize::MEDIUM,
                                 public int             $items_per_page = 20,
                                 public int             $refresh_time = 60000000)

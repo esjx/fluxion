@@ -97,8 +97,8 @@ class FormInline
         $inline_fields = [];
 
         $inline_fields[] = new FormField(
-            visible: false,
             name: '__id',
+            visible: false,
             type: 'string',
         );
 

@@ -8,15 +8,15 @@ class TableFilter
 
     public string $icon;
 
-    public function __construct(
-        public string $field,
-        public string $label,
-        Icon          $icon = Icon::COLLECTION_ITEM,
-        public array  $items = [],
-        public bool   $multiple = true)
+    public function __construct(public string $field,
+                                public string $label,
+                                Icon          $icon = Icon::COLLECTION_ITEM,
+                                public array  $items = [],
+                                public bool   $multiple = true)
     {
 
         $this->icon = $icon->value;
+        $this->label = strip_tags($this->label);
 
     }
 

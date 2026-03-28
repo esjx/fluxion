@@ -14,11 +14,11 @@ class FormField
 
     public array $choices = [];
 
-    public function __construct(public ?string $label = null,
+    public function __construct(public string  $name,
+                                public ?string $label = null,
                                 public ?array  $label_conditions = null,
                                 public bool    $visible = true,
                                 public ?array  $visible_conditions = null,
-                                public ?string $name = null,
                                 public bool    $enabled = true,
                                 public ?array  $enabled_conditions = null,
                                 public string  $type = 'string',
@@ -49,6 +49,10 @@ class FormField
             $this->pattern = preg_replace('/^\//', '', $this->pattern);
             $this->pattern = preg_replace('/\/\w*$/', '', $this->pattern);
 
+        }
+
+        if (is_null($this->label)) {
+            $this->label = ucfirst($this->name);
         }
 
     }

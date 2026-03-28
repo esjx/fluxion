@@ -378,11 +378,11 @@ abstract class Field
         }
 
         return new FormField(
+            name: $this->_name,
             label: $detail->label,
             label_conditions: $detail->label_conditions,
             visible: empty($detail->visible_conditions),
             visible_conditions: $detail->visible_conditions,
-            name: $this->_name,
             enabled: $enabled && empty($detail->enabled_conditions),
             enabled_conditions: $detail->enabled_conditions,
             type: $this->_type,

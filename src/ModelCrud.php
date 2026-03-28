@@ -171,7 +171,9 @@ trait ModelCrud
 
         $item = (clone $query)->count()->first();
 
-        $list[] = new Connector\TableTab(id: null, label: '(Todos)', items: $item->total);
+        if ($crud->tab_all) {
+            $list[] = new Connector\TableTab(id: null, label: '(Todos)', items: $item->total);
+        }
 
         if ($field instanceof Field\ChoicesField) {
 
@@ -190,10 +192,10 @@ trait ModelCrud
 
         elseif ($field instanceof Field\BooleanField) {
 
-            foreach ((clone $query)->groupBy($key)->orderBy($key)->count($key)->select() as $item) {
+            foreach ((clone $query)->groupBy($key)->orderBy("-$key")->count($key)->select() as $item) {
 
                 $id = $item->$key;
-                $label = ($id) ? 'Sim' : 'Não';
+                $label = ($id) ? $field->true_title : $field->false_title;
 
                 $list[] = new Connector\TableTab(id: $id, label: $label, items: $item->total);
 
@@ -360,15 +362,15 @@ trait ModelCrud
             elseif ($field instanceof Field\BooleanField) {
 
                 $filter->items[] = new Connector\TableFilterItem(
-                    id: false,
-                    label: 'Não',
-                    active: in_array(false, $options)
+                    id: true,
+                    label: $field->true_title,
+                    active: in_array(true, $options)
                 );
 
                 $filter->items[] = new Connector\TableFilterItem(
-                    id: true,
-                    label: 'Sim',
-                    active: in_array(true, $options)
+                    id: false,
+                    label: $field->false_title,
+                    active: in_array(false, $options)
                 );
 
             }
@@ -524,7 +526,7 @@ trait ModelCrud
 
         $crud = $this->getCrud();
 
-        if (is_null($tab) || is_null($crud->field_tab)) {
+        if (is_null($crud->field_tab) || (is_null($tab) && $crud->tab_all)) {
             return $query;
         }
 

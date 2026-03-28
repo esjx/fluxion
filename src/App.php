@@ -33,6 +33,7 @@ class App
     /** @var Route[] */
     protected static array $routes = [];
 
+    /** @var Controller[] */
     protected array $controllers = [];
 
     public function __construct()
@@ -209,7 +210,7 @@ class App
                 throw new FluxionException("Classe $controller não é um Controller!");
             }
 
-            $this->controllers[] = $controller;
+            $this->controllers[] = $control;
             $this::$routes = array_merge($this::$routes, $control->getRoutes());
 
         }
@@ -391,9 +392,7 @@ class App
 
             foreach ($this->controllers as $controller) {
 
-                /** @var Controller $controller */
-
-                $response = $controller::setup();
+                $response = $controller->setup();
                 $response->getBody()->rewind();
 
                 $view->content .= $response->getBody()->getContents();
