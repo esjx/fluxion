@@ -158,17 +158,17 @@ class FormFieldFactory
     }
 
     public static function integer(string  $name,
-                                  ?string $label = null,
-                                  bool    $visible = true,
-                                  bool    $enabled = true,
-                                  int     $size = 12,
-                                  ?int    $min = null,
-                                  ?int    $max = null,
-                                  bool    $required = false,
-                                  string  $placeholder = '',
-                                  ?string $group_name = null,
-                                  ?string $help = null,
-                                  ?int     $value = null): FormField
+                                   ?string $label = null,
+                                   bool    $visible = true,
+                                   bool    $enabled = true,
+                                   int     $size = 12,
+                                   ?int    $min = null,
+                                   ?int    $max = null,
+                                   bool    $required = false,
+                                   string  $placeholder = '',
+                                   ?string $group_name = null,
+                                   ?string $help = null,
+                                   ?int     $value = null): FormField
     {
 
         return new FormField(
@@ -190,14 +190,14 @@ class FormFieldFactory
     }
 
     public static function boolean(string  $name,
-                                  ?string $label = null,
-                                  bool    $visible = true,
-                                  bool    $enabled = true,
-                                  int     $size = 12,
-                                  bool    $required = false,
-                                  ?string $group_name = null,
-                                  ?string $help = null,
-                                  ?int     $value = null): FormField
+                                   ?string $label = null,
+                                   bool    $visible = true,
+                                   bool    $enabled = true,
+                                   int     $size = 12,
+                                   bool    $required = false,
+                                   ?string $group_name = null,
+                                   ?string $help = null,
+                                   ?int     $value = null): FormField
     {
 
         return new FormField(
@@ -219,25 +219,25 @@ class FormFieldFactory
      * @throws FluxionException
      */
     public static function staticChoices(string  $name,
-                                   ?string $label = null,
-                                   bool    $string = false,
-                                   bool    $radio = false,
-                                   bool    $inline = false,
-                                   bool    $multiple = false,
-                                   bool    $visible = true,
-                                   bool    $enabled = true,
-                                   int     $size = 12,
-                                   ?int    $min = null,
-                                   ?int    $max = null,
-                                   bool    $required = false,
-                                   string  $placeholder = '',
-                                   ?string $group_name = null,
-                                   ?string $help = null,
-                                   ?string $class_name = null,
-                                   array   $filters = [],
-                                   array   $choices = [],
-                                   array   $choices_colors = [],
-                                   mixed   $value = null): FormField
+                                         ?string $class_name = null,
+                                         ?string $label = null,
+                                         bool    $string = false,
+                                         bool    $radio = false,
+                                         bool    $inline = false,
+                                         bool    $multiple = false,
+                                         bool    $visible = true,
+                                         bool    $enabled = true,
+                                         int     $size = 12,
+                                         ?int    $min = null,
+                                         ?int    $max = null,
+                                         bool    $required = false,
+                                         string  $placeholder = '',
+                                         ?string $group_name = null,
+                                         ?string $help = null,
+                                         array   $filters = [],
+                                         array   $choices = [],
+                                         array   $choices_colors = [],
+                                         mixed   $value = null): FormField
     {
 
         $form_field = new FormField(
@@ -340,23 +340,23 @@ class FormFieldFactory
      * @throws FluxionException
      */
     public static function dynamicChoices(string  $name,
-                                   ?string $label = null,
-                                   bool    $radio = false,
-                                   bool    $multiple = false,
-                                   bool    $visible = true,
-                                   bool    $enabled = true,
-                                   int     $size = 12,
-                                   ?int    $min = null,
-                                   ?int    $max = null,
-                                   bool    $required = false,
-                                   string  $placeholder = '',
-                                   ?string $group_name = null,
-                                   ?string $help = null,
-                                   ?string $class_name = null,
-                                   ?string $typeahead = null,
-                                   array   $filters = [],
-                                   array   $extras = [],
-                                   mixed   $value = null): FormField
+                                          string  $class_name,
+                                          ?string $label = null,
+                                          bool    $radio = false,
+                                          bool    $multiple = false,
+                                          bool    $visible = true,
+                                          bool    $enabled = true,
+                                          int     $size = 12,
+                                          ?int    $min = null,
+                                          ?int    $max = null,
+                                          bool    $required = false,
+                                          string  $placeholder = '',
+                                          ?string $group_name = null,
+                                          ?string $help = null,
+                                          ?string $typeahead = null,
+                                          array   $filters = [],
+                                          array   $extras = [],
+                                          mixed   $value = null): FormField
     {
 
         $form_field = new FormField(
