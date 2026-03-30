@@ -143,11 +143,11 @@ enum Color: string
 
             $rgb[] = $alpha;
 
-            return 'rgba(' . implode(',', $rgb) . ')';
+            return 'rgba(' . implode(', ', $rgb) . ')';
 
         }
 
-        return 'rgb(' . implode(',', $rgb) . ')';
+        return 'rgb(' . implode(', ', $rgb) . ')';
 
     }
 

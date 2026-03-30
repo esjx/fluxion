@@ -19,7 +19,11 @@ enum Icon: string
     case MONEY_BOX = 'money-box';
     case FILE_TEXT = 'file-text';
     case PIZZA = 'pizza';
+    case FORWARD = 'forward';
     case CODE_SETTING = 'code-setting';
+    case ATTACHMENT_ALT = 'attachment-alt';
+    case EDIT = 'edit';
+    case WIDGETS = 'widgets';
     case ALERT_TRIANGLE = 'alert-triangle';
     case COLLECTION_ITEM = 'collection-item';
     case COLLECTION_ITEM_1 = 'collection-item-1';
@@ -37,5 +41,6 @@ enum Icon: string
     case CHECK = 'check';
     case CHECK_ALL = 'check-all';
     case BLOCK = 'block';
+    case REPLY = 'reply';
 
 }

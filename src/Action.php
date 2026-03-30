@@ -16,6 +16,7 @@ enum Action: string
     case RESTORE = 'restore';
     case INDEX = 'index';
     case CLEAR = 'clear';
+    case REPLY = 'reply';
 
     # Controle de acesso e segurança
     case BLOCK = 'block';
@@ -53,6 +54,8 @@ enum Action: string
     case OPEN = 'open';
     case REOPEN = 'reopen';
     case CLOSE = 'close';
+    case FORWARD = 'forward';
+    case TRANSFER = 'transfer';
 
     # Integração e comunicação
     case PRINT = 'print';
