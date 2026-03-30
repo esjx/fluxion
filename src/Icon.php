@@ -41,6 +41,6 @@ enum Icon: string
     case CHECK = 'check';
     case CHECK_ALL = 'check-all';
     case BLOCK = 'block';
-    case REPLY = 'reply';
+    case MAIL_REPLY = 'mail-reply';
 
 }
