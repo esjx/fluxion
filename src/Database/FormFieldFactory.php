@@ -121,6 +121,42 @@ class FormFieldFactory
 
     }
 
+    public static function iframe(string  $name,
+                                  ?string $label = null,
+                                  bool    $visible = true,
+                                  bool    $enabled = true,
+                                  int     $size = 12,
+                                  bool    $required = false,
+                                  string  $placeholder = '',
+                                  ?string $pattern = null,
+                                  ?string $text_transform = null,
+                                  ?int    $minlength = null,
+                                  ?int    $maxlength = null,
+                                  ?string $group_name = null,
+                                  ?string $help = null,
+                                  ?string $value = null): FormField
+    {
+
+        return new FormField(
+            name: $name,
+            label: $label,
+            visible: $visible,
+            enabled: $enabled,
+            type: 'iframe',
+            size: $size,
+            required: $required,
+            placeholder: $placeholder,
+            pattern: $pattern,
+            text_transform: $text_transform,
+            minlength: $minlength,
+            maxlength: $maxlength,
+            group_name: $group_name,
+            help: $help,
+            value: $value
+        );
+
+    }
+
     public static function date(string  $name,
                                 ?string $label = null,
                                 bool    $visible = true,
@@ -207,6 +243,34 @@ class FormFieldFactory
             enabled: $enabled,
             type: 'boolean',
             size: $size,
+            required: $required,
+            group_name: $group_name,
+            help: $help,
+            value: $value
+        );
+
+    }
+
+    public static function upload(string  $name,
+                                  ?string $label = null,
+                                  bool    $visible = true,
+                                  bool    $enabled = true,
+                                  int     $size = 12,
+                                  int     $max_size = 1024 * 1024 * 3,
+                                  bool    $required = false,
+                                  ?string $group_name = null,
+                                  ?string $help = null,
+                                  ?int     $value = null): FormField
+    {
+
+        return new FormField(
+            name: $name,
+            label: $label,
+            visible: $visible,
+            enabled: $enabled,
+            type: 'upload',
+            size: $size,
+            max_size: $max_size,
             required: $required,
             group_name: $group_name,
             help: $help,

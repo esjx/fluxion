@@ -25,6 +25,7 @@ class FormField
                                 public int     $size = 12,
                                 public ?int    $min = null,
                                 public ?int    $max = null,
+                                public ?int    $max_size = null,
                                 public bool    $required = false,
                                 public ?array  $required_conditions = null,
                                 public string  $placeholder = '',

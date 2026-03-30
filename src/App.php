@@ -153,6 +153,11 @@ class App
                             Config::getConnector()->getPDO()->commit();
                         }
 
+                        catch (SqlFluxionException $e) {
+                            Config::getConnector()->getPDO()->rollBack();
+                            throw new SqlFluxionException($e->getOriginalMessage(), $e->getSql());
+                        }
+
                         catch (_Exception $e) {
                             Config::getConnector()->getPDO()->rollBack();
                             throw new FluxionException($e->getMessage());
