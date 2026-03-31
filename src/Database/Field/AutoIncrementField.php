@@ -2,7 +2,8 @@
 namespace Fluxion\Database\Field;
 
 use Attribute;
-use Fluxion\Database\Field;
+use Fluxion\Database\{Field};
+use Fluxion\Query\{QuerySql, QueryWhere};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class AutoIncrementField extends Field
@@ -23,6 +24,17 @@ class AutoIncrementField extends Field
         $this->_needs_audit = $needs_audit;
 
         parent::__construct();
+
+    }
+
+    public function getSearch(string $value): ?QueryWhere
+    {
+
+        if (!is_numeric($value) || strlen($value) > 15) {
+            return null;
+        }
+
+        return QuerySql::filter($this->_name, (int) $value);
 
     }
 
