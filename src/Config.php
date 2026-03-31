@@ -92,4 +92,24 @@ class Config
 
     }
 
+    public static function mapUploadDir(string $local): ?string
+    {
+
+        $dir = str_replace(['/', '\\'], '/', $_ENV['LOCAL_UPLOAD'] ?? '');
+        $local = str_replace(['/', '\\'], '/', $local);
+
+        if ($dir != '') {
+            $dir = preg_replace('/\/$/m', '', $dir) . '/';
+        }
+
+        $dir .= preg_replace('/^\/$/m', '', $local);
+
+        $dir = preg_replace('/\/$/m', '', $dir) . '/';
+
+        FileManager::createDir($dir);
+
+        return $dir;
+
+    }
+
 }

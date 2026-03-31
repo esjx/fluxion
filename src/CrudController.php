@@ -418,9 +418,7 @@ class CrudController extends Controller
             throw new FluxionException("File upload failed with error code: " . $file->getError());
         }
 
-        $uploadDirectory = $_ENV['LOCAL_UPLOAD'] ?? '';
-
-        $uploadDirectory .= '/temp/';
+        $uploadDirectory = Config::mapUploadDir('temp/');
 
         FileManager::createDir($uploadDirectory);
 
