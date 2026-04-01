@@ -10,7 +10,8 @@ class TableTag
 
     public function __construct(public string $label,
                                 Color|ColorLink $color,
-                                public ?string $link = null)
+                                public ?string $link = null,
+                                public null|string|array $route = null)
     {
         $this->color = $color->value;
     }
