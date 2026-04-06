@@ -81,7 +81,7 @@ class ResponseFactory
 
     }
 
-    public static function fromFile(string $file, int $code = 200, ?int $max_age = null): MessageInterface
+    public static function fromFile(string $file, int $code = 200, ?int $max_age = null, ?string $title = null): MessageInterface
     {
 
         if (!file_exists($file)) {
@@ -108,10 +108,20 @@ class ResponseFactory
             $response = $util->withCache($response, $max_age);
         }
 
-        return $response->withStatus($code)
+        $message = $response->withStatus($code)
             ->withBody($stream)
             ->withHeader('Content-Type', $mime_type)
             ->withHeader('Content-Length', $file_size);
+
+        if (!empty($title)) {
+
+            $title .= '.' . pathinfo($file, PATHINFO_EXTENSION);
+
+            $message = $message->withHeader('Content-Disposition', 'attachment; filename="' . $title . '"');
+
+        }
+
+        return $message;
 
     }
 
