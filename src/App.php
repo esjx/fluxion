@@ -17,6 +17,8 @@ class App
 
     protected static ?LoggerInterface $logger = null;
 
+    protected static ?int $start_time = null;
+
     public function setLogger(LoggerInterface $logger): void
     {
         $this::$logger = $logger;
@@ -39,6 +41,12 @@ class App
     public function __construct()
     {
         $this->setLogger(new NullLogger());
+        $this::$start_time = microtime(true);
+    }
+
+    public static function getTime(): float
+    {
+        return microtime(true) - self::$start_time;
     }
 
     /** @noinspection PhpUnused */
