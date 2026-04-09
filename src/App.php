@@ -17,7 +17,7 @@ class App
 
     protected static ?LoggerInterface $logger = null;
 
-    protected static ?int $start_time = null;
+    protected static ?float $start_time = null;
 
     public function setLogger(LoggerInterface $logger): void
     {
