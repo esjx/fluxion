@@ -17,6 +17,8 @@ enum Time: string
     case TOMORROW = '+1 day|Y-m-d';
     case ONE_WEEK_LATER = '+1 week|Y-m-d';
 
+    case FIVE_MINUTES_AGO = '-5 minutes';
+    case ONE_MINUTE_AGO = '-1 minute';
     case ONE_HOUR_AGO = '-1 hour';
     case NOW = '';
     case ONE_HOUR_LATER = '+1 hour';
