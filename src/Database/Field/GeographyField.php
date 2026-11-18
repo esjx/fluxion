@@ -17,6 +17,7 @@ class GeographyField extends Field
 
     public function __construct(public ?bool $protected = false,
                                 public ?bool $enabled = true,
+                                public ?string $column_name = null,
                                 public ?bool $fake = false)
     {
         parent::__construct();

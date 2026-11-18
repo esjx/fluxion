@@ -18,6 +18,7 @@ class BooleanField extends Field
                                 public bool   $default_literal = false,
                                 public ?bool  $fake = false,
                                 public ?bool  $enabled = true,
+                                public ?string $column_name = null,
                                 public string $true_title = 'Sim',
                                 public string $false_title = 'Não',
                                 bool          $needs_audit = true)

@@ -21,7 +21,8 @@ class ColorField extends Field
                                 public mixed $default = null,
                                 public bool  $default_literal = false,
                                 public ?bool $fake = false,
-                                public ?bool $enabled = true)
+                                public ?bool $enabled = true,
+                                public ?string $column_name = null)
     {
 
         parent::__construct();

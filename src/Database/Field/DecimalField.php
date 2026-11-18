@@ -22,6 +22,7 @@ class DecimalField extends FloatField
                                 public bool            $default_literal = false,
                                 public ?bool           $fake = false,
                                 public ?bool           $enabled = true,
+                                public ?string $column_name = null,
                                 bool $needs_audit = true)
     {
 
