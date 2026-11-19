@@ -24,6 +24,7 @@ class IntegerField extends Field
                                 public ?bool           $fake = false,
                                 public ?bool           $null_if_invalid = false,
                                 public ?bool           $enabled = true,
+                                public ?string $column_name = null,
                                 bool $needs_audit = true)
     {
 

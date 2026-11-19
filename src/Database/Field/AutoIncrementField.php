@@ -16,6 +16,7 @@ class AutoIncrementField extends Field
 
     public function __construct(public ?bool $protected = false,
                                 public ?bool $readonly = true,
+                                public ?string $column_name = null,
                                 bool $needs_audit = true)
     {
 
