@@ -18,6 +18,10 @@ class Config
                 self::$connector = new Connector\SQLServer();
             }
 
+            if (isset($_ENV['DB_TYPE']) && $_ENV['DB_TYPE'] == 'pgsql') {
+                self::$connector = new Connector\PostgreSQL();
+            }
+
             else {
                 throw new FluxionException('Dados de conexão não encontrados.');
             }
