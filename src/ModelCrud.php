@@ -341,7 +341,7 @@ trait ModelCrud
                 foreach ((clone $query)->groupBy($key)->orderBy($key)->select() as $item) {
 
                     $id = $item->$key;
-                    $label = $field->choices[$id] ?? (string) $id;
+                    $label = $field->choices[$id ?? ''] ?? (string) $id;
 
                     if (is_null($id)) {
                         $id = self::$empty_value;

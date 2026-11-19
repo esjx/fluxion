@@ -57,7 +57,7 @@ class DateField extends Field
             $new_value = Time::convert($value, $this->date_format);
 
             if (is_null($new_value) && !$this->null_if_invalid) {
-                throw new FluxionException("Valor '$value' inválido para o campo '$this->_name'");
+                throw new FluxionException("Valor '$value' inválido para o campo '$this->_name' ({$this->_model})");
             }
 
             else {

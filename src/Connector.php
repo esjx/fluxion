@@ -311,6 +311,8 @@ abstract class Connector
                     $id[$key] = $row[$key] ?? null;
                 }
 
+                //throw new FluxionException("Dados iniciais inválidos para o modelo '" . implode(',', $id) . "'");
+
                 $test = $model::loadById($id);
 
                 foreach ($row as $key => $value) {

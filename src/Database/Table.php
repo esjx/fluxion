@@ -18,10 +18,15 @@ class Table
     public function initialize(): void
     {
 
-        if (is_null($this->database)
-            && preg_match('/database=(?P<database>[A-Za-z0-9_]+)/i', $_ENV['DB_HOST'] ?? '', $data)) {
+        if (is_null($this->database)) {
 
-            $this->database = $data['database'];
+            if (preg_match('/database=(?P<database>[A-Za-z0-9_]+)/i', $_ENV['DB_HOST'] ?? '', $data)) {
+                $this->database = $data['database'];
+            }
+
+            elseif (preg_match('/dbname=(?P<database>[A-Za-z0-9_]+)/i', $_ENV['DB_HOST'] ?? '', $data)) {
+                $this->database = $data['database'];
+            }
 
         }
 

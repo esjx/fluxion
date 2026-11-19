@@ -90,7 +90,7 @@ class PostgreSQL extends Connector
 
         }
 
-        if ($this->_database != $table->database) {
+        /*if ($this->_database != $table->database) {
 
             # No PostgreSQL não é possível trocar de banco na mesma sessão via 'USE database'
             $currentDb = $this->fetch("SELECT current_database() AS db")[0]['db'] ?? null;
@@ -101,7 +101,7 @@ class PostgreSQL extends Connector
 
             $this->_database = $table->database;
 
-        }
+        }*/
 
         if (!isset($this->_structure[$table->database][$table->schema])) {
 
@@ -1374,7 +1374,7 @@ class PostgreSQL extends Connector
         $sql .= ";";
 
         # Sincroniza a sequence caso tenham sido inseridos IDs manualmente
-        if ($identity_insert) {
+        /*if ($identity_insert) {
 
             foreach ($primary_keys as $p) {
                 if ($p->identity) {
@@ -1382,7 +1382,7 @@ class PostgreSQL extends Connector
                 }
             }
 
-        }
+        }*/
 
         return $sql;
 
