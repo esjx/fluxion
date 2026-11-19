@@ -521,7 +521,7 @@ trait ModelCrud
     /**
      * @throws FluxionException
      */
-    public function tab(Query $query, null|string|int &$tab, null|string|int $default_tab): Query
+    public function tab(Query $query, null|string|bool|int &$tab, null|string|bool|int $default_tab): Query
     {
 
         $crud = $this->getCrud();
